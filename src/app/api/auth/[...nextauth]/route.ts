@@ -9,7 +9,7 @@ const handler = NextAuth({
 
     Google({
       clientId: process.env.GOOGLE_CLIENT!,
-      clientSecret: process.env.GOOGLE_CLIENTSECRET!,
+      clientSecret: process.env.google_secret_client!,
       authorization: {
         params: {
           prompt: "consent",
