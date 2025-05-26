@@ -1,0 +1,106 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  authMethod String
+  role       String
+  isActive   Boolean
+  profiles   Profile[]
+}
+
+model Profile {
+  id               String   @id @default(uuid())
+  userId           String   @unique
+  bio              String
+  address          String
+  profileImg       String
+  friends          Profile[] @relation("Friendship")
+  trades           Trade[]  @relation("ProfileTrades")
+  bills            Bill[]
+  pantry           Json?
+  history          Json?
+  recipes          Json?
+  favoritesBox     Json?
+  favoritesRecipes Json?
+  user             User     @relation(fields: [userId], references: [id])
+}
+
+model Item {
+  id         String @id @default(uuid())
+  name       String
+  img        String
+  quantity   Int
+  dateBought DateTime
+  expireDate DateTime
+}
+
+model Enterprise {
+  id        String   @id @default(uuid())
+  name      String
+  description String
+  status    Boolean
+  address   String
+  boxes     Box[]
+  donated   Json?
+  orders    Json?
+  members   Json?
+}
+
+model NGO {
+  id        String   @id @default(uuid())
+  name      String
+  description String
+  status    Boolean
+  address   String
+  boxes     Box[]
+  donated   Json?
+  orders    Json?
+  members   Json?
+}
+
+model Trade {
+  id              String   @id @default(uuid())
+  senderProfileId String
+  receiverProfileId String
+  items           Json
+  tradeDate       DateTime
+  status          String
+  senderProfile   Profile  @relation("SenderProfileTrades", fields: [senderProfileId], references: [id])
+  receiverProfile Profile  @relation("ReceiverProfileTrades", fields: [receiverProfileId], references: [id])
+}
+
+model Bill {
+  id        String   @id @default(uuid())
+  entityId  String
+  profileId String
+  boxId     String
+  amount    Float
+  date      DateTime
+  type      String
+  status    String
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  box       Box      @relation(fields: [boxId], references: [id])
+}
+
+model Box {
+  id               String   @id @default(uuid())
+  name             String
+  items            Json?
+  description      String
+  quantity         Int
+  img              String
+  date             DateTime
+  endDate          DateTime
+  price            Int
+  hasSoldOrDonated Boolean
+  bills            Bill[]?
+}
