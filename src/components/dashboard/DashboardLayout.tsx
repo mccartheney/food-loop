@@ -24,7 +24,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
 
-  // Check if we're on mobile
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
@@ -37,10 +36,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Mobile Header - only visible on mobile */}
       {isMobile && <MobileHeader />}
 
-      {/* Desktop Sidebar - Hidden on Mobile - Now with white background */}
       {!isMobile && (
         <motion.div 
           initial={{ x: -60 }}
@@ -95,14 +92,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         </motion.div>
       )}
 
-      {/* Main content */}
       <div className={`flex-1 ${!isMobile ? 'ml-14' : 'mt-16'}`}>
         <main className="max-w-7xl mx-auto p-4">
           {children}
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation - Hidden on Desktop */}
       <AnimatePresence>
         {isMobile && (
           <motion.div
@@ -135,7 +130,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Add bottom padding on mobile for the navigation bar */}
       {isMobile && <div className="h-16"></div>}
     </div>
   );

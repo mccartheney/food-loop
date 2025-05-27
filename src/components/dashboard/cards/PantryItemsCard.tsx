@@ -48,7 +48,6 @@ const pantryItems = [
   }
 ];
 
-// Icons mapping for the items
 const getIcon = (icon: string, color: string) => {
   return <div className={`w-6 h-6 rounded ${color}`}></div>;
 };
