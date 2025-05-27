@@ -10,7 +10,6 @@ const LoginForm: React.FC = () => {
   };
   
   return (
-    // Add a full-height container with flex centering
     <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
       <div className="max-w-[450px] w-full mx-4 md:mx-auto p-10 bg-white rounded-xl shadow-lg animate-[fade-in_0.5s_ease-out]">
         <h1 className="text-[1.75rem] font-bold text-center mb-7 text-gray-800">
