@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  ENTERPRISE_MEMBER
+  ENTERPRISE_MANAGER
+  NGO_MEMBER
+  NGO_MANAGER
+}
+
+enum AuthMethod {
+  GOOGLE
+  FACEBOOK
+  EMAIL
+}
+
+enum ItemType {
+  MEAT
+  GRAINS_CEREALS
+  FISH_SEAFOOD
+  DAIRY
+  BAKERY
+  VEGETABLES
+  FRUITS
+  LEGUMES_BEANS
+  NUTS_SEEDS
+  OILS_FATS
+  SPICES_SEASONINGS
+  BEVERAGES
+  FROZEN_FOODS
+  CANNED_GOODS
+  SNACKS
+  CONDIMENTS_SAUCES
+  HERBS
+  EGGS
+  PREPARED_MEALS
+  DESSERTS_SWEETS
+}
+
+enum EntityType {
+  NGO
+  ENTERPRISE
+}
+
+model User {
+  id           String      @id @default(cuid())
+  name         String
+  email        String      @unique
+  authMethod   AuthMethod
+  role         UserRole
+  isActive     Boolean
+  profile      Profile?
+  enterpriseMemberships EnterpriseMember[]
+  ngoMemberships        NGOMember[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([email])
+}
+
+model Profile {
+  id               String    @id @default(cuid())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String    @unique
+  bio              String?
+  address          String?
+  profileImg       String?
+  friends          Profile[] @relation("Friendship")
+  friendOf         Profile[] @relation("Friendship")
+  pantry           Pantry?
+  history          History[]
+  orders           Order[]
+  recipes          Recipe[]
+  favoriteBoxes    Box[]     @relation("FavoriteBoxes")
+  favoriteRecipes  Recipe[]  @relation("FavoriteRecipes")
+}
+
+model Enterprise {
+  id          String             @id @default(cuid())
+  name        String
+  description String
+  status      Boolean
+  address     String
+  boxes       Box[]
+  donated     Donated[]
+  orders      Order[]
+  members     EnterpriseMember[]
+}
+
+model EnterpriseMember {
+  id           String      @id @default(cuid())
+  enterprise   Enterprise  @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+  enterpriseId String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  role         UserRole
+
+  @@index([enterpriseId])
+  @@index([userId])
+}
+
+model NGO {
+  id          String         @id @default(cuid())
+  name        String
+  description String
+  status      Boolean
+  address     String
+  boxes       Box[]
+  donated     Donated[]
+  orders      Order[]
+  members     NGOMember[]
+}
+
+model NGOMember {
+  id      String   @id @default(cuid())
+  ngo     NGO      @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  ngoId   String
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  String
+  role    UserRole
+
+  @@index([ngoId])
+  @@index([userId])
+}
+
+model Pantry {
+  id        String   @id @default(cuid())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @unique
+  items     Item[]
+}
+
+model Item {
+  id          String    @id @default(cuid())
+  name        String
+  type        ItemType
+  img         String?
+  quantity    Int
+  dateBought  DateTime
+  expireDate  DateTime
+  pantry      Pantry?   @relation(fields: [pantryId], references: [id], onDelete: SetNull)
+  pantryId    String?
+  box         Box?      @relation(fields: [boxId], references: [id], onDelete: SetNull)
+  boxId       String?
+  recipe      Recipe?   @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  recipeId    String?
+
+  @@index([expireDate])
+}
+
+model Recipe {
+  id          String   @id @default(cuid())
+  profile     Profile? @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  profileId   String?
+  name        String
+  img         String?
+  steps       String
+  items       Item[]
+  description String
+  favorites   Profile[] @relation("FavoriteRecipes")
+}
+
+model History {
+  id        String   @id @default(cuid())
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+  date      DateTime
+  orders    Order[]
+}
+
+model Donated {
+  id            String     @id @default(cuid())
+  ngo           NGO        @relation(fields: [ngoId], references: [id], onDelete: Cascade)
+  ngoId         String
+  enterprise    Enterprise @relation(fields: [enterpriseId], references: [id], onDelete: Cascade)
+  enterpriseId  String
+  boxes         Box[]      @relation("DonatedBoxes")
+  date          DateTime
+  quantity      Int
+}
+
+model Order {
+  id           String     @id @default(cuid())
+  entity       EntityType
+  profile      Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId    String
+  history      History?   @relation(fields: [historyId], references: [id])
+  historyId    String?
+  boxes        Box[]      @relation("OrderBoxes")
+  date         DateTime
+  quantity     Int
+  ngo          NGO?       @relation(fields: [ngoId], references: [id], onDelete: SetNull)
+  ngoId        String?
+  enterprise   Enterprise? @relation(fields: [enterpriseId], references: [id], onDelete: SetNull)
+  enterpriseId String?
+}
+
+model Box {
+  id                String   @id @default(cuid())
+  name              String
+  items             Item[]
+  description       String
+  quantity          Int
+  img               String?
+  date              DateTime
+  endDate           DateTime
+  price             Int
+  hasSoldOrDonated  Boolean
+  enterprise        Enterprise? @relation(fields: [enterpriseId], references: [id], onDelete: SetNull)
+  enterpriseId      String?
+  ngo               NGO?        @relation(fields: [ngoId], references: [id], onDelete: SetNull)
+  ngoId             String?
+  favorites         Profile[]   @relation("FavoriteBoxes")
+  donated           Donated[]   @relation("DonatedBoxes")
+  orders            Order[]     @relation("OrderBoxes")
+}
