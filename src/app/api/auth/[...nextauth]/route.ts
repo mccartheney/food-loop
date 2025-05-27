@@ -24,32 +24,32 @@ const handler = NextAuth({
   ],
 
   callbacks: {
-    async signIn({ user, account, profile }) {
-      if (account?.provider === "google" && user?.email) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-        if (!existingUser) {
-          await prisma.user.create({
-            data: {
-              name: user.name || profile?.name || "-",
-              email: user.email,
-              authMethod: "GOOGLE",
-              role: "USER",
-              isActive: true,
-              profile: {
-                create: {
-                  bio: "-",
-                  address: "-",
-                  profileImg: user.image || (profile && "picture" in profile ? (profile as any).picture : "-") || "-",
-                },
-              },
-            },
-          });
-        }
-      }
-      return true;
-    },
+    // async signIn({ user, account, profile }) {
+    //   if (account?.provider === "google" && user?.email) {
+    //     const existingUser = await prisma.user.findUnique({
+    //       where: { email: user.email },
+    //     });
+    //     if (!existingUser) {
+    //       await prisma.user.create({
+    //         data: {
+    //           name: user.name || profile?.name || "-",
+    //           email: user.email,
+    //           authMethod: "GOOGLE",
+    //           role: "USER",
+    //           isActive: true,
+    //           profile: {
+    //             create: {
+    //               bio: "-",
+    //               address: "-",
+    //               profileImg: user.image || (profile && "picture" in profile ? (profile as any).picture : "-") || "-",
+    //             },
+    //           },
+    //         },
+    //       });
+    //     }
+    //   }
+    //   return true;
+    // },
     async jwt(
       { token }: { token: JWT }
     ) {
