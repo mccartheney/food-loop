@@ -6,7 +6,7 @@ import {
   FiPackage, FiShoppingCart, FiDollarSign, FiClock, FiHome, FiAward,
   FiPieChart, FiTruck, FiGift, FiDatabase, FiBarChart2, FiLayers,
   FiBox, FiCoffee, FiMeh, FiSmile, FiPhoneCall, FiMail, FiMapPin,
-  FiRefreshCw // Add this import
+  FiRefreshCw 
 } from 'react-icons/fi';
 import { FaAppleAlt, FaCarrot, FaBreadSlice, FaCheese, FaFish, FaIceCream } from 'react-icons/fa';
 
