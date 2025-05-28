@@ -34,6 +34,8 @@ export default function AppLayout({
     return null;
   }
 
+  console.log('Session:', session);
+
   // Authenticated - render children
   return <>{children}</>;
 }
