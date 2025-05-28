@@ -3,8 +3,9 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useSession } from 'next-auth/react';
 import { ItemType } from '@prisma/client'; // Prisma enum for item types
-import { FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader } from 'react-icons/fi';
+import { FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader, FiLayers } from 'react-icons/fi';
 import Image from 'next/image';
+import { foodList } from '@/lib/foodList'; // Import the food list
 
 // Client-side representation of a pantry item
 interface PantryDisplayItem {
@@ -25,6 +26,21 @@ const formatItemTypeLabel = (typeKey: string) => {
         .replace(/\b\w/g, (l) => l.toUpperCase());
 };
 
+// Helper to map foodList types to API-compatible ItemType strings
+const foodListTypeToApiType = (type: string): string => {
+    const upperType = type.toUpperCase();
+    switch (upperType) {
+        case 'MEAT': return ItemType.MEAT;
+        case 'GRAIN': return ItemType.GRAINS_CEREALS;
+        case 'DAIRY': return ItemType.DAIRY;
+        case 'BEVERAGE': return ItemType.BEVERAGES;
+        case 'FROZEN': return ItemType.FROZEN_FOODS;
+        default:
+            return ItemType.BAKERY
+        
+    }
+};
+
 const PantryPage = () => {
     const { data: session, status: sessionStatus } = useSession();
     const [pantryItems, setPantryItems] = useState<PantryDisplayItem[]>([]);
@@ -39,6 +55,7 @@ const PantryPage = () => {
     const [itemType, setItemType] = useState<string>(Object.keys(ItemType)[0] || '');
     const [itemImg, setItemImg] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSubmittingAll, setIsSubmittingAll] = useState(false); // New state for bulk add
 
     const userEmail = session?.user?.email;
 
@@ -120,6 +137,41 @@ const PantryPage = () => {
             setError(e.message);
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleAddAllItems = async () => {
+        if (!userEmail) {
+            setError("You must be logged in to add items.");
+            return;
+        }
+        clearMessages();
+        setIsSubmittingAll(true);
+
+        const itemsToSubmit = foodList.map(item => ({
+            name: item.name,
+            quantity: item.quantity,
+            expire_date: item.expire_date,
+            type: foodListTypeToApiType(item.type),
+            // img is optional and not present in foodList
+        }));
+
+        try {
+            const response = await fetch('/api/pantry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, itemsToAdd: itemsToSubmit }),
+            });
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Failed to add all demo items.');
+            }
+            setSuccessMessage(responseData.message || 'All demo items added successfully!');
+            fetchPantryItems(); // Refresh list
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsSubmittingAll(false);
         }
     };
 
@@ -229,7 +281,20 @@ const PantryPage = () => {
 
             {/* Pantry Items List */}
             <div>
-                <h2 className="text-2xl font-semibold mb-6">Your Items</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl font-semibold">Your Items</h2>
+                    {foodList && foodList.length > 0 && (
+                        <button
+                            onClick={handleAddAllItems}
+                            className="btn btn-secondary btn-sm"
+                            disabled={isSubmitting || isSubmittingAll || sessionStatus !== 'authenticated'}
+                            title="Adds a predefined list of demo items to your pantry"
+                        >
+                            {isSubmittingAll ? <span className="loading loading-spinner loading-xs"></span> : <FiLayers className="mr-1" />}
+                            Add Demo Items
+                        </button>
+                    )}
+                </div>
                 {isLoading && !pantryItems.length ? (
                     <div className="flex justify-center items-center py-10">
                         <FiLoader className="animate-spin text-4xl text-primary" />

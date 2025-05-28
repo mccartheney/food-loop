@@ -8,7 +8,7 @@ interface GroceryItem {
 
 type GroceryList = GroceryItem[];
 
-const foodList : GroceryList = [
+export const foodList : GroceryList = [
     {
         "name": "Steak",
         "quantity": 1,
