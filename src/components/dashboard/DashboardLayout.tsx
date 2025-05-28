@@ -7,6 +7,8 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiHome, FiGrid, FiPlus, FiSettings, FiUser } from 'react-icons/fi';
 import MobileHeader from './cards/MobileHeader';
+import { FaSignOutAlt } from 'react-icons/fa';
+import { signIn, signOut } from 'next-auth/react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -84,7 +86,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               whileTap={{ scale: 0.95 }}
             >
               <Link 
-                href="/messages"
+                href="/app/messages"
                 onMouseEnter={() => setIsMessageHovered(true)}
                 onMouseLeave={() => setIsMessageHovered(false)}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
@@ -110,7 +112,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     alt="Messages" 
                     width={20} 
                     height={20}
-                    className={`absolute top-0 left-0 w-full h-full filter invert brightness-0 invert ${
+                    className={`absolute top-0 left-0 w-full h-full filter brightness-0 invert ${
                       (pathname === '/messages' || isMessageHovered) 
                         ? 'opacity-100' 
                         : 'opacity-0'
@@ -122,6 +124,19 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </nav>
           
           <div className="mt-auto flex flex-col items-center space-y-6 mb-6">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <button
+                onClick={() => {signOut()}}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 
+                    'text-gray-500 hover:text-white hover:bg-primary/80'
+                  }`}
+              >
+                <FaSignOutAlt/>
+              </button>
+            </motion.div>
             {navItems.slice(3).map((item) => (
               <motion.div
                 key={item.name}

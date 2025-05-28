@@ -6,7 +6,7 @@ import Image from 'next/image';
 
 const LoginForm: React.FC = () => {
   const handleGoogleSignIn = () => {
-    signIn('google', { callbackUrl: '/dashboard' });
+    signIn('google', { callbackUrl: '/app' });
   };
   
   return (

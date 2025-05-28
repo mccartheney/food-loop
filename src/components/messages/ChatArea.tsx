@@ -104,7 +104,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
         
         {/* Link para o perfil do usuário */}
         <Link 
-          href={`/profile/${conversation.id}`}
+          href={`/app/profile/${conversation.id}`}
           className="ml-3 font-medium text-gray-800 hover:underline transition-all"
         >
           {conversation?.user?.name}
