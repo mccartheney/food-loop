@@ -23,6 +23,7 @@ const navItems = [
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
+  const [isMessageHovered, setIsMessageHovered] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -60,33 +61,84 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           
           <nav className="flex flex-col items-center space-y-6 flex-1">
             {navItems.slice(0, 3).map((item) => (
-              <Link 
+              <motion.div
                 key={item.name}
-                href={item.href}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  pathname === item.href 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link 
+                  href={item.href}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                    pathname === item.href 
+                      ? 'bg-primary text-white' 
+                      : 'text-gray-500 hover:text-white hover:bg-primary/80'
+                  }`}
+                >
+                  <item.icon size={20} />
+                </Link>
+              </motion.div>
+            ))}
+            
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link 
+                href="/messages"
+                onMouseEnter={() => setIsMessageHovered(true)}
+                onMouseLeave={() => setIsMessageHovered(false)}
+                className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                  pathname === '/messages' 
                     ? 'bg-primary text-white' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                    : 'text-gray-500 hover:text-white hover:bg-primary/80'
                 }`}
               >
-                <item.icon size={20} />
+                <div className="relative w-5 h-5">
+                  <Image 
+                    src="/sent.svg" 
+                    alt="Messages" 
+                    width={20} 
+                    height={20}
+                    className={`absolute top-0 left-0 w-full h-full ${
+                      (pathname === '/messages' || isMessageHovered) 
+                        ? 'opacity-0' 
+                        : 'opacity-100'
+                    }`}
+                  />
+                  <Image 
+                    src="/sent.svg" 
+                    alt="Messages" 
+                    width={20} 
+                    height={20}
+                    className={`absolute top-0 left-0 w-full h-full filter invert brightness-0 invert ${
+                      (pathname === '/messages' || isMessageHovered) 
+                        ? 'opacity-100' 
+                        : 'opacity-0'
+                    }`}
+                  />
+                </div>
               </Link>
-            ))}
+            </motion.div>
           </nav>
           
           <div className="mt-auto flex flex-col items-center space-y-6 mb-6">
             {navItems.slice(3).map((item) => (
-              <Link 
+              <motion.div
                 key={item.name}
-                href={item.href}
-                className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  pathname === item.href 
-                    ? 'bg-primary text-white' 
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                <item.icon size={20} />
-              </Link>
+                <Link 
+                  href={item.href}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
+                    pathname === item.href 
+                      ? 'bg-primary text-white' 
+                      : 'text-gray-500 hover:text-white hover:bg-primary/80'
+                  }`}
+                >
+                  <item.icon size={20} />
+                </Link>
+              </motion.div>
             ))}
           </div>
         </motion.div>
@@ -114,7 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 className="flex flex-col items-center justify-center"
               >
                 {item.isPrimary ? (
-                  <div className="w-12 h-12 rounded-full bg-primary -mt-6 flex items-center justify-center text-white">
+                  <div className="w-12 h-12 rounded-full bg-primary -mt-6 flex items-center justify-center text-white hover:bg-primary-focus transition-colors duration-200">
                     <item.icon size={20} />
                   </div>
                 ) : (
