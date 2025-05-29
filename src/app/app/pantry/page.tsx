@@ -818,7 +818,9 @@ const PantryPage = () => {
     // Helper function to open the modal
     const openAddItemModal = () => {
         if (typeof document !== 'undefined') {
-            document.getElementById('add_item_modal')?.showModal();
+            // Cast the element to HTMLDialogElement to access showModal method
+            const modal = document.getElementById('add_item_modal') as HTMLDialogElement;
+            if (modal) modal.showModal();
         }
     };
     
