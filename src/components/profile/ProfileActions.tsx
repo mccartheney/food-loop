@@ -12,13 +12,13 @@ export default function ProfileActions({ userId }: ProfileActionsProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   
   const handleFollowToggle = () => {
-    // Aqui você implementará a chamada para a API quando o backend estiver pronto
     setIsFollowing(!isFollowing);
   };
   
   const handleMessageClick = () => {
-    // Redirecionar para a página de mensagens com este usuário
-    router.push(`/messages/${userId}`);
+    router.push('/app/messages');
+    
+
   };
   
   return (
@@ -27,13 +27,13 @@ export default function ProfileActions({ userId }: ProfileActionsProps) {
         onClick={handleFollowToggle} 
         className={`btn btn-sm flex-1 ${isFollowing ? 'btn-outline' : 'btn-primary'}`}
       >
-        {isFollowing ? 'Seguindo' : 'Seguir'}
+        {isFollowing ? 'Friend' : 'Add Friend'}
       </button>
       <button 
         onClick={handleMessageClick}
         className="btn btn-sm btn-outline flex-1"
       >
-        Mensagem
+        Messages
       </button>
       <button className="btn btn-sm btn-outline btn-square">⋯</button>
     </div>

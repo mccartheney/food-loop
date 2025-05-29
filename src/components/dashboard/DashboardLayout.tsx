@@ -5,27 +5,35 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiGrid, FiPlus, FiSettings, FiUser } from 'react-icons/fi';
+import { FiHome, FiGrid, FiPlus, FiSettings, FiUser, FiSearch } from 'react-icons/fi';
 import MobileHeader from './cards/MobileHeader';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { signIn, signOut } from 'next-auth/react';
+import { IconType as ReactIconType } from 'react-icons';
+import SearchModal from './SearchModal'; // Import the SearchModal component
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
-const navItems = [
-  { name: 'Home', href: '/dashboard', icon: FiHome },
-  { name: 'Inventory', href: '/dashboard/inventory', icon: FiGrid },
-  { name: 'Add', href: '/dashboard/add', icon: FiPlus, isPrimary: true },
-  { name: 'Settings', href: '/dashboard/settings', icon: FiSettings },
-  { name: 'Profile', href: '/dashboard/profile', icon: FiUser }
-];
+// Define our icon types more carefully
+type CustomIconFunction = (isActive: boolean, isHovered?: boolean) => React.ReactNode;
+
+interface NavItem {
+  name: string;
+  href: string;
+  icon: ReactIconType | CustomIconFunction;
+  isPrimary?: boolean;
+  isCustomIcon?: boolean;
+  action?: () => void; // Add action property for click handlers
+}
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const pathname = usePathname();
   const [isMobile, setIsMobile] = useState(false);
   const [isMessageHovered, setIsMessageHovered] = useState(false);
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -37,9 +45,74 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const openSearchModal = () => {
+    setIsSearchOpen(true);
+  };
+
+  const closeSearchModal = () => {
+    setIsSearchOpen(false);
+  };
+
+  const navItems: NavItem[] = [
+    { name: 'Home', href: '/app', icon: FiHome },
+    { name: 'Inventory', href: '/app/inventory', icon: FiGrid },
+    { name: 'Search', href: '#', icon: FiSearch, action: openSearchModal }, // Modified to use action
+    { 
+      name: 'Pantry', 
+      href: '/app/pantry', 
+      icon: (isActive: boolean, isHovered?: boolean) => (
+        <div className="relative w-5 h-5">
+          <Image 
+            src="/pantry.svg" 
+            alt="Pantry" 
+            width={20} 
+            height={20}
+            className={`absolute top-0 left-0 w-full h-full ${
+              (isActive || isHovered) ? 'opacity-0' : 'opacity-100'
+            }`}
+          />
+          <Image 
+            src="/pantry.svg" 
+            alt="Pantry" 
+            width={20} 
+            height={20}
+            className={`absolute top-0 left-0 w-full h-full filter brightness-0 invert ${
+              (isActive || isHovered) ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
+        </div>
+      ),
+      isCustomIcon: true
+    },
+    { name: 'Add', href: '/app/add', icon: FiPlus, isPrimary: true },
+    { name: 'Settings', href: '/app/settings', icon: FiSettings },
+    { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
+  ];
+
+  const renderIcon = (item: NavItem, isActive: boolean) => {
+    if (item.isCustomIcon && typeof item.icon === 'function') {
+      // For custom function icons
+      return (item.icon as CustomIconFunction)(isActive, hoveredItem === item.href);
+    } else {
+      // For regular React icons
+      const IconComponent = item.icon as ReactIconType;
+      return <IconComponent size={20} />;
+    }
+  };
+
+  const handleItemClick = (item: NavItem, e: React.MouseEvent) => {
+    if (item.action) {
+      e.preventDefault();
+      item.action();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {isMobile && <MobileHeader />}
+
+      {/* Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={closeSearchModal} />
 
       {!isMobile && (
         <motion.div 
@@ -62,7 +135,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
           
           <nav className="flex flex-col items-center space-y-6 flex-1">
-            {navItems.slice(0, 3).map((item) => (
+            {navItems.slice(0, 5).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}
@@ -75,8 +148,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                       ? 'bg-primary text-white' 
                       : 'text-gray-500 hover:text-white hover:bg-primary/80'
                   }`}
+                  onMouseEnter={() => setHoveredItem(item.href)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  onClick={(e) => handleItemClick(item, e)}
                 >
-                  <item.icon size={20} />
+                  {renderIcon(item, pathname === item.href)}
                 </Link>
               </motion.div>
             ))}
@@ -90,7 +166,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 onMouseEnter={() => setIsMessageHovered(true)}
                 onMouseLeave={() => setIsMessageHovered(false)}
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors duration-200 ${
-                  pathname === '/messages' 
+                  pathname === '/app/messages'
                     ? 'bg-primary text-white' 
                     : 'text-gray-500 hover:text-white hover:bg-primary/80'
                 }`}
@@ -102,7 +178,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     width={20} 
                     height={20}
                     className={`absolute top-0 left-0 w-full h-full ${
-                      (pathname === '/messages' || isMessageHovered) 
+                      (pathname === '/app/messages' || isMessageHovered)
                         ? 'opacity-0' 
                         : 'opacity-100'
                     }`}
@@ -113,7 +189,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     width={20} 
                     height={20}
                     className={`absolute top-0 left-0 w-full h-full filter brightness-0 invert ${
-                      (pathname === '/messages' || isMessageHovered) 
+                      (pathname === '/app/messages' || isMessageHovered)
                         ? 'opacity-100' 
                         : 'opacity-0'
                     }`}
@@ -137,7 +213,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <FaSignOutAlt/>
               </button>
             </motion.div>
-            {navItems.slice(3).map((item) => (
+            {navItems.slice(5).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}
@@ -150,8 +226,11 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                       ? 'bg-primary text-white' 
                       : 'text-gray-500 hover:text-white hover:bg-primary/80'
                   }`}
+                  onMouseEnter={() => setHoveredItem(item.href)}
+                  onMouseLeave={() => setHoveredItem(null)}
+                  onClick={(e) => handleItemClick(item, e)}
                 >
-                  <item.icon size={20} />
+                  {renderIcon(item, pathname === item.href)}
                 </Link>
               </motion.div>
             ))}
@@ -179,16 +258,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 key={item.name}
                 href={item.href}
                 className="flex flex-col items-center justify-center"
+                onClick={(e) => handleItemClick(item, e)}
               >
                 {item.isPrimary ? (
                   <div className="w-12 h-12 rounded-full bg-primary -mt-6 flex items-center justify-center text-white hover:bg-primary-focus transition-colors duration-200">
-                    <item.icon size={20} />
+                    {renderIcon(item, false)}
                   </div>
                 ) : (
                   <div className={`w-10 h-10 flex items-center justify-center ${
                     pathname === item.href ? 'text-primary' : 'text-gray-500'
                   }`}>
-                    <item.icon size={20} />
+                    {renderIcon(item, pathname === item.href)}
                   </div>
                 )}
               </Link>
