@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 export default function AppLayout({
   children,
@@ -34,8 +35,10 @@ export default function AppLayout({
     return null;
   }
 
-  console.log('Session:', session);
-
-  // Authenticated - render children
-  return <>{children}</>;
+  // Authenticated - render children wrapped in DashboardLayout
+  return (
+    <DashboardLayout>
+      {children}
+    </DashboardLayout>
+  );
 }
