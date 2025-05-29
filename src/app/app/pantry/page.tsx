@@ -2,6 +2,8 @@
 
 // Import additional icon for search functionality
 import { useState, useEffect, FormEvent, useMemo } from 'react';
+// Add QR code reader import
+import { QrReader } from 'react-qr-reader';
 import { useSession } from 'next-auth/react';
 import { ItemType } from '@prisma/client';
 import { FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader, FiLayers, 
@@ -67,7 +69,133 @@ const PantryPage = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     // Add state to track active tab in the modal
-    const [activeModalTab, setActiveModalTab] = useState<'add-item' | 'demo-items'>('add-item');
+    const [activeModalTab, setActiveModalTab] = useState<'add-item' | 'demo-items' | 'qr-code'>('add-item');
+    
+    // Add QR code scanning state
+    const [isScanningQR, setIsScanningQR] = useState(false);
+    const [qrScanResult, setQrScanResult] = useState<string | null>(null);
+    const [qrScanError, setQrScanError] = useState<string | null>(null);
+    const [qrProcessing, setQrProcessing] = useState(false);
+    
+    const processQrItems = async (items: any[]) => {
+        if (!userEmail) {
+            setError("You must be logged in to add items.");
+            return;
+        }
+
+        clearMessages();
+        setIsSubmitting(true);
+
+        try {
+            // Format items for API
+            const itemsToSubmit = items.map(item => ({
+                name: item.name,
+                quantity: item.quantity || 1,
+                expire_date: item.expire_date || 'N/A',
+                type: item.type || Object.keys(ItemType)[0],
+                img: item.img || undefined,
+            }));
+
+            const response = await fetch('/api/pantry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: userEmail, itemsToAdd: itemsToSubmit }),
+            });
+
+            const responseData = await response.json();
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Failed to add scanned items.');
+            }
+
+            setSuccessMessage(`Successfully added ${itemsToSubmit.length} items from QR code!`);
+            fetchPantryItems();
+
+            // Close the modal on success
+            closeAddItemModal();
+        } catch (e: any) {
+            setQrScanError(e.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Handle QR scan error
+    const handleQrError = (error: any) => {
+        setQrScanError("QR scanner error. Please check camera permissions.");
+        console.error(error);
+    };
+
+    // Toggle QR scanning
+    const toggleQrScanner = async () => {
+        if (!isScanningQR) {
+            try {
+                // Check if we have permission first
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                // Stop the test stream immediately
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Clear any previous errors
+                setQrScanError(null);
+                setIsScanningQR(true);
+                
+            } catch (err: any) {
+                console.error("Camera access error:", err);
+                
+                if (err.name === 'NotAllowedError') {
+                    setQrScanError("Camera access denied. Please allow camera permissions and try again.");
+                } else if (err.name === 'NotFoundError') {
+                    setQrScanError("No camera found on this device.");
+                } else if (err.name === 'NotSupportedError') {
+                    setQrScanError("Camera not supported on this device/browser.");
+                } else {
+                    setQrScanError(`Camera error: ${err.message}`);
+                }
+            }
+        } else {
+            setIsScanningQR(false);
+        }
+        setQrScanResult(null);
+    };
+
+
+    const handleQrScan = async (result: any, error: any) => {
+        if (error) {
+            // Only log non-trivial errors
+            if (error.message && !error.message.includes('No QR code found')) {
+                console.error("QR scan error:", error);
+                setQrScanError(`Scanner error: ${error.message}`);
+            }
+            return;
+        }
+
+        if (result && result.text && !qrProcessing) {
+            setQrProcessing(true);
+            setQrScanResult(result.text);
+
+            try {
+                // Try to parse the QR code content as JSON
+                const qrData = JSON.parse(result.text);
+
+                // Check if the scanned data has the expected format
+                if (qrData && Array.isArray(qrData.items)) {
+                    // Process the scanned items
+                    await processQrItems(qrData.items);
+                } else {
+                    throw new Error("Invalid QR code format");
+                }
+            } catch (error) {
+                console.error("QR scan error:", error);
+                setQrScanError("Invalid QR code format. Expected JSON with items array.");
+            } finally {
+                setQrProcessing(false);
+                // Stop scanning after successful read
+                setIsScanningQR(false);
+            }
+        }
+    };
 
     const userEmail = session?.user?.email;
 
@@ -811,8 +939,14 @@ const PantryPage = () => {
     }
 
     // Helper function to switch between tabs
-    const switchModalTab = (tab: 'add-item' | 'demo-items') => {
+    const switchModalTab = (tab: 'add-item' | 'demo-items' | 'qr-code') => {
         setActiveModalTab(tab);
+        // Reset QR scanner when switching tabs
+        if (tab !== 'qr-code') {
+            setIsScanningQR(false);
+            setQrScanResult(null);
+            setQrScanError(null);
+        }
     };
     
     // Helper function to open the modal
@@ -883,6 +1017,14 @@ const PantryPage = () => {
                             onClick={() => switchModalTab('demo-items')}
                         >
                             <FiLayers className="mr-2" /> Add Demo Items
+                        </a>
+                        <a 
+                            className={`tab ${activeModalTab === 'qr-code' ? 'tab-active' : ''}`}
+                            onClick={() => switchModalTab('qr-code')}
+                        >
+                            <svg className="w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2m0 0H8m4 0h2m-6-2a2 2 0 100-4 2 2 0 000 4zM9 12V4m0 0h6m-6 0H3" />
+                            </svg> QR Scanner
                         </a>
                     </div>
                     
@@ -1033,6 +1175,122 @@ const PantryPage = () => {
                                             <FiLayers className="mr-2" />
                                         }
                                         Add Demo Items
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                    
+                    {/* QR Code Scanner Tab Content */}
+                    {activeModalTab === 'qr-code' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                        >
+                            <h3 className="font-bold text-lg mb-4">Scan QR Code</h3>
+                            
+                            <div className="space-y-4">
+                                <p>Scan a QR code containing pantry items to add them to your inventory.</p>
+                                
+                                {qrScanError && (
+                                    <div className="alert alert-error">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>{qrScanError}</span>
+                                    </div>
+                                )}
+                                
+                                {qrScanResult && (
+                                    <div className="alert alert-info">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>QR code detected! Processing data...</span>
+                                    </div>
+                                )}
+                                
+                                <div className="card bg-base-200 p-4">
+                                    {isScanningQR ? (
+                                        <div className="relative w-full" style={{ minHeight: "300px" }}>
+                                            <QrReader
+                                                onResult={handleQrScan}
+                                                constraints={{
+                                                    facingMode: 'environment'
+                                                }}
+                                                style={{ 
+                                                    width: '100%', 
+                                                    height: '300px'
+                                                }}
+                                                ViewFinder={() => (
+                                                    <div style={{
+                                                        position: 'absolute',
+                                                        top: '50%',
+                                                        left: '50%',
+                                                        width: '200px',
+                                                        height: '200px',
+                                                        marginTop: '-100px',
+                                                        marginLeft: '-100px',
+                                                        border: '2px solid #00ff00',
+                                                        borderRadius: '10px',
+                                                        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
+                                                        zIndex: 1000
+                                                    }} />
+                                                )}
+                                            />
+                                            <p className="text-sm text-center mt-2">Position the QR code within the green frame</p>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            </svg>
+                                            <p>Click "Start Camera" to begin scanning</p>
+                                            <p className="text-xs mt-2 opacity-60">Make sure to allow camera permissions when prompted</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="text-xs bg-base-300 p-3 rounded">
+                                    <p className="font-semibold mb-1">Expected QR code format:</p>
+                                    <pre className="overflow-x-auto">
+                                        {JSON.stringify({
+                                            items: [
+                                                { name: "Apple", quantity: 5, type: "FRUITS" },
+                                                { name: "Milk", quantity: 1, type: "DAIRY" }
+                                            ]
+                                        }, null, 2)}
+                                    </pre>
+                                </div>
+                                
+                                <div className="modal-action">
+                                    <button 
+                                        type="button" 
+                                        className="btn" 
+                                        onClick={closeAddItemModal}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        className={`btn ${isScanningQR ? 'btn-error' : 'btn-primary'}`} 
+                                        onClick={toggleQrScanner}
+                                        disabled={qrProcessing}
+                                    >
+                                        {qrProcessing ? (
+                                            <motion.span 
+                                                className="loading loading-spinner loading-xs"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                            ></motion.span>
+                                        ) : isScanningQR ? (
+                                            <>Stop Camera</>
+                                        ) : (
+                                            <>Start Camera</>
+                                        )}
                                     </button>
                                 </div>
                             </div>
