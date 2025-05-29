@@ -1,14 +1,13 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiX } from 'react-icons/fi';
-import DashboardLayout from '@/components/dashboard/DashboardLayout';
-
-import ProfileHeader from '@/components/profile/ProfileHeader';
-import ProfileActions from '@/components/profile/ProfileActions';
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import DashboardLayout from "@/components/dashboard/DashboardLayout";
+import ProfileHeader from "@/components/profile/ProfileHeader";
+import ProfileActions from "@/components/profile/ProfileActions";
+import FriendModal from "@/components/profile/FriendModal"; // Import the separate component
 
 interface Highlight {
   id: string;
@@ -47,338 +46,165 @@ interface Post {
   comments: number;
 }
 
-const MOCK_PROFILES: Record<'1'|'2'|'3'|'4'|'5'|'6'|'7', Profile> = {
-  '1': {
-    id: '1',
-    username: 'manuel_tomas',
-    displayName: 'Manuel Tomas',
-    avatar: '/avatars/user1.png',
-    bio: 'Photographer and traveler based in Porto.',
-    website: 'linktr.ee/manuel_tomas',
-    postsCount: 22,
-    followersCount: 1046,
-    followingCount: 922,
-    isVerified: false,
-    occupation: 'Photographer',
-    location: 'Porto',
-    highlights: [
-      { id: '1', title: 'Travel' },
-      { id: '2', title: 'Nature' },
-      { id: '3', title: 'Food' }
-    ]
-  },
-  '2': {
-    id: '2',
-    username: 'manuel_luis',
-    displayName: 'Manuel Luis',
-    avatar: '/avatars/user2.png',
-    bio: 'Digital creator and content maker from Lisbon.',
-    website: 'linktr.ee/manuel_luis',
-    postsCount: 47,
-    followersCount: 1832,
-    followingCount: 421,
-    isVerified: true,
-    occupation: 'Digital Creator',
-    location: 'Lisbon',
-    highlights: [
-      { id: '1', title: 'Lisbon' },
-      { id: '2', title: 'Art' },
-      { id: '3', title: 'Studio' }
-    ]
-  },
-  '3': {
-    id: '3',
-    username: 'manuel_mc',
-    displayName: 'Manuel MC',
-    avatar: '/avatars/user3.png',
-    bio: 'Music producer and artist from Faro.',
-    website: 'soundcloud.com/manuel_mc',
-    postsCount: 35,
-    followersCount: 1240,
-    followingCount: 567,
-    isVerified: false,
-    occupation: 'Music Producer',
-    location: 'Faro',
-    highlights: [
-      { id: '1', title: 'Music' },
-      { id: '2', title: 'Studio' }
-    ]
-  },
-  '4': {
-    id: '4',
-    username: 'manuel_joao',
-    displayName: 'Manuel Joao',
-    avatar: '/avatars/user4.png',
-    bio: 'Chef and food lover from Braga.',
-    website: 'instagram.com/chef_manuel',
-    postsCount: 68,
-    followersCount: 2340,
-    followingCount: 478,
-    isVerified: false,
-    occupation: 'Chef',
-    location: 'Braga',
-    highlights: [
-      { id: '1', title: 'Food' },
-      { id: '2', title: 'Recipes' }
-    ]
-  },
-  '5': {
-    id: '5',
-    username: 'manuel_afonso',
-    displayName: 'Manuel Afonso',
-    avatar: '/avatars/user5.png',
-    bio: 'Tech student from Coimbra University.',
-    postsCount: 15,
-    followersCount: 542,
-    followingCount: 231,
-    location: 'Coimbra',
-    highlights: [
-      { id: '1', title: 'Tech' },
-      { id: '2', title: 'Coding' }
-    ]
-  },
-  '6': {
-    id: '6',
-    username: 'manuel_leandro',
-    displayName: 'Manuel Leandro',
-    avatar: '/avatars/user6.png',
-    bio: 'Surf instructor and ocean lover.',
-    postsCount: 42,
-    followersCount: 1320,
-    followingCount: 356,
-    occupation: 'Surf Instructor',
-    location: 'Setubal',
-    highlights: [
-      { id: '1', title: 'Surf' },
-      { id: '2', title: 'Ocean' }
-    ]
-  },
-  '7': {
-    id: '7',
-    username: 'manuel_zacarias',
-    displayName: 'Manuel Zacarias',
-    avatar: '/avatars/user7.png',
-    bio: 'Digital designer from Aveiro.',
-    website: 'behance.net/manuel_z',
-    postsCount: 29,
-    followersCount: 876,
-    followingCount: 234,
-    occupation: 'Designer',
-    location: 'Aveiro',
-    highlights: [
-      { id: '1', title: 'Design' },
-      { id: '2', title: 'UI/UX' }
-    ]
-  }
-};
+const MOCK_PROFILES: Record<"1" | "2" | "3" | "4" | "5" | "6" | "7", Profile> =
+  {
+    "1": {
+      id: "1",
+      username: "manuel_tomas",
+      displayName: "Manuel Tomas",
+      avatar: "/avatars/user1.png",
+      bio: "Photographer and traveler based in Porto.",
+      website: "linktr.ee/manuel_tomas",
+      postsCount: 22,
+      followersCount: 1046,
+      followingCount: 922,
+      isVerified: false,
+      occupation: "Photographer",
+      location: "Porto",
+      highlights: [
+        { id: "1", title: "Travel" },
+        { id: "2", title: "Nature" },
+        { id: "3", title: "Food" },
+      ],
+    },
+    "2": {
+      id: "2",
+      username: "manuel_luis",
+      displayName: "Manuel Luis",
+      avatar: "/avatars/user2.png",
+      bio: "Digital creator and content maker from Lisbon.",
+      website: "linktr.ee/manuel_luis",
+      postsCount: 47,
+      followersCount: 1832,
+      followingCount: 421,
+      isVerified: true,
+      occupation: "Digital Creator",
+      location: "Lisbon",
+      highlights: [
+        { id: "1", title: "Lisbon" },
+        { id: "2", title: "Art" },
+        { id: "3", title: "Studio" },
+      ],
+    },
+    "3": {
+      id: "3",
+      username: "manuel_mc",
+      displayName: "Manuel MC",
+      avatar: "/avatars/user3.png",
+      bio: "Music producer and artist from Faro.",
+      website: "soundcloud.com/manuel_mc",
+      postsCount: 35,
+      followersCount: 1240,
+      followingCount: 567,
+      isVerified: false,
+      occupation: "Music Producer",
+      location: "Faro",
+      highlights: [
+        { id: "1", title: "Music" },
+        { id: "2", title: "Studio" },
+      ],
+    },
+    "4": {
+      id: "4",
+      username: "manuel_joao",
+      displayName: "Manuel Joao",
+      avatar: "/avatars/user4.png",
+      bio: "Chef and food lover from Braga.",
+      website: "instagram.com/chef_manuel",
+      postsCount: 68,
+      followersCount: 2340,
+      followingCount: 478,
+      isVerified: false,
+      occupation: "Chef",
+      location: "Braga",
+      highlights: [
+        { id: "1", title: "Food" },
+        { id: "2", title: "Recipes" },
+      ],
+    },
+    "5": {
+      id: "5",
+      username: "manuel_afonso",
+      displayName: "Manuel Afonso",
+      avatar: "/avatars/user5.png",
+      bio: "Tech student from Coimbra University.",
+      postsCount: 15,
+      followersCount: 542,
+      followingCount: 231,
+      location: "Coimbra",
+      highlights: [
+        { id: "1", title: "Tech" },
+        { id: "2", title: "Coding" },
+      ],
+    },
+    "6": {
+      id: "6",
+      username: "manuel_leandro",
+      displayName: "Manuel Leandro",
+      avatar: "/avatars/user6.png",
+      bio: "Surf instructor and ocean lover.",
+      postsCount: 42,
+      followersCount: 1320,
+      followingCount: 356,
+      occupation: "Surf Instructor",
+      location: "Setubal",
+      highlights: [
+        { id: "1", title: "Surf" },
+        { id: "2", title: "Ocean" },
+      ],
+    },
+    "7": {
+      id: "7",
+      username: "manuel_zacarias",
+      displayName: "Manuel Zacarias",
+      avatar: "/avatars/user7.png",
+      bio: "Digital designer from Aveiro.",
+      website: "behance.net/manuel_z",
+      postsCount: 29,
+      followersCount: 876,
+      followingCount: 234,
+      occupation: "Designer",
+      location: "Aveiro",
+      highlights: [
+        { id: "1", title: "Design" },
+        { id: "2", title: "UI/UX" },
+      ],
+    },
+  };
 
 const convertProfilesToFriends = (): Friend[] => {
-  return Object.values(MOCK_PROFILES).map(profile => ({
+  return Object.values(MOCK_PROFILES).map((profile) => ({
     id: profile.id,
     username: profile.username,
     displayName: profile.displayName,
     avatar: profile.avatar,
-    isFollowing: Math.random() > 0.5 
+    isFollowing: Math.random() > 0.5,
   }));
 };
 
 type ValidProfileId = keyof typeof MOCK_PROFILES;
 
 const generateMockPosts = (userId: string): Post[] => {
-  const count = 9; 
+  const count = 9;
   const posts: Post[] = [];
-  
+
   for (let i = 0; i < count; i++) {
     posts.push({
       id: `post-${userId}-${i}`,
-      imageUrl: `/images/mock-post-${i % 3 + 1}.jpg`,
+      imageUrl: `/images/mock-post-${(i % 3) + 1}.jpg`,
       likes: Math.floor(Math.random() * 200) + 50,
-      comments: Math.floor(Math.random() * 30) + 5
+      comments: Math.floor(Math.random() * 30) + 5,
     });
   }
-  
+
   return posts;
-};
-
-const FriendModal = ({ 
-  isOpen, 
-  onClose, 
-  friends,
-  onFriendClick
-}: { 
-  isOpen: boolean; 
-  onClose: () => void;
-  friends: Friend[];
-  onFriendClick: (friendId: string) => void;
-}) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [displayedFriends, setDisplayedFriends] = useState(friends);
-  const modalRef = useRef<HTMLDivElement>(null);
-  const searchRef = useRef<HTMLInputElement>(null);
-  
-  useEffect(() => {
-    if (isOpen && searchRef.current) {
-      setTimeout(() => {
-        searchRef.current?.focus();
-      }, 300);
-    }
-  }, [isOpen]);
-  
-  useEffect(() => {
-    setDisplayedFriends(friends);
-  }, [friends]);
-  
-  useEffect(() => {
-    if (!searchQuery) {
-      setDisplayedFriends(friends);
-      return;
-    }
-    
-    const filtered = friends.filter(
-      friend => 
-        friend.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        friend.displayName.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    
-    setDisplayedFriends(filtered);
-  }, [searchQuery, friends]);
-
-  const toggleFollow = (friendId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setDisplayedFriends(prev => 
-      prev.map(friend => 
-        friend.id === friendId 
-          ? { ...friend, isFollowing: !friend.isFollowing } 
-          : friend
-      )
-    );
-  };
-  
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen, onClose]);
-  
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-    
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isOpen]);
-  
-  if (!isOpen) return null;
-  
-  return (
-    <>
-      {/* Background overlay com opacidade */}
-      <div className="fixed inset-0 z-40 bg-black bg-opacity-20" onClick={onClose} />
-      
-      {/* Modal centralizado */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-        <AnimatePresence>
-          <motion.div
-            ref={modalRef}
-            className="bg-white rounded-xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl pointer-events-auto"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          >
-            {/* Header */}
-            <div className="border-b p-4 flex items-center justify-center relative">
-              <h3 className="font-semibold text-center">Friends</h3>
-              <button 
-                className="absolute right-4 text-gray-600" 
-                onClick={onClose}
-              >
-                <FiX size={24} />
-              </button>
-            </div>
-            
-            {/* Search */}
-            <div className="p-3 border-b">
-              <div className="relative flex items-center">
-                <FiSearch className="absolute left-3 text-gray-400" size={16} />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search"
-                  className="input input-bordered w-full bg-gray-100 pl-10 py-2 text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {/* Friends List */}
-            <div className="overflow-y-auto flex-1">
-              {displayedFriends.length > 0 ? (
-                displayedFriends.map(friend => (
-                  <motion.div 
-                    key={friend.id}
-                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.2 }}
-                    onClick={() => onFriendClick(friend.id)}
-                  >
-                    <div className="flex items-center">
-                      <div className="avatar">
-                        <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center">
-                          <div className="font-medium text-gray-500 text-lg">
-                            {friend.displayName.charAt(0).toUpperCase()}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="ml-3">
-                        <div className="font-medium text-sm">{friend.username}</div>
-                        <div className="text-xs text-gray-500">{friend.displayName}</div>
-                      </div>
-                    </div>
-                    <motion.button
-                      className={`btn btn-sm ${friend.isFollowing ? 'btn-outline' : 'btn-primary'}`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={(e) => toggleFollow(friend.id, e)}
-                    >
-                      {friend.isFollowing ? 'Friends' : 'Add Friend'}
-                    </motion.button>
-                  </motion.div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-gray-500">
-                  No friends match your search.
-                </div>
-              )}
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </>
-  );
 };
 
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
-  
+
   const [profile, setProfile] = useState<Profile | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -386,7 +212,8 @@ export default function ProfilePage() {
   const [friendsList, setFriendsList] = useState<Friend[]>([]);
 
   const handleFriendClick = (friendId: string) => {
-    router.push(`/app/profile/${friendId}`); 
+    router.push(`/app/profile/${friendId}`);
+    setIsFriendsModalOpen(false); // Close the modal after navigation
   };
 
   const handleFriendsClick = () => {
@@ -398,10 +225,10 @@ export default function ProfilePage() {
       setFriendsList(convertProfilesToFriends());
     }
   }, [isFriendsModalOpen]);
-  
+
   useEffect(() => {
     setLoading(true);
-    
+
     setTimeout(() => {
       if (id && Object.keys(MOCK_PROFILES).includes(id)) {
         const mockProfile = MOCK_PROFILES[id as ValidProfileId];
@@ -413,7 +240,7 @@ export default function ProfilePage() {
       setLoading(false);
     }, 300);
   }, [id]);
-  
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -421,12 +248,14 @@ export default function ProfilePage() {
       </div>
     );
   }
-  
+
   if (!profile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-2xl font-bold mb-4">Profile not found</h1>
-        <p className="text-gray-600 mb-6">The profile you're looking for doesn't exist or has been removed.</p>
+        <p className="text-gray-600 mb-6">
+          The profile you're looking for doesn't exist or has been removed.
+        </p>
         <Link href="/app/messages" className="btn btn-primary">
           Back to messages
         </Link>
@@ -436,12 +265,12 @@ export default function ProfilePage() {
 
   const profileContent = (
     <main className="max-w-4xl mx-auto pb-16 bg-white min-h-screen">
-      {/* Usando o componente ProfileHeader */}
+      {/* Using ProfileHeader component */}
       <ProfileHeader username={profile.username} />
 
       <div className="p-4">
         <div className="flex items-start">
-          {/* Avatar mantido na página principal */}
+          {/* Avatar */}
           <div className="avatar">
             <div className="w-20 h-20 rounded-full bg-base-200 border-2 border-base-200 ring-2 ring-primary ring-offset-2 flex items-center justify-center">
               <div className="text-3xl flex items-center justify-center h-full text-gray-400">
@@ -450,13 +279,13 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Usando a estrutura original em vez do ProfileStats por causa do erro de tipos */}
+          {/* Stats */}
           <div className="flex-1 flex justify-around ml-4">
             <div className="text-center">
               <div className="font-semibold">{profile.postsCount}</div>
               <div className="text-xs text-gray-500">posts</div>
             </div>
-            <motion.div 
+            <motion.div
               className="text-center cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -468,18 +297,25 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Usando a estrutura original em vez do ProfileBio por causa do erro de tipos */}
+        {/* Bio information */}
         <div className="mt-4">
           <h2 className="font-semibold text-sm">
             {profile.displayName}
-            {profile.isVerified && <span className="ml-1 text-blue-500">✓</span>}
+            {profile.isVerified && (
+              <span className="ml-1 text-blue-500">✓</span>
+            )}
           </h2>
           {profile.occupation && (
             <div className="text-sm text-gray-500">{profile.occupation}</div>
           )}
           <p className="text-sm mt-1">{profile.bio || ""}</p>
           {profile.website && (
-            <a href={profile.website} className="text-sm text-primary font-medium block mt-1" target="_blank" rel="noopener noreferrer">
+            <a
+              href={profile.website}
+              className="text-sm text-primary font-medium block mt-1"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               {profile.website}
             </a>
           )}
@@ -488,25 +324,28 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Usando o componente ProfileActions e passando o userId requerido */}
+        {/* ProfileActions component */}
         <ProfileActions userId={profile.id} />
       </div>
 
-      {/* Seção "Posts" */}
+      {/* Posts section */}
       <div className="border-t py-3 flex justify-center">
         <h3 className="text-primary font-medium">Posts</h3>
       </div>
 
-      {/* Posts Grid - Usando estrutura original em vez do ProfileGallery */}
+      {/* Posts grid */}
       <div className="grid grid-cols-3 gap-1">
         {posts.map((post, index) => (
-          <div 
-            key={post.id} 
+          <div
+            key={post.id}
             className={`aspect-square flex items-center justify-center ${
-              index % 4 === 0 ? 'bg-blue-100' : 
-              index % 4 === 1 ? 'bg-amber-100' : 
-              index % 4 === 2 ? 'bg-rose-100' : 
-              'bg-emerald-100'
+              index % 4 === 0
+                ? "bg-blue-100"
+                : index % 4 === 1
+                ? "bg-amber-100"
+                : index % 4 === 2
+                ? "bg-rose-100"
+                : "bg-emerald-100"
             }`}
           >
             <div className="text-lg text-gray-500">Post {index + 1}</div>
@@ -514,9 +353,9 @@ export default function ProfilePage() {
         ))}
       </div>
 
-      {/* Friends Modal */}
-      <FriendModal 
-        isOpen={isFriendsModalOpen} 
+      {/* Using the imported FriendModal component */}
+      <FriendModal
+        isOpen={isFriendsModalOpen}
         onClose={() => setIsFriendsModalOpen(false)}
         friends={friendsList}
         onFriendClick={handleFriendClick}
@@ -525,9 +364,5 @@ export default function ProfilePage() {
   );
 
   // Wrap the profile content with DashboardLayout
-  return (
-    <DashboardLayout>
-      {profileContent}
-    </DashboardLayout>
-  );
+  return <DashboardLayout>{profileContent}</DashboardLayout>;
 }
