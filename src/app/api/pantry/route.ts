@@ -290,3 +290,66 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to delete items from pantry' }, { status: 500 });
   }
 }
+
+// Add this new PATCH method to handle quantity updates
+
+export async function PATCH(request: NextRequest) {
+  const { email, itemUpdate } = await request.json() as { 
+    email: string; 
+    itemUpdate: { id: string; quantity: number; }  
+  };
+
+  if (!email) {
+    return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+  }
+  
+  if (!itemUpdate || !itemUpdate.id || typeof itemUpdate.quantity !== 'number') {
+    return NextResponse.json({ error: 'Valid item ID and quantity are required' }, { status: 400 });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        profile: {
+          include: {
+            pantry: true,
+          },
+        },
+      },
+    });
+
+    if (!user || !user.profile || !user.profile.pantry) {
+      return NextResponse.json({ error: 'User, profile, or pantry not found' }, { status: 404 });
+    }
+
+    const pantryId = user.profile.pantry.id;
+
+    // First check if the item exists and belongs to this pantry
+    const itemToUpdate = await prisma.item.findFirst({
+      where: {
+        id: itemUpdate.id,
+        pantryId: pantryId
+      }
+    });
+
+    if (!itemToUpdate) {
+      return NextResponse.json({ error: 'Item not found in your pantry' }, { status: 404 });
+    }
+
+    // Update the item quantity
+    const updatedItem = await prisma.item.update({
+      where: { id: itemUpdate.id },
+      data: { quantity: itemUpdate.quantity },
+    });
+
+    return NextResponse.json({ 
+      message: 'Item quantity updated successfully',
+      item: updatedItem
+    });
+    
+  } catch (error) {
+    console.error('Error updating item quantity:', error);
+    return NextResponse.json({ error: 'Failed to update item quantity' }, { status: 500 });
+  }
+}
