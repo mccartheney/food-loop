@@ -16,6 +16,12 @@ enum UserRole {
   NGO_MANAGER
 }
 
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 enum AuthMethod {
   GOOGLE
   FACEBOOK
@@ -75,6 +81,8 @@ model Profile {
   profileImg       String?
   friends          Profile[] @relation("Friendship")
   friendOf         Profile[] @relation("Friendship")
+  sentRequests     FriendRequest[] @relation("SentRequests")
+  receivedRequests FriendRequest[] @relation("ReceivedRequests")
   pantry           Pantry?
   history          History[]
   orders           Order[]
@@ -221,4 +229,17 @@ model Box {
   favorites         Profile[]   @relation("FavoriteBoxes")
   donated           Donated[]   @relation("DonatedBoxes")
   orders            Order[]     @relation("OrderBoxes")
+}
+
+model FriendRequest {
+  id          String        @id @default(cuid())
+  requester   Profile       @relation("SentRequests", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String
+  receiver    Profile       @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId  String
+  status      RequestStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([requesterId, receiverId])
 }
