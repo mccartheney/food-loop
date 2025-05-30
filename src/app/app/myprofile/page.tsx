@@ -435,7 +435,7 @@ export default function MyProfilePage() {
         {/* Action Buttons */}
         <div className="flex gap-2 mt-4">
           <button className="btn btn-sm btn-primary flex-1">Share Profile</button>
-          <Link href="/messages" className="btn btn-sm btn-outline flex-1">
+          <Link href="/app/messages" className="btn btn-sm btn-outline flex-1">
             Messages
           </Link>
           <button className="btn btn-sm btn-outline btn-square">⋯</button>
