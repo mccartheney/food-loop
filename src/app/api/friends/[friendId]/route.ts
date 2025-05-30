@@ -4,10 +4,10 @@ import { prisma } from '@/lib/prisma';
 // DELETE /api/friends/[friendId] - Remove a friend
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { friendId: string } }
+  { params }: { params: Promise<{ friendId: string }> }
 ) {
   try {
-    const { friendId } = params;
+    const { friendId } = await params;
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
 
@@ -68,7 +68,7 @@ export async function DELETE(
       );
     }
 
-    // Remove bidirectional friendship
+    // Remove bidirectional friendship and any related friend requests
     await prisma.$transaction([
       prisma.profile.update({
         where: { id: userProfile.id },
@@ -84,6 +84,21 @@ export async function DELETE(
           friends: {
             disconnect: { id: userProfile.id },
           },
+        },
+      }),
+      // Also remove any pending friend requests between these users
+      prisma.friendRequest.deleteMany({
+        where: {
+          OR: [
+            {
+              requesterId: userProfile.id,
+              receiverId: friendProfile.id,
+            },
+            {
+              requesterId: friendProfile.id,
+              receiverId: userProfile.id,
+            },
+          ],
         },
       }),
     ]);
