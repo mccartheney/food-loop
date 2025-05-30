@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/friends - Add a friend
+// POST /api/friends - Send a friend request
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
 
     if (userId === friendUserId) {
       return NextResponse.json(
-        { error: 'Cannot add yourself as a friend' },
+        { error: 'Cannot send friend request to yourself' },
         { status: 400 }
       );
     }
@@ -128,35 +128,59 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create bidirectional friendship
-    await prisma.$transaction([
-      prisma.profile.update({
-        where: { id: userProfile.id },
-        data: {
-          friends: {
-            connect: { id: friendProfile.id },
+    // Check if there's already a pending or existing friend request
+    const existingRequest = await prisma.friendRequest.findFirst({
+      where: {
+        OR: [
+          {
+            requesterId: userProfile.id,
+            receiverId: friendProfile.id,
           },
-        },
-      }),
-      prisma.profile.update({
-        where: { id: friendProfile.id },
-        data: {
-          friends: {
-            connect: { id: userProfile.id },
+          {
+            requesterId: friendProfile.id,
+            receiverId: userProfile.id,
           },
-        },
-      }),
-    ]);
+        ],
+        status: 'PENDING',
+      },
+    });
 
-    // Get the friend's details to return
-    const friendDetails = await prisma.profile.findUnique({
-      where: { id: friendProfile.id },
+    if (existingRequest) {
+      // Check if the current user is the receiver of an existing request
+      if (existingRequest.receiverId === userProfile.id) {
+        return NextResponse.json(
+          { 
+            error: 'This user has already sent you a friend request. Check your pending requests.',
+            canAccept: true,
+            requestId: existingRequest.id
+          },
+          { status: 400 }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: 'Friend request already sent and pending' },
+        { status: 400 }
+      );
+    }
+
+    // Create the friend request
+    const friendRequest = await prisma.friendRequest.create({
+      data: {
+        requesterId: userProfile.id,
+        receiverId: friendProfile.id,
+        status: 'PENDING',
+      },
       include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+        receiver: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
           },
         },
       },
@@ -164,20 +188,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Friend added successfully',
-      friend: {
-        id: friendDetails?.id,
-        userId: friendDetails?.userId,
-        name: friendDetails?.user.name,
-        email: friendDetails?.user.email,
-        bio: friendDetails?.bio,
-        profileImg: friendDetails?.profileImg,
-        address: friendDetails?.address,
+      message: 'Friend request sent successfully',
+      request: {
+        id: friendRequest.id,
+        receiverId: friendRequest.receiverId,
+        receiverName: friendRequest.receiver.user.name,
+        status: friendRequest.status,
+        createdAt: friendRequest.createdAt,
       },
     });
 
   } catch (error) {
-    console.error('Error adding friend:', error);
+    console.error('Error sending friend request:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
