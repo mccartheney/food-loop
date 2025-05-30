@@ -141,44 +141,55 @@ const PantryPage = () => {
             if (result && result.data) {
                 setQrResult(result.data);
                 
-                // Try to parse the QR data as JSON (assuming it contains item data)
-                try {
-                    const parsedData = JSON.parse(result.data);
+                // Check if QR content is "nao me fodas"
+                if (result.data.trim() === "nao me fodas") {
+                    // Convert all foodList items to the correct format for the API
+                    const allFoodItems = foodList.map(item => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        expire_date: item.expire_date,
+                        type: foodListTypeToApiType(item.type),
+                        img: undefined
+                    }));
                     
-                    // Check if it's an array of items or a single item
-                    let itemsToAdd = [];
-                    
-                    if (Array.isArray(parsedData)) {
-                        itemsToAdd = parsedData;
-                    } else if (parsedData.items && Array.isArray(parsedData.items)) {
-                        itemsToAdd = parsedData.items;
-                    } else if (parsedData.name) {
-                        // Single item
-                        itemsToAdd = [parsedData];
-                    }
-                    
-                    // Validate and format items
-                    const validItems = itemsToAdd.map(item => ({
-                        name: item.name || 'Unknown Item',
-                        quantity: Number(item.quantity) || 1,
-                        expire_date: item.expire_date || item.expireDate || 'N/A',
-                        type: item.type || ItemType.BAKERY,
-                        img: item.img || item.image || undefined
-                    })).filter(item => item.name !== 'Unknown Item');
-                    
-                    if (validItems.length > 0) {
-                        setDetectedItems(validItems);
-                        setSuccessMessage(`Found ${validItems.length} item(s) in QR code!`);
-                    } else {
-                        setError('QR code found but no valid items detected.');
-                    }
-                    
-                } catch (parseError) {
-                    // QR code doesn't contain JSON, might be a URL or text
-                    if (result.data.startsWith('http')) {
-                        setError('QR code contains a URL, not item data.');
-                    } else {
-                        setError('QR code found but does not contain valid item data.');
+                    setDetectedItems(allFoodItems);
+                    setSuccessMessage(`Found all ${allFoodItems.length} items from food list!`);
+                } else {
+                    // Try to parse as JSON for other cases (keeping existing functionality)
+                    try {
+                        const parsedData = JSON.parse(result.data);
+                        
+                        // Check if it's an array of items or a single item
+                        let itemsToAdd = [];
+                        
+                        if (Array.isArray(parsedData)) {
+                            itemsToAdd = parsedData;
+                        } else if (parsedData.items && Array.isArray(parsedData.items)) {
+                            itemsToAdd = parsedData.items;
+                        } else if (parsedData.name) {
+                            // Single item
+                            itemsToAdd = [parsedData];
+                        }
+                        
+                        // Validate and format items
+                        const validItems = itemsToAdd.map(item => ({
+                            name: item.name || 'Unknown Item',
+                            quantity: Number(item.quantity) || 1,
+                            expire_date: item.expire_date || item.expireDate || 'N/A',
+                            type: item.type || ItemType.BAKERY,
+                            img: item.img || item.image || undefined
+                        })).filter(item => item.name !== 'Unknown Item');
+                        
+                        if (validItems.length > 0) {
+                            setDetectedItems(validItems);
+                            setSuccessMessage(`Found ${validItems.length} item(s) in QR code!`);
+                        } else {
+                            setError('Invalid value');
+                        }
+                        
+                    } catch (parseError) {
+                        // QR code doesn't contain valid JSON and is not "nao me fodas"
+                        setError('Invalid value');
                     }
                 }
             }
