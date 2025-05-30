@@ -78,6 +78,7 @@ const PantryPage = () => {
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
+    const [capturedImage, setCapturedImage] = useState<string | null>(null);
     
     // Toggle camera
     const toggleCamera = async () => {
@@ -87,8 +88,9 @@ const PantryPage = () => {
                     video: { facingMode: 'environment' } 
                 });
                 
-                // Clear any previous errors
+                // Clear any previous errors and captured image
                 setCameraError(null);
+                setCapturedImage(null);
                 setStream(mediaStream);
                 setIsCameraActive(true);
                 
@@ -113,6 +115,43 @@ const PantryPage = () => {
             }
             setIsCameraActive(false);
         }
+    };
+
+    // Capture photo function
+    const capturePhoto = () => {
+        if (!stream) return;
+
+        const video = document.querySelector('video');
+        if (!video) return;
+
+        // Create canvas to capture the frame
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        
+        if (!context) return;
+
+        // Set canvas dimensions to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        // Draw the current video frame to canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert to base64 image
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setCapturedImage(imageDataUrl);
+
+        // Stop the camera after capturing
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+        }
+        setIsCameraActive(false);
+    };
+
+    // Reset captured image to go back to camera
+    const resetCapture = () => {
+        setCapturedImage(null);
     };
 
     // Cleanup camera when component unmounts or modal closes
@@ -823,6 +862,7 @@ const PantryPage = () => {
             setStream(null);
             setIsCameraActive(false);
             setCameraError(null);
+            setCapturedImage(null);
         }
     };
     
@@ -845,6 +885,7 @@ const PantryPage = () => {
             }
             setIsCameraActive(false);
             setCameraError(null);
+            setCapturedImage(null);
             
             // Close the modal
             const modal = document.getElementById('add_item_modal') as HTMLDialogElement;
@@ -862,10 +903,7 @@ const PantryPage = () => {
             }, 300);
         }
     };
-    
-    // Add this Modal component to your return statement
-    // Replace the existing form section with a button to open the modal
-    
+
     const addItemModal = (
         <>
             {/* Modal Trigger Button */}
@@ -884,7 +922,7 @@ const PantryPage = () => {
             {/* Modal Component */}
             <dialog id="add_item_modal" className="modal modal-bottom sm:modal-middle">
                 <motion.div 
-                    className="modal-box"
+                    className="modal-box max-w-4xl"
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 50, opacity: 0 }}
@@ -909,6 +947,7 @@ const PantryPage = () => {
                         >
                             <svg className="w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg> Camera
                         </a>
                     </div>
@@ -1077,7 +1116,7 @@ const PantryPage = () => {
                             <h3 className="font-bold text-lg mb-4">Camera View</h3>
                             
                             <div className="space-y-4">
-                                <p>Use the camera to capture images or view your environment.</p>
+                                <p>{capturedImage ? 'Photo captured successfully!' : 'Use the camera to capture images or view your environment.'}</p>
                                 
                                 {cameraError && (
                                     <div className="alert alert-error">
@@ -1089,7 +1128,19 @@ const PantryPage = () => {
                                 )}
                                 
                                 <div className="card bg-base-200 p-4">
-                                    {isCameraActive && stream ? (
+                                    {capturedImage ? (
+                                        // Show captured image
+                                        <div className="relative w-full" style={{ minHeight: "300px" }}>
+                                            <img
+                                                src={capturedImage}
+                                                alt="Captured photo"
+                                                className="w-full h-full object-cover rounded"
+                                                style={{ minHeight: "300px", maxHeight: "400px" }}
+                                            />
+                                            <p className="text-sm text-center mt-2">Photo captured</p>
+                                        </div>
+                                    ) : isCameraActive && stream ? (
+                                        // Show live camera feed
                                         <div className="relative w-full" style={{ minHeight: "300px" }}>
                                             <video
                                                 ref={(video) => {
@@ -1099,14 +1150,15 @@ const PantryPage = () => {
                                                     }
                                                 }}
                                                 className="w-full h-full object-cover rounded"
-                                                style={{ minHeight: "300px" }}
+                                                style={{ minHeight: "300px", maxHeight: "400px" }}
                                                 autoPlay
                                                 playsInline
                                                 muted
                                             />
-                                            <p className="text-sm text-center mt-2">Camera is active</p>
+                                            <p className="text-sm text-center mt-2">Camera is active - ready to capture</p>
                                         </div>
                                     ) : (
+                                        // Show camera placeholder
                                         <div className="text-center py-8">
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
@@ -1126,17 +1178,54 @@ const PantryPage = () => {
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        className={`btn ${isCameraActive ? 'btn-error' : 'btn-primary'}`} 
-                                        onClick={toggleCamera}
-                                    >
-                                        {isCameraActive ? (
-                                            <>Stop Camera</>
-                                        ) : (
-                                            <>Start Camera</>
-                                        )}
-                                    </button>
+                                    
+                                    {capturedImage ? (
+                                        // Show retake button when image is captured
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-secondary" 
+                                            onClick={resetCapture}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Retake Photo
+                                        </button>
+                                    ) : isCameraActive && stream ? (
+                                        // Show capture and stop buttons when camera is active
+                                        <>
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-success" 
+                                                onClick={capturePhoto}
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                Capture Photo
+                                            </button>
+                                            <button 
+                                                type="button" 
+                                                className="btn btn-error" 
+                                                onClick={toggleCamera}
+                                            >
+                                                Stop Camera
+                                            </button>
+                                        </>
+                                    ) : (
+                                        // Show start camera button when camera is inactive
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-primary" 
+                                            onClick={toggleCamera}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                            </svg>
+                                            Start Camera
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </motion.div>
