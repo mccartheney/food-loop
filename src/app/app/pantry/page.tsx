@@ -15,6 +15,7 @@ import PantryRecentItemsList from '@/components/pantry/PantryRecentItemsList';
 import PantrySearchBar from '@/components/pantry/PantrySearchBar';
 import PantryItemsTable from '@/components/pantry/PantryItemsTable';
 import PantryItemsGrid from '@/components/pantry/PantryItemsGrid';
+import QrScanner from 'qr-scanner';
 
 // Client-side representation of a pantry item
 interface PantryDisplayItem {
@@ -80,6 +81,11 @@ const PantryPage = () => {
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
     
+    // Add QR processing state
+    const [isProcessingQR, setIsProcessingQR] = useState(false);
+    const [qrResult, setQrResult] = useState<string | null>(null);
+    const [detectedItems, setDetectedItems] = useState<any[] | null>(null);
+
     // Toggle camera
     const toggleCamera = async () => {
         if (!isCameraActive) {
@@ -117,8 +123,112 @@ const PantryPage = () => {
         }
     };
 
+    // Process captured image for QR codes
+    const processImageForQR = async (imageDataUrl: string) => {
+        setIsProcessingQR(true);
+        setQrResult(null);
+        setDetectedItems(null);
+        
+        try {
+            // Convert base64 to File object
+            const response = await fetch(imageDataUrl);
+            const blob = await response.blob();
+            const file = new File([blob], 'captured-image.jpg', { type: 'image/jpeg' });
+
+            // Scan for QR code
+            const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
+            
+            if (result && result.data) {
+                setQrResult(result.data);
+                
+                // Try to parse the QR data as JSON (assuming it contains item data)
+                try {
+                    const parsedData = JSON.parse(result.data);
+                    
+                    // Check if it's an array of items or a single item
+                    let itemsToAdd = [];
+                    
+                    if (Array.isArray(parsedData)) {
+                        itemsToAdd = parsedData;
+                    } else if (parsedData.items && Array.isArray(parsedData.items)) {
+                        itemsToAdd = parsedData.items;
+                    } else if (parsedData.name) {
+                        // Single item
+                        itemsToAdd = [parsedData];
+                    }
+                    
+                    // Validate and format items
+                    const validItems = itemsToAdd.map(item => ({
+                        name: item.name || 'Unknown Item',
+                        quantity: Number(item.quantity) || 1,
+                        expire_date: item.expire_date || item.expireDate || 'N/A',
+                        type: item.type || ItemType.BAKERY,
+                        img: item.img || item.image || undefined
+                    })).filter(item => item.name !== 'Unknown Item');
+                    
+                    if (validItems.length > 0) {
+                        setDetectedItems(validItems);
+                        setSuccessMessage(`Found ${validItems.length} item(s) in QR code!`);
+                    } else {
+                        setError('QR code found but no valid items detected.');
+                    }
+                    
+                } catch (parseError) {
+                    // QR code doesn't contain JSON, might be a URL or text
+                    if (result.data.startsWith('http')) {
+                        setError('QR code contains a URL, not item data.');
+                    } else {
+                        setError('QR code found but does not contain valid item data.');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('QR scanning error:', error);
+            setError('No QR code found in the image.');
+        } finally {
+            setIsProcessingQR(false);
+        }
+    };
+
+    // Add detected items to pantry
+    const addDetectedItems = async () => {
+        if (!detectedItems || !userEmail) {
+            setError("No items to add or user not logged in.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        clearMessages();
+
+        try {
+            const response = await fetch('/api/pantry', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: userEmail, 
+                    itemsToAdd: detectedItems 
+                }),
+            });
+            
+            const responseData = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(responseData.error || 'Failed to add items.');
+            }
+            
+            setSuccessMessage(`Successfully added ${detectedItems.length} item(s) from QR code!`);
+            fetchPantryItems();
+            closeAddItemModal();
+            
+        } catch (e: any) {
+            setError(e.message);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // Capture photo function
-    const capturePhoto = () => {
+    const capturePhoto = async () => {
         if (!stream) return;
 
         const video = document.querySelector('video');
@@ -147,11 +257,17 @@ const PantryPage = () => {
             setStream(null);
         }
         setIsCameraActive(false);
+
+        // Process the image for QR codes
+        await processImageForQR(imageDataUrl);
     };
 
-    // Reset captured image to go back to camera
+    // Reset captured image and QR data
     const resetCapture = () => {
         setCapturedImage(null);
+        setQrResult(null);
+        setDetectedItems(null);
+        clearMessages();
     };
 
     // Cleanup camera when component unmounts or modal closes
@@ -1113,10 +1229,15 @@ const PantryPage = () => {
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <h3 className="font-bold text-lg mb-4">Camera View</h3>
+                            <h3 className="font-bold text-lg mb-4">Camera QR Scanner</h3>
                             
                             <div className="space-y-4">
-                                <p>{capturedImage ? 'Photo captured successfully!' : 'Use the camera to capture images or view your environment.'}</p>
+                                <p>
+                                    {capturedImage 
+                                        ? 'Photo captured! Checking for QR codes...' 
+                                        : 'Capture a photo to scan for QR codes containing item data.'
+                                    }
+                                </p>
                                 
                                 {cameraError && (
                                     <div className="alert alert-error">
@@ -1124,6 +1245,49 @@ const PantryPage = () => {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         <span>{cameraError}</span>
+                                    </div>
+                                )}
+
+                                {/* QR Processing Status */}
+                                {isProcessingQR && (
+                                    <div className="alert alert-info">
+                                        <motion.span 
+                                            className="loading loading-spinner loading-sm"
+                                            animate={{ rotate: 360 }}
+                                            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                        />
+                                        <span>Scanning image for QR codes...</span>
+                                    </div>
+                                )}
+
+                                {/* QR Results */}
+                                {qrResult && (
+                                    <div className="alert alert-success">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>QR Code detected!</span>
+                                    </div>
+                                )}
+
+                                {/* Detected Items */}
+                                {detectedItems && detectedItems.length > 0 && (
+                                    <div className="card bg-base-100 border border-success">
+                                        <div className="card-body p-4">
+                                            <h4 className="font-bold text-success mb-2">
+                                                Found {detectedItems.length} item(s):
+                                            </h4>
+                                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                                                {detectedItems.map((item, index) => (
+                                                    <div key={index} className="flex justify-between items-center bg-base-200 p-2 rounded">
+                                                        <span className="font-medium">{item.name}</span>
+                                                        <div className="text-sm opacity-70">
+                                                            Qty: {item.quantity} | Type: {formatItemTypeLabel(item.type)}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
                                 
@@ -1137,7 +1301,9 @@ const PantryPage = () => {
                                                 className="w-full h-full object-cover rounded"
                                                 style={{ minHeight: "300px", maxHeight: "400px" }}
                                             />
-                                            <p className="text-sm text-center mt-2">Photo captured</p>
+                                            <p className="text-sm text-center mt-2">
+                                                {isProcessingQR ? 'Processing...' : 'Photo captured'}
+                                            </p>
                                         </div>
                                     ) : isCameraActive && stream ? (
                                         // Show live camera feed
@@ -1165,7 +1331,7 @@ const PantryPage = () => {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
                                             <p>Click "Start Camera" to begin</p>
-                                            <p className="text-xs mt-2 opacity-60">Make sure to allow camera permissions when prompted</p>
+                                            <p className="text-xs mt-2 opacity-60">Capture a photo to scan for QR codes</p>
                                         </div>
                                     )}
                                 </div>
@@ -1178,6 +1344,29 @@ const PantryPage = () => {
                                     >
                                         Cancel
                                     </button>
+                                    
+                                    {detectedItems && detectedItems.length > 0 && (
+                                        // Show add items button when items are detected
+                                        <button 
+                                            type="button" 
+                                            className="btn btn-success" 
+                                            onClick={addDetectedItems}
+                                            disabled={isSubmitting}
+                                        >
+                                            {isSubmitting ? (
+                                                <motion.span 
+                                                    className="loading loading-spinner loading-xs"
+                                                    animate={{ rotate: 360 }}
+                                                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                                                />
+                                            ) : (
+                                                <>
+                                                    <FiPlus className="mr-2" />
+                                                    Add {detectedItems.length} Item(s)
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
                                     
                                     {capturedImage ? (
                                         // Show retake button when image is captured
@@ -1192,7 +1381,7 @@ const PantryPage = () => {
                                             Retake Photo
                                         </button>
                                     ) : isCameraActive && stream ? (
-                                        // Show capture and stop buttons when camera is active
+                                        // Show capture button when camera is active
                                         <>
                                             <button 
                                                 type="button" 
@@ -1203,7 +1392,7 @@ const PantryPage = () => {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
-                                                Capture Photo
+                                                Capture & Scan
                                             </button>
                                             <button 
                                                 type="button" 
