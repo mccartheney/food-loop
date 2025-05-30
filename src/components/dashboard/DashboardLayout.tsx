@@ -5,12 +5,14 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiGrid, FiPlus, FiSettings, FiUser, FiSearch } from 'react-icons/fi';
+import { FiHome, FiPlus, FiSettings, FiUser, FiSearch } from 'react-icons/fi';
+import { LiaStoreAltSolid } from "react-icons/lia";
+import { PiChefHatLight } from "react-icons/pi"; // Added chef hat icon import
 import MobileHeader from './cards/MobileHeader';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { signIn, signOut } from 'next-auth/react';
 import { IconType as ReactIconType } from 'react-icons';
-import SearchModal from './SearchModal'; // Import the SearchModal component
+import SearchModal from './SearchModal';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -55,8 +57,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   const navItems: NavItem[] = [
     { name: 'Home', href: '/app', icon: FiHome },
-    { name: 'Inventory', href: '/app/inventory', icon: FiGrid },
-    { name: 'Search', href: '#', icon: FiSearch, action: openSearchModal }, // Modified to use action
+    { name: 'Marketplace', href: '/app/marketplace', icon: LiaStoreAltSolid }, 
+    { name: 'Search', href: '#', icon: FiSearch, action: openSearchModal },
     { 
       name: 'Pantry', 
       href: '/app/pantry', 
@@ -84,6 +86,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       ),
       isCustomIcon: true
     },
+    { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight }, 
     { name: 'Add', href: '/app/add', icon: FiPlus, isPrimary: true },
     { name: 'Settings', href: '/app/settings', icon: FiSettings },
     { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
@@ -135,7 +138,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
           
           <nav className="flex flex-col items-center space-y-6 flex-1">
-            {navItems.slice(0, 5).map((item) => (
+            {navItems.slice(0, 6).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}
@@ -213,7 +216,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <FaSignOutAlt/>
               </button>
             </motion.div>
-            {navItems.slice(5).map((item) => (
+            {navItems.slice(6).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}
