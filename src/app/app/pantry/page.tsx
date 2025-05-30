@@ -2,8 +2,6 @@
 
 // Import additional icon for search functionality
 import { useState, useEffect, FormEvent, useMemo } from 'react';
-// Add QR code reader import
-import { QrReader } from 'react-qr-reader';
 import { useSession } from 'next-auth/react';
 import { ItemType } from '@prisma/client';
 import { FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader, FiLayers, 
@@ -12,6 +10,11 @@ import Image from 'next/image';
 import { foodList } from '@/lib/foodList';
 import { GiOrange } from 'react-icons/gi';
 import { motion, AnimatePresence } from 'framer-motion';
+import PantryMessages from '@/components/pantry/PantryMessages';
+import PantryRecentItemsList from '@/components/pantry/PantryRecentItemsList';
+import PantrySearchBar from '@/components/pantry/PantrySearchBar';
+import PantryItemsTable from '@/components/pantry/PantryItemsTable';
+import PantryItemsGrid from '@/components/pantry/PantryItemsGrid';
 
 // Client-side representation of a pantry item
 interface PantryDisplayItem {
@@ -69,133 +72,57 @@ const PantryPage = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
     // Add state to track active tab in the modal
-    const [activeModalTab, setActiveModalTab] = useState<'add-item' | 'demo-items' | 'qr-code'>('add-item');
+    const [activeModalTab, setActiveModalTab] = useState<'add-item' | 'demo-items' | 'camera'>('add-item');
     
-    // Add QR code scanning state
-    const [isScanningQR, setIsScanningQR] = useState(false);
-    const [qrScanResult, setQrScanResult] = useState<string | null>(null);
-    const [qrScanError, setQrScanError] = useState<string | null>(null);
-    const [qrProcessing, setQrProcessing] = useState(false);
+    // Add camera state
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+    const [stream, setStream] = useState<MediaStream | null>(null);
     
-    const processQrItems = async (items: any[]) => {
-        if (!userEmail) {
-            setError("You must be logged in to add items.");
-            return;
-        }
-
-        clearMessages();
-        setIsSubmitting(true);
-
-        try {
-            // Format items for API
-            const itemsToSubmit = items.map(item => ({
-                name: item.name,
-                quantity: item.quantity || 1,
-                expire_date: item.expire_date || 'N/A',
-                type: item.type || Object.keys(ItemType)[0],
-                img: item.img || undefined,
-            }));
-
-            const response = await fetch('/api/pantry', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: userEmail, itemsToAdd: itemsToSubmit }),
-            });
-
-            const responseData = await response.json();
-            if (!response.ok) {
-                throw new Error(responseData.error || 'Failed to add scanned items.');
-            }
-
-            setSuccessMessage(`Successfully added ${itemsToSubmit.length} items from QR code!`);
-            fetchPantryItems();
-
-            // Close the modal on success
-            closeAddItemModal();
-        } catch (e: any) {
-            setQrScanError(e.message);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    // Handle QR scan error
-    const handleQrError = (error: any) => {
-        setQrScanError("QR scanner error. Please check camera permissions.");
-        console.error(error);
-    };
-
-    // Toggle QR scanning
-    const toggleQrScanner = async () => {
-        if (!isScanningQR) {
+    // Toggle camera
+    const toggleCamera = async () => {
+        if (!isCameraActive) {
             try {
-                // Check if we have permission first
-                const stream = await navigator.mediaDevices.getUserMedia({ 
+                const mediaStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { facingMode: 'environment' } 
                 });
                 
-                // Stop the test stream immediately
-                stream.getTracks().forEach(track => track.stop());
-                
                 // Clear any previous errors
-                setQrScanError(null);
-                setIsScanningQR(true);
+                setCameraError(null);
+                setStream(mediaStream);
+                setIsCameraActive(true);
                 
             } catch (err: any) {
                 console.error("Camera access error:", err);
                 
                 if (err.name === 'NotAllowedError') {
-                    setQrScanError("Camera access denied. Please allow camera permissions and try again.");
+                    setCameraError("Camera access denied. Please allow camera permissions and try again.");
                 } else if (err.name === 'NotFoundError') {
-                    setQrScanError("No camera found on this device.");
+                    setCameraError("No camera found on this device.");
                 } else if (err.name === 'NotSupportedError') {
-                    setQrScanError("Camera not supported on this device/browser.");
+                    setCameraError("Camera not supported on this device/browser.");
                 } else {
-                    setQrScanError(`Camera error: ${err.message}`);
+                    setCameraError(`Camera error: ${err.message}`);
                 }
             }
         } else {
-            setIsScanningQR(false);
+            // Stop camera
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                setStream(null);
+            }
+            setIsCameraActive(false);
         }
-        setQrScanResult(null);
     };
 
-
-    const handleQrScan = async (result: any, error: any) => {
-        if (error) {
-            // Only log non-trivial errors
-            if (error.message && !error.message.includes('No QR code found')) {
-                console.error("QR scan error:", error);
-                setQrScanError(`Scanner error: ${error.message}`);
+    // Cleanup camera when component unmounts or modal closes
+    useEffect(() => {
+        return () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
             }
-            return;
-        }
-
-        if (result && result.text && !qrProcessing) {
-            setQrProcessing(true);
-            setQrScanResult(result.text);
-
-            try {
-                // Try to parse the QR code content as JSON
-                const qrData = JSON.parse(result.text);
-
-                // Check if the scanned data has the expected format
-                if (qrData && Array.isArray(qrData.items)) {
-                    // Process the scanned items
-                    await processQrItems(qrData.items);
-                } else {
-                    throw new Error("Invalid QR code format");
-                }
-            } catch (error) {
-                console.error("QR scan error:", error);
-                setQrScanError("Invalid QR code format. Expected JSON with items array.");
-            } finally {
-                setQrProcessing(false);
-                // Stop scanning after successful read
-                setIsScanningQR(false);
-            }
-        }
-    };
+        };
+    }, [stream]);
 
     const userEmail = session?.user?.email;
 
@@ -866,59 +793,8 @@ const PantryPage = () => {
         );
     };
 
-    // Animate error and success messages
-    const renderMessages = () => (
-        <AnimatePresence>
-            {error && (
-                <motion.div 
-                    role="alert" 
-                    className="alert alert-error mb-6 shadow-lg"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                    <FiAlertCircle size={24} />
-                    <div>
-                        <h3 className="font-bold">Error!</h3>
-                        <div className="text-xs">{error}</div>
-                    </div>
-                    <motion.button 
-                        className="btn btn-sm btn-ghost" 
-                        onClick={() => setError(null)}
-                        whileHover={{ scale: 1.1, rotate: 3 }}
-                        whileTap={{ scale: 0.9 }}
-                    >
-                        Dismiss
-                    </motion.button>
-                </motion.div>
-            )}
-            {successMessage && (
-                <motion.div 
-                    role="alert" 
-                    className="alert alert-success mb-6 shadow-lg"
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                >
-                    <FiCheckCircle size={24} />
-                    <div>
-                        <h3 className="font-bold">Success!</h3>
-                        <div className="text-xs">{successMessage}</div>
-                    </div>
-                    <motion.button 
-                        className="btn btn-sm btn-ghost" 
-                        onClick={() => setSuccessMessage(null)}
-                        whileHover={{ scale: 1.1, rotate: 3 }}
-                        whileTap={{ scale: 0.9 }}
-                    >
-                        Dismiss
-                    </motion.button>
-                </motion.div>
-            )}
-        </AnimatePresence>
-    );
+    
+// Animate error and success messages
 
     if (sessionStatus === 'loading') {
         return (
@@ -939,13 +815,14 @@ const PantryPage = () => {
     }
 
     // Helper function to switch between tabs
-    const switchModalTab = (tab: 'add-item' | 'demo-items' | 'qr-code') => {
+    const switchModalTab = (tab: 'add-item' | 'demo-items' | 'camera') => {
         setActiveModalTab(tab);
-        // Reset QR scanner when switching tabs
-        if (tab !== 'qr-code') {
-            setIsScanningQR(false);
-            setQrScanResult(null);
-            setQrScanError(null);
+        // Stop camera when switching away from camera tab
+        if (tab !== 'camera' && stream) {
+            stream.getTracks().forEach(track => track.stop());
+            setStream(null);
+            setIsCameraActive(false);
+            setCameraError(null);
         }
     };
     
@@ -961,6 +838,14 @@ const PantryPage = () => {
     // Helper function to close the modal
     const closeAddItemModal = () => {
         if (typeof document !== 'undefined') {
+            // Stop camera if active
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                setStream(null);
+            }
+            setIsCameraActive(false);
+            setCameraError(null);
+            
             // Close the modal
             const modal = document.getElementById('add_item_modal') as HTMLDialogElement;
             if (modal) modal.close();
@@ -1019,12 +904,12 @@ const PantryPage = () => {
                             <FiLayers className="mr-2" /> Add Demo Items
                         </a>
                         <a 
-                            className={`tab ${activeModalTab === 'qr-code' ? 'tab-active' : ''}`}
-                            onClick={() => switchModalTab('qr-code')}
+                            className={`tab ${activeModalTab === 'camera' ? 'tab-active' : ''}`}
+                            onClick={() => switchModalTab('camera')}
                         >
                             <svg className="w-4 h-4 mr-2 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2m0 0H8m4 0h2m-6-2a2 2 0 100-4 2 2 0 000 4zM9 12V4m0 0h6m-6 0H3" />
-                            </svg> QR Scanner
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            </svg> Camera
                         </a>
                     </div>
                     
@@ -1181,66 +1066,45 @@ const PantryPage = () => {
                         </motion.div>
                     )}
                     
-                    {/* QR Code Scanner Tab Content */}
-                    {activeModalTab === 'qr-code' && (
+                    {/* Camera Tab Content */}
+                    {activeModalTab === 'camera' && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.2 }}
                         >
-                            <h3 className="font-bold text-lg mb-4">Scan QR Code</h3>
+                            <h3 className="font-bold text-lg mb-4">Camera View</h3>
                             
                             <div className="space-y-4">
-                                <p>Scan a QR code containing pantry items to add them to your inventory.</p>
+                                <p>Use the camera to capture images or view your environment.</p>
                                 
-                                {qrScanError && (
+                                {cameraError && (
                                     <div className="alert alert-error">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        <span>{qrScanError}</span>
-                                    </div>
-                                )}
-                                
-                                {qrScanResult && (
-                                    <div className="alert alert-info">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        <span>QR code detected! Processing data...</span>
+                                        <span>{cameraError}</span>
                                     </div>
                                 )}
                                 
                                 <div className="card bg-base-200 p-4">
-                                    {isScanningQR ? (
+                                    {isCameraActive && stream ? (
                                         <div className="relative w-full" style={{ minHeight: "300px" }}>
-                                            <QrReader
-                                                onResult={handleQrScan}
-                                                constraints={{
-                                                    facingMode: 'environment'
+                                            <video
+                                                ref={(video) => {
+                                                    if (video && stream) {
+                                                        video.srcObject = stream;
+                                                        video.play();
+                                                    }
                                                 }}
-                                                style={{ 
-                                                    width: '100%', 
-                                                    height: '300px'
-                                                }}
-                                                ViewFinder={() => (
-                                                    <div style={{
-                                                        position: 'absolute',
-                                                        top: '50%',
-                                                        left: '50%',
-                                                        width: '200px',
-                                                        height: '200px',
-                                                        marginTop: '-100px',
-                                                        marginLeft: '-100px',
-                                                        border: '2px solid #00ff00',
-                                                        borderRadius: '10px',
-                                                        boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
-                                                        zIndex: 1000
-                                                    }} />
-                                                )}
+                                                className="w-full h-full object-cover rounded"
+                                                style={{ minHeight: "300px" }}
+                                                autoPlay
+                                                playsInline
+                                                muted
                                             />
-                                            <p className="text-sm text-center mt-2">Position the QR code within the green frame</p>
+                                            <p className="text-sm text-center mt-2">Camera is active</p>
                                         </div>
                                     ) : (
                                         <div className="text-center py-8">
@@ -1248,22 +1112,10 @@ const PantryPage = () => {
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                                             </svg>
-                                            <p>Click "Start Camera" to begin scanning</p>
+                                            <p>Click "Start Camera" to begin</p>
                                             <p className="text-xs mt-2 opacity-60">Make sure to allow camera permissions when prompted</p>
                                         </div>
                                     )}
-                                </div>
-                                
-                                <div className="text-xs bg-base-300 p-3 rounded">
-                                    <p className="font-semibold mb-1">Expected QR code format:</p>
-                                    <pre className="overflow-x-auto">
-                                        {JSON.stringify({
-                                            items: [
-                                                { name: "Apple", quantity: 5, type: "FRUITS" },
-                                                { name: "Milk", quantity: 1, type: "DAIRY" }
-                                            ]
-                                        }, null, 2)}
-                                    </pre>
                                 </div>
                                 
                                 <div className="modal-action">
@@ -1276,17 +1128,10 @@ const PantryPage = () => {
                                     </button>
                                     <button 
                                         type="button" 
-                                        className={`btn ${isScanningQR ? 'btn-error' : 'btn-primary'}`} 
-                                        onClick={toggleQrScanner}
-                                        disabled={qrProcessing}
+                                        className={`btn ${isCameraActive ? 'btn-error' : 'btn-primary'}`} 
+                                        onClick={toggleCamera}
                                     >
-                                        {qrProcessing ? (
-                                            <motion.span 
-                                                className="loading loading-spinner loading-xs"
-                                                animate={{ rotate: 360 }}
-                                                transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                            ></motion.span>
-                                        ) : isScanningQR ? (
+                                        {isCameraActive ? (
                                             <>Stop Camera</>
                                         ) : (
                                             <>Start Camera</>
@@ -1326,62 +1171,35 @@ const PantryPage = () => {
                 Your Digital Pantry
             </motion.h1>
 
-            {renderMessages()}
+            <PantryMessages
+                error={error}
+                successMessage={successMessage}
+                onClearError={() => setError(null)}
+                onClearSuccess={() => setSuccessMessage(null)}
+            />
 
             {/* Replace the Add Item Form with the modal and a floating action button */}
             {addItemModal}
 
             {/* Recently Added Items List */}
-            {renderRecentItemsList()}
+            <PantryRecentItemsList
+                items={pantryItems}
+                getItemIcon={getItemIcon}
+                containerVariants={containerVariants}
+                itemVariants={itemVariants}
+            />
 
             {/* Search Bar */}
-            <motion.div
-                className="card bg-base-200 shadow-lg mb-6 p-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.5 }}
-                whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-            >
-                <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
-                    <div className="relative flex-grow">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <FiSearch className="text-gray-400" />
-                        </div>
-                        <input 
-                            type="text" 
-                            placeholder="Search your pantry..."
-                            className="input input-bordered w-full pl-10"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                        {searchTerm && (
-                            <button 
-                                type="button" 
-                                className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                                onClick={clearSearch}
-                            >
-                                <FiX className="text-gray-400 hover:text-gray-600" />
-                            </button>
-                        )}
-                    </div>
-                    <select 
-                        className="select select-bordered"
-                        value={searchCategory}
-                        onChange={(e) => setSearchCategory(e.target.value as 'all' | 'name' | 'type')}
-                    >
-                        <option value="all">All Fields</option>
-                        <option value="name">Name</option>
-                        <option value="type">Type</option>
-                    </select>
-                </form>
-                <div className="mt-2 text-xs text-gray-500">
-                    {searchTerm ? (
-                        <span>Found {filteredItems.length} items matching "{searchTerm}"</span>
-                    ) : (
-                        <span>Showing all {pantryItems.length} items</span>
-                    )}
-                </div>
-            </motion.div>
+            <PantrySearchBar
+                searchTerm={searchTerm}
+                searchCategory={searchCategory}
+                onSearchTermChange={setSearchTerm}
+                onSearchCategoryChange={v => setSearchCategory(v)}
+                onClearSearch={clearSearch}
+                onSearch={handleSearch}
+                totalItems={pantryItems.length}
+                filteredCount={filteredItems.length}
+            />
 
             {/* Pantry Items - Header with view toggle */}
             <motion.div
@@ -1438,7 +1256,18 @@ const PantryPage = () => {
                             exit={{ opacity: 0, x: 20 }}
                             transition={{ duration: 0.3 }}
                         >
-                            {renderAllItemsList()}
+                            <PantryItemsTable
+                                items={pantryItems}
+                                isLoading={isLoading}
+                                error={error}
+                                filteredItems={filteredItems}
+                                containerVariants={containerVariants}
+                                itemVariants={itemVariants}
+                                formatItemTypeLabel={formatItemTypeLabel}
+                                getItemIcon={getItemIcon}
+                                onUpdateQuantity={handleUpdateQuantity}
+                                onDeleteItem={handleDeleteItem}
+                            />
                         </motion.div>
                     ) : (
                         <motion.div
@@ -1448,7 +1277,17 @@ const PantryPage = () => {
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.3 }}
                         >
-                            {renderGridView()}
+                            <PantryItemsGrid
+                                filteredItems={filteredItems}
+                                searchTerm={searchTerm}
+                                onClearSearch={clearSearch}
+                                containerVariants={containerVariants}
+                                itemVariants={itemVariants}
+                                formatItemTypeLabel={formatItemTypeLabel}
+                                getItemIcon={getItemIcon}
+                                onUpdateQuantity={handleUpdateQuantity}
+                                onDeleteItem={handleDeleteItem}
+                            />
                         </motion.div>
                     )}
                 </AnimatePresence>
