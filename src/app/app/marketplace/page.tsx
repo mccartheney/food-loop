@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProductGrid from '@/components/marketplace/ProductGrid';
 import MarketplaceSidebar from '@/components/marketplace/MarketplaceSidebar';
@@ -22,6 +23,7 @@ const MOCK_PRODUCTS: Product[] = Array(16).fill(null).map((_, index) => ({
 }));
 
 export default function MarketplacePage() {
+  const router = useRouter();
   const [filteredProducts, setFilteredProducts] = useState<Product[]>(MOCK_PRODUCTS);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -37,6 +39,11 @@ export default function MarketplacePage() {
       product.location.toLowerCase().includes(query.toLowerCase())
     );
     setFilteredProducts(filtered);
+  };
+
+  // Handle product click to navigate to the product detail page
+  const handleProductClick = (productId: string) => {
+    router.push(`/app/marketplace/${productId}`);
   };
 
   return (
@@ -80,7 +87,7 @@ export default function MarketplacePage() {
         </div>
         
         <div className="flex-1">
-          <ProductGrid products={filteredProducts} />
+          <ProductGrid products={filteredProducts} onProductClick={handleProductClick} />
         </div>
       </div>
     </DashboardLayout>

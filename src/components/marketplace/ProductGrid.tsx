@@ -4,13 +4,18 @@ import { Product } from '@/app/app/marketplace/page';
 
 interface ProductGridProps {
   products: Product[];
+  onProductClick?: (productId: string) => void;
 }
 
-const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
+const ProductGrid: React.FC<ProductGridProps> = ({ products, onProductClick }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+        <ProductCard 
+          key={product.id} 
+          product={product} 
+          onClick={() => onProductClick && onProductClick(product.id)}
+        />
       ))}
       {products.length === 0 && (
         <div className="col-span-full py-8 text-center text-gray-500">
