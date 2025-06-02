@@ -3,19 +3,29 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { FiX, FiSearch } from 'react-icons/fi';
+import { FiX, FiSearch, FiUsers } from 'react-icons/fi';
 import Image from 'next/image';
+import Link from 'next/link';
 
-// Define types
-interface Profile {
+// Define types to match the actual API response
+interface User {
   id: string;
-  username: string;
-  displayName: string;
-  avatar: string;
-  bio: string;
-  followers?: number;
-  verified?: boolean;
-  following?: boolean;
+  name: string;
+  email: string;
+  authMethod: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface FriendProfile {
+  id: string;
+  userId: string;
+  profileImg: string | null;
+  bio: string | null;
+  address: string | null;
+  user: User;
 }
 
 interface SearchModalProps {
@@ -23,138 +33,17 @@ interface SearchModalProps {
   onClose: () => void;
 }
 
-// Mock profiles data - these would typically come from a centralized data store
-const MOCK_PROFILES = {
-  '1': {
-    id: '1',
-    username: 'manuel_tomas',
-    displayName: 'Manuel Tomas',
-    avatar: '/avatars/user1.png',
-    bio: 'Photographer and traveler based in Porto.',
-    followers: 1046,
-    verified: false,
-    following: true,
-  },
-  '2': {
-    id: '2',
-    username: 'manuel_luis',
-    displayName: 'Manuel Luis',
-    avatar: '/avatars/user2.png',
-    bio: 'Digital creator and content maker from Lisbon.',
-    followers: 1832,
-    verified: true,
-    following: false,
-  },
-  '3': {
-    id: '3',
-    username: 'manuel_mc',
-    displayName: 'Manuel MC',
-    avatar: '/avatars/user3.png',
-    bio: 'Music producer and artist from Faro.',
-    followers: 1240,
-    verified: false,
-    following: true,
-  },
-  '4': {
-    id: '4',
-    username: 'manuel_joao',
-    displayName: 'Manuel Joao',
-    avatar: '/avatars/user4.png',
-    bio: 'Chef and food lover from Braga.',
-    followers: 2340,
-    verified: false,
-    following: true,
-  },
-  '5': {
-    id: '5',
-    username: 'manuel_afonso',
-    displayName: 'Manuel Afonso',
-    avatar: '/avatars/user5.png',
-    bio: 'Tech student from Coimbra University.',
-    followers: 542,
-    verified: false,
-    following: false,
-  },
-  '6': {
-    id: '6',
-    username: 'manuel_leandro',
-    displayName: 'Manuel Leandro',
-    avatar: '/avatars/user6.png',
-    bio: 'Surf instructor and ocean lover.',
-    followers: 1320,
-    verified: false,
-    following: true,
-  },
-  '7': {
-    id: '7',
-    username: 'manuel_zacarias',
-    displayName: 'Manuel Zacarias',
-    avatar: '/avatars/user7.png',
-    bio: 'Digital designer from Aveiro.',
-    followers: 876,
-    verified: false,
-    following: false,
-  },
-  '8': {
-    id: '8',
-    username: '_lauraimartins_',
-    displayName: 'Laura Martins',
-    avatar: '/avatars/user8.png',
-    bio: 'Food enthusiast and blogger.',
-    followers: 2345,
-    verified: false,
-    following: false,
-  },
-  '9': {
-    id: '9',
-    username: 'a_carolina_torres',
-    displayName: 'Carolina Torres',
-    avatar: '/avatars/user9.png',
-    bio: 'Fashion model and influencer.',
-    followers: 141000,
-    verified: true,
-    following: false,
-  },
-  '10': {
-    id: '10',
-    username: 'roddy44__',
-    displayName: 'RODDY',
-    avatar: '/avatars/user10.png',
-    bio: 'Music lover',
-    followers: 4500,
-    verified: false,
-    following: false,
-  },
-  '11': {
-    id: '11',
-    username: 'nandoooogomess',
-    displayName: 'Semogodnan',
-    avatar: '/avatars/user11.png',
-    bio: 'Adventurer',
-    followers: 3200,
-    verified: false,
-    following: false,
-  },
-  '12': {
-    id: '12',
-    username: 'carolina_augusto',
-    displayName: 'Carolina Maeiro Augusto',
-    avatar: '/avatars/user12.png',
-    bio: 'Digital artist',
-    followers: 2800,
-    verified: false,
-    following: false,
-  }
-};
-
 const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Profile[]>([]);
-  const [recentSearches, setRecentSearches] = useState<Profile[]>([]);
+  const [searchResults, setSearchResults] = useState<FriendProfile[]>([]);
+  const [friends, setFriends] = useState<FriendProfile[]>([]);
+  const [loading, setLoading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   
+  console.log(friends)
+
   // Focus search input when modal opens
   useEffect(() => {
     if (isOpen && searchInputRef.current) {
@@ -163,6 +52,41 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
       }, 100);
     }
   }, [isOpen]);
+
+  // Fetch user's friends when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchFriends();
+    }
+  }, [isOpen]);
+
+  const fetchFriends = async () => {
+    setLoading(true);
+    try {
+      // Get current user's email from localStorage or session
+      const userEmail = localStorage.getItem('userEmail') || 'mccartheney@gmail.com';
+      
+      const response = await fetch(`/api/me?email=${encodeURIComponent(userEmail)}`);
+      if (response.ok) {
+        const userData = await response.json();
+        // Combine friends and friendOf arrays
+        const allFriends = [
+          ...(userData.friends || []),
+          ...(userData.friendOf || [])
+        ];
+        // Remove duplicates based on id
+        const uniqueFriends = allFriends.filter((friend, index, self) =>
+          index === self.findIndex((f) => f.id === friend.id)
+        );
+        setFriends(uniqueFriends);
+      }
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+      setFriends([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   
   // Handle search
   useEffect(() => {
@@ -172,14 +96,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     }
     
     const query = searchQuery.toLowerCase();
-    const results = Object.values(MOCK_PROFILES).filter(
-      profile => 
-        profile.username.toLowerCase().includes(query) || 
-        profile.displayName.toLowerCase().includes(query)
+    const results = friends.filter(
+      friend => 
+        friend.user.name.toLowerCase().includes(query) || 
+        friend.user.email.toLowerCase().includes(query)
     );
     
     setSearchResults(results);
-  }, [searchQuery]);
+  }, [searchQuery, friends]);
   
   // Handle click outside to close
   useEffect(() => {
@@ -211,70 +135,10 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
     };
   }, [isOpen]);
 
-  // Load recent searches from localStorage
-  useEffect(() => {
-    if (isOpen) {
-      try {
-        const savedSearches = localStorage.getItem('recentSearches');
-        if (savedSearches) {
-          setRecentSearches(JSON.parse(savedSearches));
-        } else {
-          // For demo purposes, initialize with some mock data
-          const initialRecent = [
-            MOCK_PROFILES['8'], 
-            MOCK_PROFILES['9'], 
-            MOCK_PROFILES['10'],
-            MOCK_PROFILES['11'],
-            MOCK_PROFILES['12']
-          ];
-          setRecentSearches(initialRecent);
-          localStorage.setItem('recentSearches', JSON.stringify(initialRecent));
-        }
-      } catch (error) {
-        console.error('Failed to load recent searches:', error);
-      }
-    }
-  }, [isOpen]);
-  
-  const handleProfileClick = (profile: Profile) => {
-    // Add to recent searches
-    const updatedSearches = [
-      profile,
-      ...recentSearches.filter(item => item.id !== profile.id)
-    ].slice(0, 10); // Keep only 10 most recent
-    
-    setRecentSearches(updatedSearches);
-    
-    try {
-      localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
-    } catch (error) {
-      console.error('Failed to save recent searches:', error);
-    }
-    
-    // Navigate to profile page
-    router.push(`/app/profile/${profile.id}`);
+  const handleProfileClick = (friend: FriendProfile) => {
+    // Navigate to profile page using the profile id
+    router.push(`/app/profile/${friend.id}`);
     onClose();
-  };
-  
-  const removeFromRecent = (e: React.MouseEvent, profileId: string) => {
-    e.stopPropagation();
-    const updatedSearches = recentSearches.filter(profile => profile.id !== profileId);
-    setRecentSearches(updatedSearches);
-    
-    try {
-      localStorage.setItem('recentSearches', JSON.stringify(updatedSearches));
-    } catch (error) {
-      console.error('Failed to save recent searches:', error);
-    }
-  };
-  
-  const clearAllRecent = () => {
-    setRecentSearches([]);
-    try {
-      localStorage.removeItem('recentSearches');
-    } catch (error) {
-      console.error('Failed to clear recent searches:', error);
-    }
   };
   
   return (
@@ -313,14 +177,14 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
                     <input
                       ref={searchInputRef}
                       type="text"
-                      placeholder="Search"
-                      className="w-full bg-gray-100 border border-gray-200 rounded-lg text-gray-800 py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Search friends"
+                      className="input input-bordered w-full bg-gray-100 border-gray-200 text-gray-800 focus:border-primary focus:outline-none"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                     {searchQuery ? (
                       <button 
-                        className="absolute right-3 text-gray-400 hover:text-primary"
+                        className="btn btn-ghost btn-sm btn-circle absolute right-2 text-gray-400 hover:text-primary"
                         onClick={() => setSearchQuery('')}
                       >
                         <FiX size={18} />
@@ -333,97 +197,135 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
               </div>
               
               <div className="flex-1 overflow-y-auto">
-                {searchQuery ? (
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center p-8">
+                    <div className="loading loading-spinner loading-lg text-primary"></div>
+                    <p className="text-sm text-gray-500 mt-2">Loading friends...</p>
+                  </div>
+                ) : searchQuery ? (
                   // Search results
                   searchResults.length > 0 ? (
-                    searchResults.map(profile => (
+                    searchResults.map(friend => (
                       <div 
-                        key={profile.id}
-                        className="px-5 py-3 flex items-center hover:bg-gray-50 cursor-pointer border-b border-gray-200"
-                        onClick={() => handleProfileClick(profile)}
+                        key={friend.id}
+                        className="px-5 py-3 flex items-center hover:bg-gray-50 cursor-pointer border-b border-gray-200 transition-colors"
+                        onClick={() => handleProfileClick(friend)}
                       >
                         <div className="avatar">
                           <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                            <div className="font-medium text-lg text-gray-700">
-                              {profile.displayName[0].toUpperCase()}
-                            </div>
+                            {friend.profileImg ? (
+                              <Image
+                                src={friend.profileImg}
+                                alt={friend.user.name}
+                                width={48}
+                                height={48}
+                                className="rounded-full"
+                              />
+                            ) : (
+                              <div className="font-medium text-lg text-gray-700">
+                                {friend.user.name[0].toUpperCase()}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="ml-3 flex-1">
                           <div className="flex items-center">
-                            <span className="font-semibold text-sm text-gray-900">{profile.username}</span>
-                            {profile.verified && (
-                              <span className="ml-1 text-primary">•</span>
-                            )}
+                            <span className="font-semibold text-sm text-gray-900">{friend.user.name}</span>
                           </div>
                           <div className="text-xs text-gray-500">
-                            {profile.displayName}
-                            {profile.followers && profile.followers > 1000 && (
-                              <span className="ml-2">• {(profile.followers / 1000).toFixed(profile.followers >= 100000 ? 0 : 1)}k followers</span>
-                            )}
+                            {friend.user.email}
                           </div>
                         </div>
                       </div>
                     ))
                   ) : (
-                    <div className="p-6 text-center text-gray-500">
-                      No results found
+                    <div className="flex flex-col items-center justify-center p-8 text-center">
+                      <FiSearch className="text-4xl text-gray-300 mb-4" />
+                      <p className="text-gray-500 mb-2">No friends found</p>
+                      <p className="text-sm text-gray-400">Try searching with a different name</p>
                     </div>
                   )
                 ) : (
-                  // Recent searches
-                  <>
-                    <div className="px-5 py-3 flex items-center justify-between border-b border-gray-200">
-                      <h3 className="font-semibold text-gray-900">Recent</h3>
-                      {recentSearches.length > 0 && (
-                        <button 
-                          className="text-sm text-primary font-semibold hover:underline"
-                          onClick={clearAllRecent}
-                        >
-                          Clear All
-                        </button>
-                      )}
-                    </div>
-                    
-                    {recentSearches.length > 0 ? (
-                      recentSearches.map(profile => (
+                  // Show friends or empty state
+                  friends.length > 0 ? (
+                    <>
+                      <div className="px-5 py-3 border-b border-gray-200">
+                        <h3 className="font-semibold text-gray-900 flex items-center">
+                          <FiUsers className="mr-2" />
+                          Your Friends ({friends.length})
+                        </h3>
+                      </div>
+                      
+                      {friends.map(friend => (
                         <div 
-                          key={profile.id}
-                          className="px-5 py-3 flex items-center hover:bg-gray-50 cursor-pointer border-b border-gray-200"
-                          onClick={() => handleProfileClick(profile)}
+                          key={friend.id}
+                          className="px-5 py-3 flex items-center hover:bg-gray-50 cursor-pointer border-b border-gray-200 transition-colors"
+                          onClick={() => handleProfileClick(friend)}
                         >
                           <div className="avatar">
                             <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                              <div className="font-medium text-lg text-gray-700">
-                                {profile.displayName[0].toUpperCase()}
-                              </div>
+                              {friend.profileImg ? (
+                                <Image
+                                  src={friend.profileImg}
+                                  alt={friend.user.name}
+                                  width={48}
+                                  height={48}
+                                  className="rounded-full"
+                                />
+                              ) : (
+                                <div className="font-medium text-lg text-gray-700">
+                                  {friend.user.name[0].toUpperCase()}
+                                </div>
+                              )}
                             </div>
                           </div>
                           <div className="ml-3 flex-1">
                             <div className="flex items-center">
-                              <span className="font-semibold text-sm text-gray-900">{profile.username}</span>
-                              {profile.verified && (
-                                <span className="ml-1 text-primary">•</span>
-                              )}
+                              <span className="font-semibold text-sm text-gray-900">{friend.user.name}</span>
                             </div>
                             <div className="text-xs text-gray-500">
-                              {profile.following ? 'friends' : profile.followers ? `${profile.followers} friends` : profile.displayName}
+                              {friend.user.email}
                             </div>
+                            {friend.bio && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {friend.bio}
+                              </div>
+                            )}
                           </div>
-                          <button 
-                            className="btn btn-ghost btn-sm btn-circle text-gray-400 hover:text-primary"
-                            onClick={(e) => removeFromRecent(e, profile.id)}
-                          >
-                            <FiX size={16} />
-                          </button>
+                          <div className="badge badge-success badge-sm">Friend</div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="p-6 text-center text-gray-500">
-                        No recent searches
+                      ))}
+                    </>
+                  ) : (
+                    // No friends state
+                    <div className="flex flex-col items-center justify-center p-8 text-center h-full">
+                      <div className="avatar placeholder mb-6">
+                        <div className="bg-neutral-focus text-neutral-content rounded-full w-24">
+                          <FiUsers className="text-4xl" />
+                        </div>
                       </div>
-                    )}
-                  </>
+                      
+                      <h3 className="text-xl font-semibold text-gray-900 mb-2">No Friends Yet</h3>
+                      <p className="text-gray-500 mb-6 max-w-xs">
+                        Start connecting with people in your community to build your network and share food resources.
+                      </p>
+                      
+                      <Link 
+                        href="/app/friends" 
+                        className="btn btn-primary btn-wide"
+                        onClick={onClose}
+                      >
+                        <FiUsers className="mr-2" />
+                        Find Friends
+                      </Link>
+                      
+                      <div className="divider my-6 max-w-xs">or</div>
+                      
+                      <p className="text-sm text-gray-400 text-center max-w-xs">
+                        Search above to find specific friends by their username or display name.
+                      </p>
+                    </div>
+                  )
                 )}
               </div>
             </motion.div>
