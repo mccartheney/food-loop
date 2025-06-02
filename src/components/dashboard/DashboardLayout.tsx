@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiHome, FiPlus, FiSettings, FiUser, FiSearch } from 'react-icons/fi';
+import { FiHome, FiPlus, FiSettings, FiUser, FiSearch, FiUsers } from 'react-icons/fi';
 import { LiaStoreAltSolid } from "react-icons/lia";
 import { PiChefHatLight } from "react-icons/pi"; // Added chef hat icon import
 import MobileHeader from './cards/MobileHeader';
@@ -86,7 +86,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       ),
       isCustomIcon: true
     },
-    { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight }, 
+    { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight },
+    { name: 'Friends', href: '/app/friends', icon: FiUsers }, 
     { name: 'Add', href: '/app/add', icon: FiPlus, isPrimary: true },
     { name: 'Settings', href: '/app/settings', icon: FiSettings },
     { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
@@ -138,7 +139,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </div>
           
           <nav className="flex flex-col items-center space-y-6 flex-1">
-            {navItems.slice(0, 6).map((item) => (
+            {navItems.slice(0, 7).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}
@@ -216,7 +217,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 <FaSignOutAlt/>
               </button>
             </motion.div>
-            {navItems.slice(6).map((item) => (
+            {navItems.slice(7).map((item) => (
               <motion.div
                 key={item.name}
                 whileHover={{ scale: 1.05 }}

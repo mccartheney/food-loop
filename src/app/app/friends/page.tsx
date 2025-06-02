@@ -1,37 +1,315 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { FiUsers, FiUserPlus, FiSearch, FiCheck, FiX } from 'react-icons/fi';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { useCurrentUser, useFriends, useFriendRequests, useUserSearch } from '@/lib/hooks/useFriends';
-import { Friend, FriendRequest } from '@/lib/friendsApi';
 
 type TabType = 'friends' | 'requests' | 'search';
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+
+interface Profile {
+  id: string;
+  userId: string;
+  bio: string | null;
+  profileImg: string | null;
+  address: string | null;
+  user: User;
+}
+
+interface Friend {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  bio: string | null;
+  profileImg: string | null;
+  address: string | null;
+}
+
+interface FriendRequest {
+  id: string;
+  receiverId?: string;
+  receiverName?: string;
+  receiverEmail?: string;
+  receiverBio?: string | null;
+  receiverProfileImg?: string | null;
+  requesterId?: string;
+  requesterName?: string;
+  requesterEmail?: string;
+  requesterBio?: string | null;
+  requesterProfileImg?: string | null;
+  status: string;
+  createdAt: string;
+  type: 'sent' | 'received';
+}
+
+interface SearchedUser {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  bio: string | null;
+  profileImg: string | null;
+  address: string | null;
+  isActive: boolean;
+}
+
 export default function FriendsPage() {
+  const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>('friends');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const { user: currentUser } = useCurrentUser();
-  const { friends, loading: friendsLoading, removeFriend } = useFriends(currentUser?.id);
-  const { 
-    requests, 
-    loading: requestsLoading, 
-    acceptRequest, 
-    rejectRequest, 
-    cancelRequest 
-  } = useFriendRequests(currentUser?.id);
-  const { searchResults, loading: searchLoading, searchUsers, clearResults } = useUserSearch();
+  // State for current user and friends data
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
+  const [requests, setRequests] = useState<{
+    sent: FriendRequest[];
+    received: FriendRequest[];
+  }>({ sent: [], received: [] });
+  const [searchResults, setSearchResults] = useState<SearchedUser[]>([]);
 
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      searchUsers(searchQuery.trim());
-    } else {
-      clearResults();
+  // Loading states
+  const [userLoading, setUserLoading] = useState(true);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Direct API calls
+  const fetchCurrentUser = useCallback(async () => {
+    if (!session?.user?.email) {
+      setCurrentUser(null);
+      setUserLoading(false);
+      return;
     }
-  };
 
+    try {
+      setUserLoading(true);
+      const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
+      }
+      
+      const data = await response.json();
+      setCurrentUser(data);
+    } catch (error) {
+      console.error('Error fetching current user:', error);
+    } finally {
+      setUserLoading(false);
+    }
+  }, [session?.user?.email]);
+
+  const fetchFriends = useCallback(async () => {
+    if (!currentUser?.userId) {
+      setFriends([]);
+      return;
+    }
+
+    try {
+      setFriendsLoading(true);
+      const response = await fetch(`/api/friends?userId=${currentUser.userId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch friends');
+      }
+      
+      const data = await response.json();
+      setFriends(data.success ? data.friends : []);
+    } catch (error) {
+      console.error('Error fetching friends:', error);
+      setFriends([]);
+    } finally {
+      setFriendsLoading(false);
+    }
+  }, [currentUser?.userId]);
+
+  const fetchFriendRequests = useCallback(async () => {
+    if (!currentUser?.userId) {
+      setRequests({ sent: [], received: [] });
+      return;
+    }
+
+    try {
+      setRequestsLoading(true);
+      const response = await fetch(`/api/friends/requests?userId=${currentUser.userId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch friend requests');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setRequests({
+          sent: data.sentRequests || [],
+          received: data.receivedRequests || []
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching friend requests:', error);
+      setRequests({ sent: [], received: [] });
+    } finally {
+      setRequestsLoading(false);
+    }
+  }, [currentUser?.userId]);
+
+  // Friend actions
+  const removeFriend = useCallback(async (friendId: string) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const response = await fetch(`/api/friends/${friendId}?userId=${currentUser.userId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove friend');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setFriends(prev => prev.filter(friend => friend.id !== friendId));
+      }
+    } catch (error) {
+      console.error('Error removing friend:', error);
+    }
+  }, [currentUser?.userId]);
+
+  const acceptRequest = useCallback(async (requestId: string) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const response = await fetch('/api/friends/requests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: currentUser.userId, 
+          requestId, 
+          action: 'accept' 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to accept friend request');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        await fetchFriendRequests();
+        await fetchFriends();
+      }
+    } catch (error) {
+      console.error('Error accepting friend request:', error);
+    }
+  }, [currentUser?.userId, fetchFriendRequests, fetchFriends]);
+
+  const rejectRequest = useCallback(async (requestId: string) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const response = await fetch('/api/friends/requests', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          userId: currentUser.userId, 
+          requestId, 
+          action: 'reject' 
+        }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to reject friend request');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        await fetchFriendRequests();
+      }
+    } catch (error) {
+      console.error('Error rejecting friend request:', error);
+    }
+  }, [currentUser?.userId, fetchFriendRequests]);
+
+  const cancelRequest = useCallback(async (requestId: string) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const response = await fetch(`/api/friends/requests?userId=${currentUser.userId}&requestId=${requestId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to cancel friend request');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        await fetchFriendRequests();
+      }
+    } catch (error) {
+      console.error('Error cancelling friend request:', error);
+    }
+  }, [currentUser?.userId, fetchFriendRequests]);
+
+  // Search functionality
+  const handleSearch = useCallback(async () => {
+    if (!searchQuery.trim() || !currentUser?.userId) {
+      setSearchResults([]);
+      return;
+    }
+
+    try {
+      setSearchLoading(true);
+      const response = await fetch(`/api/friends/search?userId=${currentUser.userId}&q=${encodeURIComponent(searchQuery.trim())}`);
+      
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setSearchResults(data.users || (data.user ? [data.user] : []));
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error searching users:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [searchQuery, currentUser?.userId]);
+
+  const clearResults = useCallback(() => {
+    setSearchResults([]);
+  }, []);
+
+  // Effects
+  useEffect(() => {
+    fetchCurrentUser();
+  }, [fetchCurrentUser]);
+
+  useEffect(() => {
+    if (currentUser?.userId) {
+      fetchFriends();
+      fetchFriendRequests();
+    }
+  }, [currentUser?.userId, fetchFriends, fetchFriendRequests]);
+
+  // Tab configuration
   const tabs = [
     {
       id: 'friends' as TabType,
@@ -338,11 +616,27 @@ export default function FriendsPage() {
     );
   };
 
+  if (userLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex justify-center items-center py-12">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
   const content = (
     <div className="max-w-4xl mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Friends</h1>
         <p className="text-gray-600">Manage your connections and discover new friends</p>
+        {currentUser && (
+          <p className="text-sm text-gray-500 mt-2">
+            Welcome back, {currentUser.user.name}! 
+            {currentUser.bio && ` • ${currentUser.bio}`}
+          </p>
+        )}
       </div>
 
       {/* Tabs */}
