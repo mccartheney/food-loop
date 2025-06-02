@@ -166,21 +166,33 @@ export default function FriendsPage() {
   const removeFriend = useCallback(async (friendId: string) => {
     if (!currentUser?.userId) return;
 
+    console.log('Removing friend:', { friendId, userId: currentUser.userId });
+
     try {
-      const response = await fetch(`/api/friends/${friendId}?userId=${currentUser.userId}`, {
+      const url = `/api/friends/${friendId}?userId=${currentUser.userId}`;
+      console.log('Request URL:', url);
+      
+      const response = await fetch(url, {
         method: 'DELETE',
       });
       
+      console.log('Response status:', response.status);
+      
       if (!response.ok) {
-        throw new Error('Failed to remove friend');
+        const errorData = await response.json();
+        console.error('Remove friend error:', errorData);
+        throw new Error(errorData.error || 'Failed to remove friend');
       }
       
       const data = await response.json();
+      console.log('Success response:', data);
+      
       if (data.success) {
         setFriends(prev => prev.filter(friend => friend.id !== friendId));
       }
     } catch (error) {
       console.error('Error removing friend:', error);
+      alert('Failed to remove friend. Please try again.');
     }
   }, [currentUser?.userId]);
 
