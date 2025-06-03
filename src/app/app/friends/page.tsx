@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { FiUsers, FiUserPlus, FiSearch, FiCheck, FiX } from 'react-icons/fi';
+import Image from 'next/image';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 
 type TabType = 'friends' | 'requests' | 'search';
@@ -86,6 +87,27 @@ export default function FriendsPage() {
   const [requestsLoading, setRequestsLoading] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
+  // Sync profile image from session
+  const syncProfileImage = useCallback(async () => {
+    if (!session?.user?.email || !session?.user?.image) return;
+
+    try {
+      await fetch('/api/auth/sync-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user.email,
+          name: session.user.name,
+          image: session.user.image,
+        }),
+      });
+    } catch (error) {
+      console.error('Error syncing profile image:', error);
+    }
+  }, [session?.user?.email, session?.user?.name, session?.user?.image]);
+
   // Direct API calls
   const fetchCurrentUser = useCallback(async () => {
     if (!session?.user?.email) {
@@ -96,6 +118,10 @@ export default function FriendsPage() {
 
     try {
       setUserLoading(true);
+      
+      // First, sync profile image with session
+      await syncProfileImage();
+      
       const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
       
       if (!response.ok) {
@@ -109,7 +135,7 @@ export default function FriendsPage() {
     } finally {
       setUserLoading(false);
     }
-  }, [session?.user?.email]);
+  }, [session?.user?.email, syncProfileImage]);
 
   const fetchFriends = useCallback(async () => {
     if (!currentUser?.userId) {
@@ -460,11 +486,13 @@ export default function FriendsPage() {
             className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
           >
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                 {friend.profileImg ? (
-                  <img 
+                  <Image 
                     src={friend.profileImg} 
                     alt={friend.name} 
+                    width={48}
+                    height={48}
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
@@ -536,11 +564,13 @@ export default function FriendsPage() {
                   className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                       {request.requesterProfileImg ? (
-                        <img 
+                        <Image 
                           src={request.requesterProfileImg} 
                           alt={request.requesterName || 'User'} 
+                          width={48}
+                          height={48}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
@@ -591,11 +621,13 @@ export default function FriendsPage() {
                   className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                       {request.receiverProfileImg ? (
-                        <img 
+                        <Image 
                           src={request.receiverProfileImg} 
                           alt={request.receiverName || 'User'} 
+                          width={48}
+                          height={48}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (
@@ -667,11 +699,13 @@ export default function FriendsPage() {
                   className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
                 >
                   <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
                       {user.profileImg ? (
-                        <img 
+                        <Image 
                           src={user.profileImg} 
                           alt={user.name} 
+                          width={48}
+                          height={48}
                           className="w-full h-full rounded-full object-cover"
                         />
                       ) : (

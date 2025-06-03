@@ -33,9 +33,11 @@ const handler = NextAuth({
         try {
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email },
+            include: { profile: true },
           });
 
           if (!existingUser) {
+            // Create new user with Google profile
             await prisma.user.create({
               data: {
                 email: user.email,
@@ -50,6 +52,40 @@ const handler = NextAuth({
                 },
               },
             });
+          } else {
+            // Update existing user's name and profile image if they've changed
+            const updates: any = {};
+            if (user.name && user.name !== existingUser.name) {
+              updates.name = user.name;
+            }
+
+            if (Object.keys(updates).length > 0) {
+              await prisma.user.update({
+                where: { email: user.email },
+                data: updates,
+              });
+            }
+
+            // Update profile image if it's different or create profile if it doesn't exist
+            if (user.image) {
+              if (!existingUser.profile) {
+                // Create profile if it doesn't exist
+                await prisma.profile.create({
+                  data: {
+                    userId: existingUser.id,
+                    profileImg: user.image,
+                  },
+                });
+              } else if (user.image !== existingUser.profile.profileImg) {
+                // Update profile image if it's different
+                await prisma.profile.update({
+                  where: { id: existingUser.profile.id },
+                  data: {
+                    profileImg: user.image,
+                  },
+                });
+              }
+            }
           }
         } catch (error) {
           console.error("Error during Google sign-in:", error);
