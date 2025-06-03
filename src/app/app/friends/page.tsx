@@ -62,6 +62,8 @@ interface SearchedUser {
   profileImg: string | null;
   address: string | null;
   isActive: boolean;
+  friendshipStatus: 'friend' | 'pending_sent' | 'pending_received' | 'none';
+  requestId?: string;
 }
 
 export default function FriendsPage() {
@@ -278,14 +280,19 @@ export default function FriendsPage() {
 
   // Search functionality
   const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim() || !currentUser?.userId) {
-      setSearchResults([]);
-      return;
-    }
+    if (!currentUser?.userId) return;
 
     try {
       setSearchLoading(true);
-      const response = await fetch(`/api/friends/search?userId=${currentUser.userId}&q=${encodeURIComponent(searchQuery.trim())}`);
+      let url = `/api/friends/search?userId=${currentUser.userId}`;
+      
+      if (searchQuery.trim()) {
+        url += `&q=${encodeURIComponent(searchQuery.trim())}`;
+      } else {
+        url += `&showAll=true`;
+      }
+      
+      const response = await fetch(url);
       
       if (!response.ok) {
         throw new Error('Search failed');
@@ -293,7 +300,7 @@ export default function FriendsPage() {
       
       const data = await response.json();
       if (data.success) {
-        setSearchResults(data.users || (data.user ? [data.user] : []));
+        setSearchResults(data.users || []);
       } else {
         setSearchResults([]);
       }
@@ -309,6 +316,75 @@ export default function FriendsPage() {
     setSearchResults([]);
   }, []);
 
+  // Load all users when search tab is opened
+  const loadAllUsers = useCallback(async () => {
+    if (!currentUser?.userId) return;
+
+    try {
+      setSearchLoading(true);
+      const response = await fetch(`/api/friends/search?userId=${currentUser.userId}&showAll=true`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to load users');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setSearchResults(data.users || []);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error loading users:', error);
+      setSearchResults([]);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, [currentUser?.userId]);
+
+  // Friend request actions
+  const sendFriendRequest = useCallback(async (friendUserId: string) => {
+    if (!currentUser?.userId) return;
+
+    try {
+      const response = await fetch('/api/friends', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: currentUser.userId,
+          friendUserId: friendUserId,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        if (data.canAccept && data.requestId) {
+          // There's a pending request from the other user
+          await acceptRequest(data.requestId);
+          return;
+        }
+        throw new Error(data.error || 'Failed to send friend request');
+      }
+
+      if (data.success) {
+        // Refresh the users list to update the status
+        if (searchQuery.trim()) {
+          await handleSearch();
+        } else {
+          await loadAllUsers();
+        }
+        // Also refresh friend requests
+        await fetchFriendRequests();
+      }
+    } catch (error) {
+      console.error('Error sending friend request:', error);
+      alert(`Failed to send friend request: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }, [currentUser?.userId, searchQuery, handleSearch, loadAllUsers, fetchFriendRequests, acceptRequest]);
+
   // Effects
   useEffect(() => {
     fetchCurrentUser();
@@ -320,6 +396,13 @@ export default function FriendsPage() {
       fetchFriendRequests();
     }
   }, [currentUser?.userId, fetchFriends, fetchFriendRequests]);
+
+  // Load all users when search tab is opened
+  useEffect(() => {
+    if (activeTab === 'search' && currentUser?.userId && searchResults.length === 0 && !searchQuery.trim()) {
+      loadAllUsers();
+    }
+  }, [activeTab, currentUser?.userId, searchResults.length, searchQuery, loadAllUsers]);
 
   // Tab configuration
   const tabs = [
@@ -612,6 +695,53 @@ export default function FriendsPage() {
                     >
                       View Profile
                     </button>
+                    {user.friendshipStatus === 'friend' && (
+                      <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
+                        Already Friend
+                      </span>
+                    )}
+                    {user.friendshipStatus === 'pending_sent' && (
+                      <div className="flex items-center space-x-2">
+                        <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
+                          Request Sent
+                        </span>
+                        {user.requestId && (
+                          <button
+                            onClick={() => cancelRequest(user.requestId!)}
+                            className="btn btn-sm btn-outline"
+                          >
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    {user.friendshipStatus === 'pending_received' && user.requestId && (
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => acceptRequest(user.requestId!)}
+                          className="btn btn-sm btn-primary"
+                        >
+                          <FiCheck size={16} />
+                          Accept Request
+                        </button>
+                        <button
+                          onClick={() => rejectRequest(user.requestId!)}
+                          className="btn btn-sm btn-outline"
+                        >
+                          <FiX size={16} />
+                          Decline
+                        </button>
+                      </div>
+                    )}
+                    {user.friendshipStatus === 'none' && (
+                      <button
+                        onClick={() => sendFriendRequest(user.userId)}
+                        className="btn btn-sm btn-primary"
+                      >
+                        <FiUserPlus size={16} />
+                        Add Friend
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -621,6 +751,12 @@ export default function FriendsPage() {
               <FiSearch className="mx-auto text-gray-300 mb-4" size={48} />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
               <p className="text-gray-500">Try searching with a different term</p>
+            </div>
+          ) : !searchLoading && searchResults.length === 0 && !searchQuery.trim() ? (
+            <div className="text-center py-12">
+              <FiUsers className="mx-auto text-gray-300 mb-4" size={48} />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">All Users</h3>
+              <p className="text-gray-500">Here you can see all users and connect with them!</p>
             </div>
           ) : null}
         </div>
