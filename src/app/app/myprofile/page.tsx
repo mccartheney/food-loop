@@ -3,47 +3,40 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiX, FiSettings } from 'react-icons/fi';
+import { FiSearch, FiX, FiSettings, FiEdit3, FiMapPin, FiLoader, FiUser } from 'react-icons/fi';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import EditProfileModal from '@/components/profile/EditProfileModal';
+import { ToastContainer, useToast } from '@/components/ui/Toast';
 
-// Define types directly in the file as requested
-interface Highlight {
+// Types for real data
+interface RealFriend {
   id: string;
-  title: string;
-  imageUrl?: string;
+  userId: string;
+  name: string;
+  email: string;
+  bio: string | null;
+  profileImg: string | null;
+  address: string | null;
 }
 
-interface Friend {
+interface RealProfile {
   id: string;
-  username: string;
-  displayName: string;
-  avatar: string;
-  isFollowing: boolean;
-}
-
-interface Profile {
-  id: string;
-  username: string;
-  displayName: string;
-  avatar: string;
-  bio: string;
-  website?: string;
-  postsCount: number;
-  followersCount: number;
-  followingCount: number;
-  isVerified?: boolean;
-  occupation?: string;
-  location: string;
-  highlights: Highlight[];
-}
-
-interface Post {
-  id: string;
-  imageUrl: string;
-  likes: number;
-  comments: number;
+  userId: string;
+  bio: string | null;
+  address: string | null;
+  profileImg: string | null;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  friends: RealFriend[];
+  counts: {
+    friends: number;
+    recipes: number;
+  };
 }
 
 // Friend Modal Component
@@ -51,12 +44,14 @@ const FriendModal = ({
   isOpen, 
   onClose, 
   friends,
-  onFriendClick
+  onFriendClick,
+  loading = false
 }: { 
   isOpen: boolean; 
   onClose: () => void;
-  friends: Friend[];
+  friends: RealFriend[];
   onFriendClick: (friendId: string) => void;
+  loading?: boolean;
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [displayedFriends, setDisplayedFriends] = useState(friends);
@@ -83,24 +78,12 @@ const FriendModal = ({
     
     const filtered = friends.filter(
       friend => 
-        friend.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        friend.displayName.toLowerCase().includes(searchQuery.toLowerCase())
+        friend.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        friend.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
     
     setDisplayedFriends(filtered);
   }, [searchQuery, friends]);
-
-  // Toggle following status
-  const toggleFollow = (friendId: string, event: React.MouseEvent) => {
-    event.stopPropagation();
-    setDisplayedFriends(prev => 
-      prev.map(friend => 
-        friend.id === friendId 
-          ? { ...friend, isFollowing: !friend.isFollowing } 
-          : friend
-      )
-    );
-  };
   
   // Handle click outside to close
   useEffect(() => {
@@ -144,7 +127,7 @@ const FriendModal = ({
         <AnimatePresence>
           <motion.div
             ref={modalRef}
-            className="bg-white rounded-xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl pointer-events-auto"
+            className="bg-white rounded-xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl pointer-events-auto mx-4"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
@@ -152,9 +135,9 @@ const FriendModal = ({
           >
             {/* Header */}
             <div className="border-b p-4 flex items-center justify-center relative">
-              <h3 className="font-semibold text-center">Friends</h3>
+              <h3 className="font-semibold text-center">Friends ({friends.length})</h3>
               <button 
-                className="absolute right-4 text-gray-600" 
+                className="absolute right-4 text-gray-600 hover:text-gray-800 transition-colors" 
                 onClick={onClose}
               >
                 <FiX size={24} />
@@ -162,58 +145,76 @@ const FriendModal = ({
             </div>
             
             {/* Search */}
-            <div className="p-3 border-b">
-              <div className="relative flex items-center">
-                <FiSearch className="absolute left-3 text-gray-400" size={16} />
-                <input
-                  ref={searchRef}
-                  type="text"
-                  placeholder="Search"
-                  className="input input-bordered w-full bg-gray-100 pl-10 py-2 text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+            {friends.length > 0 && (
+              <div className="p-3 border-b">
+                <div className="relative flex items-center">
+                  <FiSearch className="absolute left-3 text-gray-400" size={16} />
+                  <input
+                    ref={searchRef}
+                    type="text"
+                    placeholder="Search friends..."
+                    className="w-full bg-gray-100 pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary focus:border-primary"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            )}
             
             {/* Friends List */}
             <div className="overflow-y-auto flex-1">
-              {displayedFriends.length > 0 ? (
+              {loading ? (
+                <div className="p-8 flex items-center justify-center">
+                  <FiLoader className="animate-spin text-gray-400" size={24} />
+                </div>
+              ) : friends.length === 0 ? (
+                <div className="p-8 text-center text-gray-500">
+                  <FiUser className="mx-auto mb-3 text-gray-300" size={48} />
+                  <p className="font-medium">No friends yet</p>
+                  <p className="text-sm mt-1">Start connecting with people!</p>
+                </div>
+              ) : displayedFriends.length > 0 ? (
                 displayedFriends.map(friend => (
                   <motion.div 
                     key={friend.id}
-                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50"
+                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
-                    onClick={() => onFriendClick(friend.id)}
+                    onClick={() => onFriendClick(friend.userId)}
                   >
-                    <div className="flex items-center">
+                    <div className="flex items-center flex-1 min-w-0">
                       <div className="avatar">
-                        <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center">
-                          <div className="font-medium text-gray-500 text-lg">
-                            {friend.displayName.charAt(0).toUpperCase()}
-                          </div>
+                        <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center overflow-hidden">
+                          {friend.profileImg ? (
+                            <img
+                              src={friend.profileImg}
+                              alt={friend.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="font-medium text-gray-500 text-lg">
+                              {friend.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <div className="ml-3">
-                        <div className="font-medium text-sm">{friend.username}</div>
-                        <div className="text-xs text-gray-500">{friend.displayName}</div>
+                      <div className="ml-3 flex-1 min-w-0">
+                        <div className="font-medium text-sm truncate">{friend.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{friend.email}</div>
+                        {friend.address && (
+                          <div className="text-xs text-gray-400 truncate flex items-center gap-1 mt-1">
+                            <FiMapPin size={10} />
+                            {friend.address}
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <motion.button
-                      className={`btn btn-sm ${friend.isFollowing ? 'btn-outline' : 'btn-primary'}`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={(e) => toggleFollow(friend.id, e)}
-                    >
-                      {friend.isFollowing ? 'Friends' : 'Add Friend'}
-                    </motion.button>
                   </motion.div>
                 ))
               ) : (
                 <div className="p-8 text-center text-gray-500">
-                  No friends match your search.
+                  <p>No friends match your search.</p>
                 </div>
               )}
             </div>
@@ -224,76 +225,85 @@ const FriendModal = ({
   );
 };
 
-// Generate mock posts for the user
-const generateMockPosts = (): Post[] => {
-  const count = 9;
-  const posts: Post[] = [];
-  
-  for (let i = 0; i < count; i++) {
-    posts.push({
-      id: `post-my-${i}`,
-      imageUrl: `/images/mock-post-${i % 3 + 1}.jpg`,
-      likes: Math.floor(Math.random() * 200) + 50,
-      comments: Math.floor(Math.random() * 30) + 5
-    });
-  }
-  
-  return posts;
-};
-
-// Mock friends data
-const MOCK_FRIENDS: Friend[] = [
-  {
-    id: '1',
-    username: 'manuel_tomas',
-    displayName: 'Manuel Tomas',
-    avatar: '/avatars/user1.png',
-    isFollowing: true,
-  },
-  {
-    id: '2',
-    username: 'manuel_luis',
-    displayName: 'Manuel Luis',
-    avatar: '/avatars/user2.png',
-    isFollowing: true,
-  },
-  {
-    id: '3',
-    username: 'manuel_mc',
-    displayName: 'Manuel MC',
-    avatar: '/avatars/user3.png',
-    isFollowing: false,
-  },
-  {
-    id: '4',
-    username: 'manuel_joao',
-    displayName: 'Manuel Joao',
-    avatar: '/avatars/user4.png',
-    isFollowing: true,
-  },
-  {
-    id: '5',
-    username: 'manuel_afonso',
-    displayName: 'Manuel Afonso',
-    avatar: '/avatars/user5.png',
-    isFollowing: false,
-  }
-];
-
 export default function MyProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toast = useToast();
   
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [profile, setProfile] = useState<RealProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
-  const [friendsList, setFriendsList] = useState<Friend[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [friendsLoading, setFriendsLoading] = useState(false);
+
+  // Fetch profile data
+  const fetchProfile = async (email: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch(`/api/profile?email=${encodeURIComponent(email)}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch profile data');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setProfile(data.profile);
+      } else {
+        throw new Error('Profile not found');
+      }
+    } catch (err) {
+      console.error('Error fetching profile:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load profile');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update profile data with toast notifications
+  const updateProfile = async (updatedData: { bio: string; address: string; profileImg?: string }) => {
+    if (!session?.user?.email) throw new Error('No session');
+
+    try {
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user.email,
+          ...updatedData,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setProfile(data.profile);
+        toast.success('Profile updated successfully!', 'Your changes have been saved.');
+      } else {
+        throw new Error('Failed to update profile');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile', error instanceof Error ? error.message : 'Please try again.');
+      throw error;
+    }
+  };
 
   // Handler for friend click
-  const handleFriendClick = (friendId: string) => {
+  const handleFriendClick = (friendUserId: string) => {
     setIsFriendsModalOpen(false);
-    router.push(`/app/profile/${friendId}`);
+    router.push(`/app/profile/${friendUserId}`);
   };
 
   // Handler for friends modal
@@ -301,83 +311,90 @@ export default function MyProfilePage() {
     setIsFriendsModalOpen(true);
   };
 
+  // Load profile data when session is available
   useEffect(() => {
-    // Load friends list when modal opens
-    if (isFriendsModalOpen) {
-      setFriendsList(MOCK_FRIENDS);
-    }
-  }, [isFriendsModalOpen]);
-  
-  useEffect(() => {
-    // Simulate loading user data with Google profile info
-    setLoading(true);
-    
-    // Wait for session data
     if (status === "loading") return;
     
-    // Create a profile using Google auth data
-    if (session?.user) {
-      const userProfile: Profile = {
-        id: 'my-profile',
-        username: session.user.email?.split('@')[0] || 'user',
-        displayName: session.user.name || 'User',
-        avatar: session.user.image || '',
-        bio: 'Add your bio here',
-        postsCount: 0,
-        followersCount: MOCK_FRIENDS.filter(f => f.isFollowing).length,
-        followingCount: MOCK_FRIENDS.length,
-        location: '',
-        highlights: [
-          { id: '1', title: 'Memories' }
-        ]
-      };
-      
-      setProfile(userProfile);
-      setPosts(generateMockPosts());
+    if (session?.user?.email) {
+      fetchProfile(session.user.email);
+    } else {
+      setLoading(false);
+      setError('No session found');
     }
-    
-    setLoading(false);
   }, [session, status]);
   
+  // Loading state
   if (status === "loading" || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="loading loading-spinner loading-lg text-primary"></div>
-      </div>
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <FiLoader className="animate-spin mx-auto mb-4 text-primary" size={32} />
+            <p className="text-gray-600">Loading your profile...</p>
+          </div>
+        </div>
+      </DashboardLayout>
     );
   }
   
-  if (!session?.user) {
+  // Error state
+  if (error || !session?.user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold mb-4">Please log in</h1>
-        <p className="text-gray-600 mb-6">You need to log in to view your profile.</p>
-        <Link href="/auth/login" className="btn btn-primary">
-          Go to login
-        </Link>
-      </div>
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <h1 className="text-2xl font-bold mb-4">
+            {!session?.user ? 'Please log in' : 'Error loading profile'}
+          </h1>
+          <p className="text-gray-600 mb-6 text-center">
+            {!session?.user 
+              ? 'You need to log in to view your profile.' 
+              : error || 'There was an error loading your profile data.'
+            }
+          </p>
+          {!session?.user ? (
+            <Link href="/auth/login" className="btn btn-primary">
+              Go to login
+            </Link>
+          ) : (
+            <button 
+              onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+              className="btn btn-primary"
+            >
+              Try again
+            </button>
+          )}
+        </div>
+      </DashboardLayout>
     );
   }
 
   if (!profile) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <h1 className="text-2xl font-bold mb-4">Error loading profile</h1>
-        <p className="text-gray-600 mb-6">There was an error loading your profile data.</p>
-        <button onClick={() => window.location.reload()} className="btn btn-primary">
-          Retry
-        </button>
-      </div>
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <h1 className="text-2xl font-bold mb-4">Profile not found</h1>
+          <p className="text-gray-600 mb-6">Your profile data could not be loaded.</p>
+          <button 
+            onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+            className="btn btn-primary"
+          >
+            Retry
+          </button>
+        </div>
+      </DashboardLayout>
     );
   }
 
   const profileContent = (
     <main className="max-w-4xl mx-auto pb-16 bg-white min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-10 bg-white p-4 flex items-center">
+      <header className="sticky top-0 z-10 bg-white p-4 flex items-center border-b">
         <h1 className="text-lg font-medium">My Profile</h1>
         <div className="ml-auto">
-          <button className="btn btn-ghost btn-sm btn-circle">
+          <button 
+            className="btn btn-ghost btn-sm btn-circle"
+            onClick={() => setIsEditModalOpen(true)}
+          >
             <FiSettings size={20} />
           </button>
         </div>
@@ -385,18 +402,18 @@ export default function MyProfilePage() {
 
       <div className="p-4">
         <div className="flex items-start">
-          {/* Avatar from Google - Using regular img tag instead of Next/Image */}
+          {/* Avatar */}
           <div className="avatar">
             <div className="w-20 h-20 rounded-full bg-base-200 border-2 border-base-200 ring-2 ring-primary ring-offset-2 overflow-hidden">
-              {session.user.image ? (
+              {profile.profileImg || session.user.image ? (
                 <img
-                  src={session.user.image}
-                  alt={session.user.name || 'User'}
+                  src={profile.profileImg || session.user.image || ''}
+                  alt={profile.user.name || 'User'}
                   className="w-full h-full object-cover rounded-full"
                 />
               ) : (
                 <div className="text-3xl flex items-center justify-center h-full text-gray-400">
-                  {session.user.name?.charAt(0).toUpperCase() || 'U'}
+                  {profile.user.name?.charAt(0).toUpperCase() || 'U'}
                 </div>
               )}
             </div>
@@ -405,8 +422,8 @@ export default function MyProfilePage() {
           {/* Stats */}
           <div className="flex-1 flex justify-around ml-4">
             <div className="text-center">
-              <div className="font-semibold">{profile.postsCount}</div>
-              <div className="text-xs text-gray-500">posts</div>
+              <div className="font-semibold">{profile.counts.recipes}</div>
+              <div className="text-xs text-gray-500">recipes</div>
             </div>
             <motion.div 
               className="text-center cursor-pointer"
@@ -414,7 +431,7 @@ export default function MyProfilePage() {
               whileTap={{ scale: 0.95 }}
               onClick={handleFriendsClick}
             >
-              <div className="font-semibold">{profile.followersCount}</div>
+              <div className="font-semibold">{profile.counts.friends}</div>
               <div className="text-xs text-gray-500">Friends</div>
             </motion.div>
           </div>
@@ -423,11 +440,28 @@ export default function MyProfilePage() {
         {/* Bio */}
         <div className="mt-4">
           <h2 className="font-semibold text-sm">
-            {session.user.name}
+            {profile.user.name}
           </h2>
-          <div className="text-sm text-gray-500">@{profile.username}</div>
-          <p className="text-sm mt-1">{profile.bio || "Add your bio"}</p>
-          <button className="text-xs text-primary font-medium mt-2">
+          <div className="text-sm text-gray-500">@{profile.user.email.split('@')[0]}</div>
+          
+          {profile.bio ? (
+            <p className="text-sm mt-2">{profile.bio}</p>
+          ) : (
+            <p className="text-sm mt-2 text-gray-400 italic">No bio yet</p>
+          )}
+          
+          {profile.address && (
+            <div className="flex items-center gap-1 mt-2 text-sm text-gray-600">
+              <FiMapPin size={14} />
+              {profile.address}
+            </div>
+          )}
+
+          <button 
+            className="text-xs text-primary font-medium mt-3 flex items-center gap-1 hover:underline"
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <FiEdit3 size={12} />
             Edit Profile
           </button>
         </div>
@@ -447,39 +481,39 @@ export default function MyProfilePage() {
         <h3 className="text-primary font-medium">My Posts</h3>
       </div>
 
-      {/* Posts Grid */}
-      <div className="grid grid-cols-3 gap-1">
-        {posts.length > 0 ? (
-          posts.map((post, index) => (
-            <div 
-              key={post.id} 
-              className={`aspect-square flex items-center justify-center ${
-                index % 4 === 0 ? 'bg-blue-100' : 
-                index % 4 === 1 ? 'bg-amber-100' : 
-                index % 4 === 2 ? 'bg-rose-100' : 
-                'bg-emerald-100'
-              }`}
-            >
-              <div className="text-lg text-gray-500">Post {index + 1}</div>
-            </div>
-          ))
-        ) : (
-          <div className="col-span-3 py-10 text-center text-gray-500">
-            <p>You haven't posted anything yet</p>
-            <button className="btn btn-sm btn-primary mt-4">Create your first post</button>
-          </div>
-        )}
+      {/* Posts Grid - Placeholder */}
+      <div className="p-4">
+        <div className="text-center py-10 text-gray-500">
+          <FiUser className="mx-auto mb-3 text-gray-300" size={48} />
+          <p className="font-medium">No posts yet</p>
+          <p className="text-sm mt-1">Share your first recipe or pantry item!</p>
+          <button className="btn btn-sm btn-primary mt-4">Create your first post</button>
+        </div>
       </div>
 
       {/* Friends Modal */}
       <FriendModal 
         isOpen={isFriendsModalOpen} 
         onClose={() => setIsFriendsModalOpen(false)}
-        friends={friendsList}
+        friends={profile.friends}
         onFriendClick={handleFriendClick}
+        loading={friendsLoading}
+      />
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        profile={profile}
+        onUpdate={updateProfile}
       />
     </main>
   );
 
-  return <DashboardLayout>{profileContent}</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      {profileContent}
+      <ToastContainer toasts={toast.toasts} onDismiss={toast.dismissToast} />
+    </DashboardLayout>
+  );
 }
