@@ -13,23 +13,24 @@ interface Recipe {
 
 interface RecipeGridProps {
   recipes: Recipe[];
+  onRecipeClick?: (recipeId: string) => void;
 }
 
-const RecipeGrid: React.FC<RecipeGridProps> = ({ recipes }) => {
+const RecipeGrid: React.FC<RecipeGridProps> = ({ recipes, onRecipeClick }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {recipes.map((recipe) => (
         <RecipeCard 
           key={recipe.id} 
-          id={recipe.id}
-          title={recipe.title}
-          subtitle={recipe.subtitle}
-          imageUrl={recipe.imageUrl}
-          cookDate={recipe.cookDate}
-          rating={recipe.rating}
-          isPopular={recipe.isPopular}
+          recipe={recipe}
+          onClick={() => onRecipeClick && onRecipeClick(recipe.id)}
         />
       ))}
+      {recipes.length === 0 && (
+        <div className="col-span-full py-8 text-center text-gray-500">
+          No recipes found matching your criteria.
+        </div>
+      )}
     </div>
   );
 };

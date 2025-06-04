@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -31,6 +32,7 @@ const MOCK_FAVORITES = ['Pasta', 'Sushi', 'Bread', 'Salad', 'Dessert', 'Soup', '
 'Snacks', 'Drinks', 'Vegan', 'Gluten-free', 'Keto', 'Paleo', 'Low-carb'];
 
 export default function RecipesPage() {
+  const router = useRouter();
   const [recommendedRecipes, setRecommendedRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,6 +45,11 @@ export default function RecipesPage() {
       setLoading(false);
     }, 300);
   }, []);
+
+  // Handle recipe click to navigate to recipe detail page
+  const handleRecipeClick = (recipeId: string) => {
+    router.push(`/app/recipes/${recipeId}`);
+  };
 
   if (loading) {
     return (
@@ -77,17 +84,26 @@ export default function RecipesPage() {
         <div className="flex-1">
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">Recommended for you</h2>
-            <RecipeGrid recipes={recommendedRecipes.slice(0, 4)} />
+            <RecipeGrid 
+              recipes={recommendedRecipes.slice(0, 4)} 
+              onRecipeClick={handleRecipeClick} 
+            />
           </div>
           
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">Save before it's too late</h2>
-            <RecipeGrid recipes={recommendedRecipes.slice(4, 8)} />
+            <RecipeGrid 
+              recipes={recommendedRecipes.slice(4, 8)} 
+              onRecipeClick={handleRecipeClick} 
+            />
           </div>
           
           <div className="mb-8">
             <h2 className="text-xl font-bold mb-2">New Surprise Bags</h2>
-            <RecipeGrid recipes={recommendedRecipes.slice(8, 12)} />
+            <RecipeGrid 
+              recipes={recommendedRecipes.slice(8, 12)} 
+              onRecipeClick={handleRecipeClick} 
+            />
           </div>
         </div>
       </div>
