@@ -31,9 +31,22 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
     hard: { label: 'Difícil', className: styles.difficultyHard }
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Add favorite functionality here
+    
+    try {
+      const method = recipe.isFavorited ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/recipes/${recipe.id}/favorite`, {
+        method,
+      });
+
+      if (response.ok) {
+        // Trigger a page refresh or update the recipe state
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
   };
 
   return (

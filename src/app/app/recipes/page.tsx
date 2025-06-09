@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import RecipesStatsHeader from '@/components/recipes/RecipesStatsHeader';
 import RecipesSearchBar from '@/components/recipes/RecipesSearchBar';
@@ -22,192 +23,77 @@ interface Recipe {
   isPopular?: boolean;
   isFavorited?: boolean;
   category: string;
+  author?: string;
+  authorId?: string;
+  ingredients?: string[];
+  steps?: string[];
+  favoritesCount?: number;
 }
-
-// Dados mock mais realistas com receitas portuguesas
-const MOCK_RECIPES: Recipe[] = [
-  {
-    id: 'recipe-1',
-    title: 'Bacalhau à Brás',
-    subtitle: 'Prato tradicional português',
-    imageUrl: '/images/recipes/bacalhau-bras.jpg',
-    cookTime: 45,
-    rating: 92,
-    difficulty: 'medium',
-    servings: 4,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-2',
-    title: 'Pastéis de Nata',
-    subtitle: 'Doce português icônico',
-    imageUrl: '/images/recipes/pasteis-nata.jpg',
-    cookTime: 60,
-    rating: 95,
-    difficulty: 'hard',
-    servings: 12,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-3',
-    title: 'Caldo Verde',
-    subtitle: 'Sopa tradicional do Minho',
-    imageUrl: '/images/recipes/caldo-verde.jpg',
-    cookTime: 30,
-    rating: 88,
-    difficulty: 'easy',
-    servings: 6,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Sopa'
-  },
-  {
-    id: 'recipe-4',
-    title: 'Francesinha',
-    subtitle: 'Especialidade do Porto',
-    imageUrl: '/images/recipes/francesinha.jpg',
-    cookTime: 40,
-    rating: 90,
-    difficulty: 'medium',
-    servings: 2,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-5',
-    title: 'Arroz de Pato',
-    subtitle: 'Receita tradicional familiar',
-    imageUrl: '/images/recipes/arroz-pato.jpg',
-    cookTime: 90,
-    rating: 94,
-    difficulty: 'hard',
-    servings: 8,
-    isPopular: false,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-6',
-    title: 'Bifana',
-    subtitle: 'Sanduíche português clássico',
-    imageUrl: '/images/recipes/bifana.jpg',
-    cookTime: 15,
-    rating: 85,
-    difficulty: 'easy',
-    servings: 1,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Lanche'
-  },
-  {
-    id: 'recipe-7',
-    title: 'Cataplana de Marisco',
-    subtitle: 'Sabores do mar algarvio',
-    imageUrl: '/images/recipes/cataplana.jpg',
-    cookTime: 50,
-    rating: 96,
-    difficulty: 'hard',
-    servings: 4,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-8',
-    title: 'Queijadas de Sintra',
-    subtitle: 'Doçura tradicional',
-    imageUrl: '/images/recipes/queijadas.jpg',
-    cookTime: 35,
-    rating: 89,
-    difficulty: 'medium',
-    servings: 6,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-9',
-    title: 'Migas à Alentejana',
-    subtitle: 'Sabor rústico do Alentejo',
-    imageUrl: '/images/recipes/migas.jpg',
-    cookTime: 25,
-    rating: 87,
-    difficulty: 'easy',
-    servings: 4,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Acompanhamento'
-  },
-  {
-    id: 'recipe-10',
-    title: 'Açorda de Camarão',
-    subtitle: 'Tradição alentejana moderna',
-    imageUrl: '/images/recipes/acorda.jpg',
-    cookTime: 35,
-    rating: 91,
-    difficulty: 'medium',
-    servings: 4,
-    isPopular: false,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-11',
-    title: 'Bolo de Bolacha',
-    subtitle: 'Sobremesa sem forno',
-    imageUrl: '/images/recipes/bolo-bolacha.jpg',
-    cookTime: 20,
-    rating: 93,
-    difficulty: 'easy',
-    servings: 8,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-12',
-    title: 'Polvo à Lagareiro',
-    subtitle: 'Clássico da cozinha portuguesa',
-    imageUrl: '/images/recipes/polvo-lagareiro.jpg',
-    cookTime: 75,
-    rating: 94,
-    difficulty: 'hard',
-    servings: 6,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Prato Principal'
-  }
-];
-
-const MOCK_FAVORITES = [
-  'Bacalhau à Brás', 'Pastéis de Nata', 'Caldo Verde', 'Francesinha',
-  'Arroz de Pato', 'Cataplana', 'Bolo de Bolacha', 'Polvo à Lagareiro'
-];
 
 export default function RecipesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
+  const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
 
-  useEffect(() => {
-    // Simulate API call
-    setLoading(true);
-    
-    setTimeout(() => {
-      setAllRecipes(MOCK_RECIPES);
-      setFilteredRecipes(MOCK_RECIPES);
+  // Fetch recipes from API
+  const fetchRecipes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await fetch('/api/recipes');
+      if (!response.ok) {
+        throw new Error('Failed to fetch recipes');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setAllRecipes(data.recipes);
+        setFilteredRecipes(data.recipes);
+      } else {
+        throw new Error('Failed to load recipes');
+      }
+    } catch (err) {
+      console.error('Error fetching recipes:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load recipes');
+    } finally {
       setLoading(false);
-    }, 800);
-  }, []);
+    }
+  };
+
+  // Fetch favorite recipes
+  const fetchFavorites = async () => {
+    try {
+      const response = await fetch('/api/recipes/favorites');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setFavoriteRecipes(data.recipes);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching favorites:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (status === "loading") return;
+    
+    if (session?.user) {
+      fetchRecipes();
+      fetchFavorites();
+    } else {
+      setLoading(false);
+      setError('Please sign in to view recipes');
+    }
+  }, [session, status]);
 
   // Filter recipes based on search and filters
   useEffect(() => {
@@ -265,7 +151,58 @@ export default function RecipesPage() {
 
   const popularRecipes = filteredRecipes.filter(recipe => recipe.isPopular);
   const recentRecipes = filteredRecipes.slice(0, 8);
-  const favoriteRecipes = filteredRecipes.filter(recipe => recipe.isFavorited);
+
+  // Loading state
+  if (status === "loading" || loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+            <p className="text-gray-600 font-medium">Carregando receitas...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error || !session?.user) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+            <h1 className="text-2xl font-bold mb-4 text-gray-800">
+              {!session?.user ? 'Faça login' : 'Erro ao carregar receitas'}
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {!session?.user 
+                ? 'Você precisa fazer login para ver as receitas.' 
+                : error || 'Houve um erro ao carregar as receitas.'
+              }
+            </p>
+            {!session?.user ? (
+              <button 
+                onClick={() => router.push('/auth/login')}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Ir para login
+              </button>
+            ) : (
+              <button 
+                onClick={fetchRecipes}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Tentar novamente
+              </button>
+            )}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
@@ -282,7 +219,7 @@ export default function RecipesPage() {
           {/* Sidebar */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <RecipeSidebar 
-              favorites={MOCK_FAVORITES}
+              favorites={favoriteRecipes.map(recipe => recipe.title)}
               onCategorySelect={handleCategorySelect}
               onDifficultySelect={handleDifficultySelect}
               selectedCategories={selectedCategories}
@@ -298,6 +235,21 @@ export default function RecipesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
+              {/* Add Recipe Button */}
+              <motion.div 
+                className="mb-8 text-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                <button
+                  onClick={() => router.push('/app/recipes/create')}
+                  className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                >
+                  ➕ Criar Nova Receita
+                </button>
+              </motion.div>
+
               {/* Popular Recipes */}
               {popularRecipes.length > 0 && (
                 <motion.div 
@@ -316,19 +268,21 @@ export default function RecipesPage() {
               )}
 
               {/* Recent Recipes */}
-              <motion.div 
-                className="mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <RecipeGrid 
-                  title="🍽️ Receitas Recentes"
-                  recipes={recentRecipes} 
-                  onRecipeClick={handleRecipeClick}
-                  loading={loading}
-                />
-              </motion.div>
+              {recentRecipes.length > 0 && (
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <RecipeGrid 
+                    title="🍽️ Receitas Recentes"
+                    recipes={recentRecipes} 
+                    onRecipeClick={handleRecipeClick}
+                    loading={loading}
+                  />
+                </motion.div>
+              )}
 
               {/* Favorite Recipes */}
               {favoriteRecipes.length > 0 && (
@@ -360,6 +314,30 @@ export default function RecipesPage() {
                     onRecipeClick={handleRecipeClick}
                     loading={loading}
                   />
+                </motion.div>
+              )}
+
+              {/* Empty State */}
+              {!loading && allRecipes.length === 0 && (
+                <motion.div 
+                  className="text-center py-16"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                >
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-4xl">🍽️</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Nenhuma receita ainda</h3>
+                  <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                    Seja o primeiro a compartilhar uma receita deliciosa com a comunidade!
+                  </p>
+                  <button
+                    onClick={() => router.push('/app/recipes/create')}
+                    className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    ➕ Criar Primeira Receita
+                  </button>
                 </motion.div>
               )}
             </motion.div>
