@@ -3,12 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiSearch, FiX, FiSettings, FiEdit3, FiMapPin, FiLoader, FiUser } from 'react-icons/fi';
+import { FiSearch, FiX, FiSettings, FiEdit3, FiMapPin, FiLoader, FiUser, FiHeart, FiShare2, FiMessageCircle, FiGrid, FiBookmark, FiCamera, FiPlus } from 'react-icons/fi';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import { ToastContainer, useToast } from '@/components/ui/Toast';
+import styles from './styles.module.css';
 
 // Types for real data
 interface RealFriend {
@@ -120,40 +121,40 @@ const FriendModal = ({
   return (
     <>
       {/* Background overlay */}
-      <div className="fixed inset-0 z-40 bg-black bg-opacity-20" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black bg-opacity-30 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
         <AnimatePresence>
           <motion.div
             ref={modalRef}
-            className="bg-white rounded-xl w-full max-w-md max-h-[80vh] flex flex-col shadow-2xl pointer-events-auto mx-4"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            className="modern-card rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-2xl pointer-events-auto mx-4"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header */}
-            <div className="border-b p-4 flex items-center justify-center relative">
-              <h3 className="font-semibold text-center">Friends ({friends.length})</h3>
+            <div className="border-b border-white/20 p-6 flex items-center justify-center relative">
+              <h3 className="font-semibold text-lg gradient-text">Amigos ({friends.length})</h3>
               <button 
-                className="absolute right-4 text-gray-600 hover:text-gray-800 transition-colors" 
+                className="absolute right-6 text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100" 
                 onClick={onClose}
               >
-                <FiX size={24} />
+                <FiX size={20} />
               </button>
             </div>
             
             {/* Search */}
             {friends.length > 0 && (
-              <div className="p-3 border-b">
+              <div className="p-4 border-b border-white/10">
                 <div className="relative flex items-center">
-                  <FiSearch className="absolute left-3 text-gray-400" size={16} />
+                  <FiSearch className="absolute left-4 text-gray-400" size={18} />
                   <input
                     ref={searchRef}
                     type="text"
-                    placeholder="Search friends..."
-                    className="w-full bg-gray-100 pl-10 pr-4 py-2 text-sm rounded-lg border border-gray-200 focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="Procurar amigos..."
+                    className="w-full glass-effect pl-12 pr-4 py-3 text-sm rounded-xl border border-white/20 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder-gray-500"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -165,43 +166,47 @@ const FriendModal = ({
             <div className="overflow-y-auto flex-1">
               {loading ? (
                 <div className="p-8 flex items-center justify-center">
-                  <FiLoader className="animate-spin text-gray-400" size={24} />
+                  <FiLoader className="animate-spin text-blue-500" size={24} />
                 </div>
               ) : friends.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <FiUser className="mx-auto mb-3 text-gray-300" size={48} />
-                  <p className="font-medium">No friends yet</p>
-                  <p className="text-sm mt-1">Start connecting with people!</p>
+                  <FiUser className="mx-auto mb-4 text-gray-300" size={56} />
+                  <p className="font-semibold text-lg mb-2">Nenhum amigo ainda</p>
+                  <p className="text-sm">Comece a conectar-se com pessoas!</p>
                 </div>
               ) : displayedFriends.length > 0 ? (
                 displayedFriends.map(friend => (
                   <motion.div 
                     key={friend.id}
-                    className="p-3 flex items-center justify-between cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-all duration-200 group"
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2 }}
                     onClick={() => onFriendClick(friend.userId)}
                   >
                     <div className="flex items-center flex-1 min-w-0">
-                      <div className="avatar">
-                        <div className="w-12 h-12 rounded-full bg-base-200 flex items-center justify-center overflow-hidden">
-                          {friend.profileImg ? (
-                            <img
-                              src={friend.profileImg}
-                              alt={friend.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="font-medium text-gray-500 text-lg">
-                              {friend.name.charAt(0).toUpperCase()}
-                            </div>
-                          )}
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 p-0.5">
+                          <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
+                            {friend.profileImg ? (
+                              <img
+                                src={friend.profileImg}
+                                alt={friend.name}
+                                className="w-full h-full object-cover rounded-full"
+                              />
+                            ) : (
+                              <div className="font-medium text-gray-600 text-lg">
+                                {friend.name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      <div className="ml-3 flex-1 min-w-0">
-                        <div className="font-medium text-sm truncate">{friend.name}</div>
-                        <div className="text-xs text-gray-500 truncate">{friend.email}</div>
+                      <div className="ml-4 flex-1 min-w-0">
+                        <div className="font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">
+                          {friend.name}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">{friend.email}</div>
                         {friend.address && (
                           <div className="text-xs text-gray-400 truncate flex items-center gap-1 mt-1">
                             <FiMapPin size={10} />
@@ -214,7 +219,7 @@ const FriendModal = ({
                 ))
               ) : (
                 <div className="p-8 text-center text-gray-500">
-                  <p>No friends match your search.</p>
+                  <p>Nenhum amigo encontrado.</p>
                 </div>
               )}
             </div>
@@ -236,6 +241,7 @@ export default function MyProfilePage() {
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [friendsLoading, setFriendsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('posts');
 
   // Fetch profile data
   const fetchProfile = async (email: string) => {
@@ -289,13 +295,13 @@ export default function MyProfilePage() {
       
       if (data.success) {
         setProfile(data.profile);
-        toast.success('Profile updated successfully!', 'Your changes have been saved.');
+        toast.success('Perfil atualizado!', 'Suas alterações foram salvas com sucesso.');
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Failed to update profile', error instanceof Error ? error.message : 'Please try again.');
+      toast.error('Erro ao atualizar perfil', error instanceof Error ? error.message : 'Tente novamente.');
       throw error;
     }
   };
@@ -329,8 +335,10 @@ export default function MyProfilePage() {
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <FiLoader className="animate-spin mx-auto mb-4 text-primary" size={32} />
-            <p className="text-gray-600">Loading your profile...</p>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <FiLoader className="animate-spin text-white" size={24} />
+            </div>
+            <p className="text-gray-600 font-medium">Carregando seu perfil...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -342,27 +350,29 @@ export default function MyProfilePage() {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <h1 className="text-2xl font-bold mb-4">
-            {!session?.user ? 'Please log in' : 'Error loading profile'}
-          </h1>
-          <p className="text-gray-600 mb-6 text-center">
-            {!session?.user 
-              ? 'You need to log in to view your profile.' 
-              : error || 'There was an error loading your profile data.'
-            }
-          </p>
-          {!session?.user ? (
-            <Link href="/auth/login" className="btn btn-primary">
-              Go to login
-            </Link>
-          ) : (
-            <button 
-              onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
-              className="btn btn-primary"
-            >
-              Try again
-            </button>
-          )}
+          <div className="modern-card p-8 text-center max-w-md">
+            <h1 className="text-2xl font-bold mb-4 gradient-text">
+              {!session?.user ? 'Faça login' : 'Erro ao carregar perfil'}
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {!session?.user 
+                ? 'Você precisa fazer login para ver seu perfil.' 
+                : error || 'Houve um erro ao carregar os dados do seu perfil.'
+              }
+            </p>
+            {!session?.user ? (
+              <Link href="/auth/login" className="btn btn-primary">
+                Ir para login
+              </Link>
+            ) : (
+              <button 
+                onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+                className="btn btn-primary"
+              >
+                Tentar novamente
+              </button>
+            )}
+          </div>
         </div>
       </DashboardLayout>
     );
@@ -372,123 +382,283 @@ export default function MyProfilePage() {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <h1 className="text-2xl font-bold mb-4">Profile not found</h1>
-          <p className="text-gray-600 mb-6">Your profile data could not be loaded.</p>
-          <button 
-            onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
-            className="btn btn-primary"
-          >
-            Retry
-          </button>
+          <div className="modern-card p-8 text-center max-w-md">
+            <h1 className="text-2xl font-bold mb-4 gradient-text">Perfil não encontrado</h1>
+            <p className="text-gray-600 mb-6">Os dados do seu perfil não puderam ser carregados.</p>
+            <button 
+              onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+              className="btn btn-primary"
+            >
+              Tentar novamente
+            </button>
+          </div>
         </div>
       </DashboardLayout>
     );
   }
 
   const profileContent = (
-    <main className="max-w-4xl mx-auto pb-16 bg-white min-h-screen">
-      {/* Header */}
-      <header className="sticky top-0 z-10 bg-white p-4 flex items-center border-b">
-        <h1 className="text-lg font-medium">My Profile</h1>
-        <div className="ml-auto">
-          <button 
-            className="btn btn-ghost btn-sm btn-circle"
-            onClick={() => setIsEditModalOpen(true)}
-          >
-            <FiSettings size={20} />
-          </button>
-        </div>
-      </header>
-
-      <div className="p-4">
-        <div className="flex items-start">
-          {/* Avatar */}
-          <div className="avatar">
-            <div className="w-20 h-20 rounded-full bg-base-200 border-2 border-base-200 ring-2 ring-primary ring-offset-2 overflow-hidden">
-              {profile.profileImg || session.user.image ? (
-                <img
-                  src={profile.profileImg || session.user.image || ''}
-                  alt={profile.user.name || 'User'}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              ) : (
-                <div className="text-3xl flex items-center justify-center h-full text-gray-400">
-                  {profile.user.name?.charAt(0).toUpperCase() || 'U'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="flex-1 flex justify-around ml-4">
-            <div className="text-center">
-              <div className="font-semibold">{profile.counts.recipes}</div>
-              <div className="text-xs text-gray-500">recipes</div>
-            </div>
-            <motion.div 
-              className="text-center cursor-pointer"
+    <main className="max-w-6xl mx-auto pb-16 min-h-screen">
+      {/* Header with Glassmorphism */}
+      <motion.header 
+        className="sticky top-0 z-10 glass-effect border-b border-white/20 p-6 mb-6"
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center">
+          <h1 className="text-xl font-bold gradient-text">Meu Perfil</h1>
+          <div className="ml-auto flex gap-2">
+            <motion.button 
+              className="btn btn-ghost btn-sm btn-circle hover:bg-white/20"
+              onClick={() => setIsEditModalOpen(true)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleFriendsClick}
             >
-              <div className="font-semibold">{profile.counts.friends}</div>
-              <div className="text-xs text-gray-500">Friends</div>
-            </motion.div>
+              <FiSettings size={20} />
+            </motion.button>
           </div>
         </div>
+      </motion.header>
 
-        {/* Bio */}
-        <div className="mt-4">
-          <h2 className="font-semibold text-sm">
-            {profile.user.name}
-          </h2>
-          <div className="text-sm text-gray-500">@{profile.user.email.split('@')[0]}</div>
-          
-          {profile.bio ? (
-            <p className="text-sm mt-2">{profile.bio}</p>
-          ) : (
-            <p className="text-sm mt-2 text-gray-400 italic">No bio yet</p>
-          )}
-          
-          {profile.address && (
-            <div className="flex items-center gap-1 mt-2 text-sm text-gray-600">
-              <FiMapPin size={14} />
-              {profile.address}
+      <div className="px-6 space-y-8">
+        {/* Profile Header Section */}
+        <motion.div 
+          className={`${styles.profileCard} p-8 rounded-3xl`}
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+        >
+          <div className="flex flex-col md:flex-row items-start gap-8">
+            {/* Avatar Section */}
+            <div className="flex flex-col items-center space-y-4">
+              <motion.div 
+                className="relative group"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <div className={`w-32 h-32 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-1 shadow-2xl ${styles.profileAvatar}`}>
+                  <div className="w-full h-full rounded-full bg-white p-1">
+                    <div className="w-full h-full rounded-full overflow-hidden bg-gray-100">
+                      {profile.profileImg || session.user.image ? (
+                        <img
+                          src={profile.profileImg || session.user.image || ''}
+                          alt={profile.user.name || 'User'}
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <div className="text-4xl flex items-center justify-center h-full text-gray-400 font-bold">
+                          {profile.user.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <motion.button 
+                  className="absolute -bottom-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
+                  onClick={() => setIsEditModalOpen(true)}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FiCamera size={16} />
+                </motion.button>
+              </motion.div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 w-full">
+                <motion.button 
+                  className={`flex-1 ${styles.gradientButton} text-white py-3 px-6 rounded-xl font-semibold`}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <FiShare2 className="inline mr-2" size={16} />
+                  Compartilhar
+                </motion.button>
+                <Link href="/app/messages">
+                  <motion.button 
+                    className="glass-effect border border-white/30 py-3 px-6 rounded-xl font-semibold hover:bg-white/20 transition-all duration-200"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <FiMessageCircle className="inline mr-2" size={16} />
+                    Mensagens
+                  </motion.button>
+                </Link>
+              </div>
             </div>
-          )}
 
-          <button 
-            className="text-xs text-primary font-medium mt-3 flex items-center gap-1 hover:underline"
-            onClick={() => setIsEditModalOpen(true)}
-          >
-            <FiEdit3 size={12} />
-            Edit Profile
-          </button>
-        </div>
+            {/* Profile Info */}
+            <div className={`flex-1 space-y-6 ${styles.profileInfo}`}>
+              {/* User Details */}
+              <div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  {profile.user.name}
+                </h2>
+                <div className="text-lg text-gray-500 mb-4">@{profile.user.email.split('@')[0]}</div>
+                
+                {profile.bio ? (
+                  <p className="text-gray-600 text-lg leading-relaxed">{profile.bio}</p>
+                ) : (
+                  <p className="text-gray-400 italic text-lg">Adicione uma bio para se apresentar</p>
+                )}
+                
+                {profile.address && (
+                  <div className="flex items-center gap-2 mt-4 text-gray-600">
+                    <FiMapPin size={18} />
+                    <span className="text-lg">{profile.address}</span>
+                  </div>
+                )}
 
-        {/* Action Buttons */}
-        <div className="flex gap-2 mt-4">
-          <button className="btn btn-sm btn-primary flex-1">Share Profile</button>
-          <Link href="/app/messages" className="btn btn-sm btn-outline flex-1">
-            Messages
-          </Link>
-          <button className="btn btn-sm btn-outline btn-square">⋯</button>
-        </div>
-      </div>
+                <motion.button 
+                  className="text-blue-600 font-semibold mt-4 flex items-center gap-2 hover:text-blue-700 transition-colors"
+                  onClick={() => setIsEditModalOpen(true)}
+                  whileHover={{ x: 5 }}
+                >
+                  <FiEdit3 size={16} />
+                  Editar Perfil
+                </motion.button>
+              </div>
 
-      {/* Posts Section */}
-      <div className="border-t py-3 flex justify-center">
-        <h3 className="text-primary font-medium">My Posts</h3>
-      </div>
+              {/* Stats */}
+              <div className={`grid grid-cols-3 gap-6 ${styles.statsGrid}`}>
+                <motion.div 
+                  className={`text-center p-4 glass-effect rounded-2xl border border-white/20 ${styles.statsCard}`}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="text-3xl font-bold text-gray-800">{profile.counts.recipes}</div>
+                  <div className="text-sm text-gray-500 font-medium">Receitas</div>
+                </motion.div>
+                <motion.div 
+                  className={`text-center p-4 glass-effect rounded-2xl border border-white/20 cursor-pointer ${styles.statsCard}`}
+                  onClick={handleFriendsClick}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="text-3xl font-bold text-gray-800">{profile.counts.friends}</div>
+                  <div className="text-sm text-gray-500 font-medium">Amigos</div>
+                </motion.div>
+                <motion.div 
+                  className={`text-center p-4 glass-effect rounded-2xl border border-white/20 ${styles.statsCard}`}
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className="text-3xl font-bold text-gray-800">0</div>
+                  <div className="text-sm text-gray-500 font-medium">Posts</div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
 
-      {/* Posts Grid - Placeholder */}
-      <div className="p-4">
-        <div className="text-center py-10 text-gray-500">
-          <FiUser className="mx-auto mb-3 text-gray-300" size={48} />
-          <p className="font-medium">No posts yet</p>
-          <p className="text-sm mt-1">Share your first recipe or pantry item!</p>
-          <button className="btn btn-sm btn-primary mt-4">Create your first post</button>
-        </div>
+        {/* Content Tabs */}
+        <motion.div 
+          className={`${styles.profileCard} rounded-3xl overflow-hidden`}
+          initial={{ y: 30, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          {/* Tab Navigation */}
+          <div className="flex border-b border-white/20">
+            {[
+              { id: 'posts', label: 'Posts', icon: FiGrid },
+              { id: 'recipes', label: 'Receitas', icon: FiHeart },
+              { id: 'saved', label: 'Salvos', icon: FiBookmark },
+            ].map((tab) => (
+              <motion.button
+                key={tab.id}
+                className={`flex-1 py-4 px-6 flex items-center justify-center gap-2 font-semibold transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50'
+                }`}
+                onClick={() => setActiveTab(tab.id)}
+                whileHover={{ y: -2 }}
+                whileTap={{ y: 0 }}
+              >
+                <tab.icon size={20} />
+                {tab.label}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Tab Content */}
+          <div className={`p-8 ${styles.tabContent}`}>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {activeTab === 'posts' && (
+                  <div className="text-center py-16">
+                    <motion.div
+                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+                      animate={{ rotate: [0, 5, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <FiCamera className="text-white" size={32} />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Nenhum post ainda</h3>
+                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                      Compartilhe sua primeira receita ou item da dispensa com seus amigos!
+                    </p>
+                    <motion.button 
+                      className={`${styles.gradientButton} text-white py-3 px-8 rounded-xl font-semibold`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <FiPlus className="inline mr-2" size={18} />
+                      Criar primeiro post
+                    </motion.button>
+                  </div>
+                )}
+                {activeTab === 'recipes' && (
+                  <div className="text-center py-16">
+                    <motion.div
+                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <FiHeart className="text-white" size={32} />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Suas receitas aparecerão aqui</h3>
+                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                      Crie e compartilhe receitas deliciosas com a comunidade.
+                    </p>
+                    <Link href="/app/recipes">
+                      <motion.button 
+                        className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Explorar receitas
+                      </motion.button>
+                    </Link>
+                  </div>
+                )}
+                {activeTab === 'saved' && (
+                  <div className="text-center py-16">
+                    <motion.div
+                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <FiBookmark className="text-white" size={32} />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Itens salvos</h3>
+                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                      Suas receitas e posts favoritos ficarão salvos aqui.
+                    </p>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </motion.div>
       </div>
 
       {/* Friends Modal */}

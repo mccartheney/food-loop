@@ -2,17 +2,61 @@
 
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { FiClock, FiArrowRight, FiShoppingBag, FiPackage, FiTrendingUp, FiCalendar } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
+import styles from '../../../app/app/styles.module.css';
 
 const historyItems = [
-  { id: 1, name: 'Order Name', value: '26' },
-  { id: 2, name: 'Order Name', value: '14' },
-  { id: 3, name: 'Order Name', value: '18' },
-  { id: 4, name: 'Order Name', value: '20' },
-  { id: 5, name: 'Order Name', value: '15' },
+  { 
+    id: 1, 
+    name: 'Compra no Pingo Doce', 
+    value: '26',
+    type: 'grocery',
+    date: '2 dias atrás',
+    status: 'completed',
+    icon: '🛒'
+  },
+  { 
+    id: 2, 
+    name: 'Receita Pasta Primavera', 
+    value: '14',
+    type: 'recipe',
+    date: '3 dias atrás',
+    status: 'completed',
+    icon: '👨‍🍳'
+  },
+  { 
+    id: 3, 
+    name: 'Adição à Despensa', 
+    value: '18',
+    type: 'pantry',
+    date: '4 dias atrás',
+    status: 'completed',
+    icon: '📦'
+  },
+  { 
+    id: 4, 
+    name: 'Marketplace - Arroz', 
+    value: '20',
+    type: 'marketplace',
+    date: '5 dias atrás',
+    status: 'pending',
+    icon: '🛍️'
+  },
+  { 
+    id: 5, 
+    name: 'Caixa Continente', 
+    value: '15',
+    type: 'box',
+    date: '1 semana atrás',
+    status: 'completed',
+    icon: '📋'
+  },
 ];
 
 const HistoricCard: React.FC = () => {
   const [isMobile, setIsMobile] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -23,43 +67,136 @@ const HistoricCard: React.FC = () => {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
+      case 'cancelled': return 'bg-red-100 text-red-700';
+      default: return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'grocery': return 'bg-blue-500';
+      case 'recipe': return 'bg-purple-500';
+      case 'pantry': return 'bg-green-500';
+      case 'marketplace': return 'bg-orange-500';
+      case 'box': return 'bg-gray-500';
+      default: return 'bg-gray-400';
+    }
+  };
   
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, delay: 0.3 }}
-      className="card bg-base-100 shadow-sm h-full"
+      className={`${styles.dashboardCard} ${styles.historicCard} rounded-2xl shadow-lg h-full overflow-hidden`}
     >
-      <div className="px-4 py-3 border-b flex items-center">
-        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-        <h2 className="text-sm font-medium">Historic</h2>
+      <div className={`${styles.cardHeader} px-4 py-3 flex items-center justify-between`}>
+        <div className="flex items-center gap-3">
+          <motion.div
+            whileHover={{ rotate: -360, scale: 1.1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <FiClock className="text-orange-600" size={20} />
+          </motion.div>
+          <div>
+            <h2 className="text-sm font-semibold text-gray-800">Histórico de Atividades</h2>
+            <p className="text-xs text-gray-600">Suas ações recentes</p>
+          </div>
+        </div>
+        
+        <motion.button
+          className="text-orange-600 hover:text-orange-800 p-1"
+          whileHover={{ scale: 1.1, x: 2 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => console.log('Navigate to full history')} // TODO: Add history route
+        >
+          <FiArrowRight size={16} />
+        </motion.button>
       </div>
       
       <div className="card-body p-0">
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-gray-50">
           {historyItems.map((item, index) => (
             <motion.li 
               key={item.id}
+              className={`${styles.listItem} flex items-center justify-between px-4 py-3 cursor-pointer`}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
-              className={`flex items-center justify-between px-4 ${isMobile ? 'py-3' : 'py-2'}`}
+              transition={{ duration: 0.2, delay: 0.4 + index * 0.05 }}
+              whileHover={{ scale: 1.01 }}
+              onClick={() => console.log('View activity details:', item.id)}
             >
-              <div className="flex items-center">
-                <div className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} bg-gray-100 rounded-full flex items-center justify-center mr-3`}>
-                  <div className="avatar placeholder">
-                    <div className="bg-neutral-focus text-neutral-content rounded-full w-4">
-                      <span className="text-[0.5rem]">O</span>
-                    </div>
+              <div className="flex items-center gap-3">
+                <motion.div 
+                  className={`${isMobile ? 'w-8 h-8' : 'w-10 h-10'} ${getTypeColor(item.type)} rounded-lg flex items-center justify-center text-white shadow-sm`}
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <span className="text-sm">{item.icon}</span>
+                </motion.div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-800">{item.name}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                      {item.status === 'completed' ? '✓' : '⏳'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <FiCalendar size={12} className="text-gray-400" />
+                    <span className="text-xs text-gray-500">{item.date}</span>
                   </div>
                 </div>
-                <span className="text-xs">{item.name}</span>
               </div>
-              <span className="text-xs font-semibold">{item.value}</span>
+              
+              <div className="text-right">
+                <div className="text-lg font-bold text-gray-700">
+                  {item.value}
+                </div>
+                <div className="text-xs text-gray-500">
+                  itens
+                </div>
+              </div>
             </motion.li>
           ))}
         </ul>
+        
+        {/* Activity Summary */}
+        <motion.div 
+          className="p-4 bg-gradient-to-t from-orange-50 to-transparent"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="text-center">
+              <div className="text-lg font-bold text-orange-600">
+                {historyItems.filter(item => item.status === 'completed').length}
+              </div>
+              <div className="text-xs text-gray-600">Concluídas</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-yellow-600">
+                {historyItems.filter(item => item.status === 'pending').length}
+              </div>
+              <div className="text-xs text-gray-600">Pendentes</div>
+            </div>
+          </div>
+          
+          <motion.button
+            className="w-full btn btn-outline btn-sm rounded-xl border-orange-200 text-orange-600 hover:bg-orange-50"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => console.log('Navigate to full history')}
+          >
+            Ver Histórico Completo
+            <FiArrowRight className="ml-2" size={14} />
+          </motion.button>
+        </motion.div>
       </div>
     </motion.div>
   );

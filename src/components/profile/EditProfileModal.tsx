@@ -166,59 +166,65 @@ export default function EditProfileModal({
   return (
     <>
       {/* Background overlay */}
-      <div className="fixed inset-0 z-40 bg-black bg-opacity-50" onClick={onClose} />
+      <div className="fixed inset-0 z-40 bg-black bg-opacity-30 backdrop-blur-sm" onClick={onClose} />
       
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <AnimatePresence>
           <motion.div
             ref={modalRef}
-            className="bg-white rounded-xl w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl pointer-events-auto"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            className="modern-card rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col shadow-2xl pointer-events-auto"
+            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 20 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
           >
             {/* Header */}
-            <div className="border-b p-4 flex items-center justify-between">
-              <h3 className="font-semibold text-lg">Edit Profile</h3>
+            <div className="border-b border-white/20 p-6 flex items-center justify-between">
+              <h3 className="font-semibold text-xl gradient-text">Editar Perfil</h3>
               <button 
-                className="text-gray-600 hover:text-gray-800 transition-colors" 
+                className="text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100" 
                 onClick={onClose}
                 disabled={isLoading}
               >
-                <FiX size={24} />
+                <FiX size={20} />
               </button>
             </div>
             
             {/* Form */}
             <form onSubmit={handleSubmit} className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              <div className="flex-1 overflow-y-auto p-6 space-y-8">
                 
                 {/* Profile Image Section */}
-                <div className="flex flex-col items-center space-y-3">
+                <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-base-200 border-2 border-base-300 overflow-hidden">
-                      {imagePreview ? (
-                        <img
-                          src={imagePreview}
-                          alt="Profile preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
-                          <FiUser size={24} />
+                    <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 p-1 shadow-xl">
+                      <div className="w-full h-full rounded-full bg-white p-1">
+                        <div className="w-full h-full rounded-full overflow-hidden bg-gray-100">
+                          {imagePreview ? (
+                            <img
+                              src={imagePreview}
+                              alt="Profile preview"
+                              className="w-full h-full object-cover rounded-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <FiUser size={28} />
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
-                      className="absolute -bottom-1 -right-1 bg-primary text-white p-2 rounded-full hover:bg-primary-focus transition-colors"
+                      className="absolute -bottom-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
                       disabled={isLoading}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
                     >
-                      <FiCamera size={12} />
-                    </button>
+                      <FiCamera size={14} />
+                    </motion.button>
                   </div>
                   
                   <input
@@ -230,8 +236,8 @@ export default function EditProfileModal({
                   />
                   
                   <div className="text-center">
-                    <div className="font-medium">{profile.user.name}</div>
-                    <div className="text-sm text-gray-500">{profile.user.email}</div>
+                    <div className="font-semibold text-lg text-gray-800">{profile.user.name}</div>
+                    <div className="text-gray-500">@{profile.user.email.split('@')[0]}</div>
                   </div>
                   
                   {errors.profileImg && (
@@ -240,82 +246,90 @@ export default function EditProfileModal({
                 </div>
 
                 {/* Bio Section */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <FiUser size={16} />
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <FiUser size={18} />
                     Bio
                   </label>
                   <textarea
                     ref={bioTextareaRef}
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
-                    placeholder="Tell us about yourself..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary resize-none h-24"
+                    placeholder="Conte um pouco sobre você..."
+                    className="w-full px-4 py-3 glass-effect border border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 resize-none h-28 placeholder-gray-500"
                     maxLength={500}
                     disabled={isLoading}
                   />
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-sm text-gray-500">
                     <span>{errors.bio && <span className="text-red-500">{errors.bio}</span>}</span>
-                    <span>{formData.bio.length}/500</span>
+                    <span className="font-medium">{formData.bio.length}/500</span>
                   </div>
                 </div>
 
                 {/* Address Section */}
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <FiMapPin size={16} />
-                    Location
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    <FiMapPin size={18} />
+                    Localização
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Where are you located?"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                    placeholder="Onde você está localizado?"
+                    className="w-full px-4 py-3 glass-effect border border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder-gray-500"
                     maxLength={200}
                     disabled={isLoading}
                   />
-                  <div className="flex justify-between text-xs text-gray-500">
+                  <div className="flex justify-between text-sm text-gray-500">
                     <span>{errors.address && <span className="text-red-500">{errors.address}</span>}</span>
-                    <span>{formData.address.length}/200</span>
+                    <span className="font-medium">{formData.address.length}/200</span>
                   </div>
                 </div>
 
                 {/* Submit Error */}
                 {errors.submit && (
-                  <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-lg">
+                  <motion.div 
+                    className="text-red-500 text-sm text-center bg-red-50/80 backdrop-blur-sm p-4 rounded-xl border border-red-200"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
                     {errors.submit}
-                  </div>
+                  </motion.div>
                 )}
               </div>
 
               {/* Footer Actions */}
-              <div className="border-t p-4 flex gap-3">
-                <button
+              <div className="border-t border-white/20 p-6 flex gap-4">
+                <motion.button
                   type="button"
                   onClick={onClose}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="flex-1 px-6 py-3 text-gray-700 glass-effect border border-white/30 rounded-xl hover:bg-white/20 transition-all duration-200 font-semibold"
                   disabled={isLoading}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  Cancel
-                </button>
-                <button
+                  Cancelar
+                </motion.button>
+                <motion.button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-focus transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 font-semibold"
                   disabled={isLoading}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
                   {isLoading ? (
                     <>
-                      <FiLoader className="animate-spin" size={16} />
-                      Saving...
+                      <FiLoader className="animate-spin" size={18} />
+                      Salvando...
                     </>
                   ) : (
                     <>
-                      <FiSave size={16} />
-                      Save Changes
+                      <FiSave size={18} />
+                      Salvar Alterações
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
             </form>
           </motion.div>
