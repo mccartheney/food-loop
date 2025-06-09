@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence, stagger } from 'framer-motion';
 import { FiHome, FiPlus, FiSettings, FiUser, FiSearch, FiUsers } from 'react-icons/fi';
 import { LiaStoreAltSolid } from "react-icons/lia";
@@ -32,6 +32,7 @@ interface NavItem {
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobile, setIsMobile] = useState(false);
   const [isMessageHovered, setIsMessageHovered] = useState(false);
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
@@ -82,16 +83,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
             alt="Pantry"
             width={20}
             height={20}
-            className={`absolute top-0 left-0 w-full h-full ${(isActive || isHovered) ? 'opacity-0' : 'opacity-100'
-              }`}
-          />
-          <Image
-            src="/pantry.svg"
-            alt="Pantry"
-            width={20}
-            height={20}
-            className={`absolute top-0 left-0 w-full h-full filter brightness-0 invert ${(isActive || isHovered) ? 'opacity-100' : 'opacity-0'
-              }`}
+            className={`w-full h-full transition-opacity duration-200 ${
+              isActive ? 'filter brightness-0 invert' : ''
+            }`}
           />
         </div>
       ),
@@ -119,6 +113,9 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     if (item.action) {
       e.preventDefault();
       item.action();
+    } else if (item.href !== '#') {
+      // Navigate to the page using Next.js router
+      router.push(item.href);
     }
   };
 
@@ -226,284 +223,104 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 variants={itemVariants}
                 custom={index}
               >
-                <motion.div
-                  variants={magneticVariants}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                  className="relative"
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                    pathname === item.href
+                      ? 'text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'
+                      : 'text-gray-600 bg-white/70 hover:text-gray-800 hover:bg-white/90'
+                  }`}
+                  onMouseEnter={(e) => {
+                    setHoveredItem(item.href);
+                    handleItemHover(item, e.currentTarget as HTMLElement);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredItem(null);
+                    setTooltipItem(null);
+                  }}
+                  onClick={(e) => handleItemClick(item, e)}
                 >
-                  <Link
-                    href={item.href}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${pathname === item.href
-                        ? 'text-white shadow-lg'
-                        : 'text-gray-600 hover:text-white hover:shadow-md'
-                      }`}
-                    style={{
-                      background: pathname === item.href
-                        ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-                        : 'rgba(255, 255, 255, 0.7)',
-                      backdropFilter: 'blur(10px)',
-                      border: pathname === item.href
-                        ? '2px solid rgba(139, 92, 246, 0.4)'
-                        : '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: pathname === item.href
-                        ? '0 0 20px rgba(139, 92, 246, 0.3), 0 8px 25px rgba(0, 0, 0, 0.1)'
-                        : '0 4px 15px rgba(0, 0, 0, 0.05)'
-                    }}
-                    onMouseEnter={(e) => {
-                      setHoveredItem(item.href);
-                      handleItemHover(item, e.currentTarget as HTMLElement);
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredItem(null);
-                      setTooltipItem(null);
-                    }}
-                    onClick={(e) => handleItemClick(item, e)}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-0"
-                      whileHover={{
-                        opacity: pathname === item.href ? 0 : 0.2
-                      }}
-                      transition={{ duration: 0.2 }}
-                    />
-                    <div className="relative z-10">
-                      {renderIcon(item, pathname === item.href)}
-                    </div>
-
-                    {/* Ripple effect */}
-                    <motion.div
-                      className="absolute inset-0 bg-white rounded-xl"
-                      initial={{ scale: 0, opacity: 0.5 }}
-                      whileTap={{
-                        scale: 1.5,
-                        opacity: 0,
-                        transition: { duration: 0.3 }
-                      }}
-                    />
-                  </Link>
-                </motion.div>
+                  {renderIcon(item, pathname === item.href)}
+                </div>
               </motion.div>
             ))}
 
+            {/* Messages - fixed navigation */}
             <motion.div
               variants={itemVariants}
               custom={7}
             >
-              <motion.div
-                variants={magneticVariants}
-                initial="rest"
-                whileHover="hover"
-                whileTap="tap"
-                className="relative"
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  pathname === '/app/messages'
+                    ? 'text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'
+                    : 'text-gray-600 bg-white/70 hover:text-gray-800 hover:bg-white/90'
+                }`}
+                onMouseEnter={(e) => {
+                  handleItemHover({ name: 'Messages', href: '/app/messages', icon: FiUser }, e.currentTarget as HTMLElement);
+                }}
+                onMouseLeave={() => {
+                  setTooltipItem(null);
+                }}
+                onClick={() => router.push('/app/messages')}
               >
-                <Link
-                  href="/app/messages"
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${pathname === '/app/messages'
-                      ? 'text-white shadow-lg'
-                      : 'text-gray-600 hover:text-white hover:shadow-md'
-                    }`}
-                  style={{
-                    background: pathname === '/app/messages'
-                      ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-                      : 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(10px)',
-                    border: pathname === '/app/messages'
-                      ? '2px solid rgba(139, 92, 246, 0.4)'
-                      : '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: pathname === '/app/messages'
-                      ? '0 0 20px rgba(139, 92, 246, 0.3), 0 8px 25px rgba(0, 0, 0, 0.1)'
-                      : '0 4px 15px rgba(0, 0, 0, 0.05)'
-                  }}
-                  onMouseEnter={(e) => {
-                    setIsMessageHovered(true);
-                    handleItemHover({ name: 'Messages', href: '/app/messages', icon: FiUser }, e.currentTarget as HTMLElement);
-                  }}
-                  onMouseLeave={() => {
-                    setIsMessageHovered(false);
-                    setTooltipItem(null);
-                  }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0"
-                    whileHover={{
-                      opacity: pathname === '/app/messages' ? 0 : 0.8,
-                      scale: 1.1
-                    }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.div
-                    className="relative z-10"
-                    whileHover={{
-                      rotate: [0, -5, 5, 0],
-                      transition: { duration: 0.3 }
-                    }}
-                  >
-                    <div className="relative w-5 h-5">
-                      <Image
-                        src="/sent.svg"
-                        alt="Messages"
-                        width={20}
-                        height={20}
-                        className={`absolute top-0 left-0 w-full h-full transition-opacity duration-200 ${(pathname === '/app/messages' || isMessageHovered)
-                            ? 'opacity-0'
-                            : 'opacity-100'
-                          }`}
-                      />
-                      <Image
-                        src="/sent.svg"
-                        alt="Messages"
-                        width={20}
-                        height={20}
-                        className={`absolute top-0 left-0 w-full h-full filter brightness-0 invert transition-opacity duration-200 ${(pathname === '/app/messages' || isMessageHovered)
-                            ? 'opacity-100'
-                            : 'opacity-0'
-                          }`}
-                      />
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    className="absolute inset-0 bg-white rounded-xl"
-                    initial={{ scale: 0, opacity: 0.5 }}
-                    whileTap={{
-                      scale: 1.5,
-                      opacity: 0,
-                      transition: { duration: 0.3 }
-                    }}
-                  />
-                </Link>
-              </motion.div>
+                <Image
+                  src="/sent.svg"
+                  alt="Messages"
+                  width={20}
+                  height={20}
+                  className={`w-5 h-5 ${
+                    pathname === '/app/messages' ? 'filter brightness-0 invert' : ''
+                  }`}
+                />
+              </div>
             </motion.div>
           </nav>
 
           <div className="mt-auto flex flex-col items-center space-y-4 mb-6">
+            {/* Logout - keep as is */}
             <motion.div
               variants={itemVariants}
               custom={8}
             >
-              <motion.div
-                variants={magneticVariants}
-                initial="rest"
-                whileHover="hover"
-                whileTap="tap"
-                className="relative"
+              <div
+                className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 hover:text-gray-800 bg-white/70 hover:bg-white/90 transition-all duration-200 cursor-pointer"
+                onMouseEnter={(e) => {
+                  handleItemHover({ name: 'Logout', href: '#', icon: FaSignOutAlt }, e.currentTarget as HTMLElement);
+                }}
+                onMouseLeave={() => {
+                  setTooltipItem(null);
+                }}
+                onClick={() => signOut()}
               >
-                <button
-                  onClick={() => { signOut() }}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-gray-600 hover:text-white hover:shadow-md transition-all duration-300 relative overflow-hidden"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.7)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.05)'
-                  }}
-                  onMouseEnter={(e) => {
-                    handleItemHover({ name: 'Logout', href: '#', icon: FaSignOutAlt }, e.currentTarget as HTMLElement);
-                  }}
-                  onMouseLeave={() => {
-                    setTooltipItem(null);
-                  }}
-                >
-                  <motion.div
-                    className="absolute inset-0 bg-gradient-to-r from-red-400 to-pink-400 opacity-0"
-                    whileHover={{ opacity: 0.8, scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                  />
-                  <motion.div
-                    className="relative z-10"
-                    whileHover={{
-                      rotate: [0, -5, 5, 0],
-                      transition: { duration: 0.3 }
-                    }}
-                  >
-                    <FaSignOutAlt />
-                  </motion.div>
-
-                  <motion.div
-                    className="absolute inset-0 bg-white rounded-xl"
-                    initial={{ scale: 0, opacity: 0.5 }}
-                    whileTap={{
-                      scale: 1.5,
-                      opacity: 0,
-                      transition: { duration: 0.3 }
-                    }}
-                  />
-                </button>
-              </motion.div>
+                <FaSignOutAlt />
+              </div>
             </motion.div>
 
+            {/* Settings e MyProfile - fixed navigation */}
             {navItems.slice(7).map((item, index) => (
               <motion.div
                 key={item.name}
                 variants={itemVariants}
                 custom={9 + index}
               >
-                <motion.div
-                  variants={magneticVariants}
-                  initial="rest"
-                  whileHover="hover"
-                  whileTap="tap"
-                  className="relative"
+                <div
+                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                    pathname === item.href
+                      ? 'text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'
+                      : 'text-gray-600 bg-white/70 hover:text-gray-800 hover:bg-white/90'
+                  }`}
+                  onMouseEnter={(e) => {
+                    setHoveredItem(item.href);
+                    handleItemHover(item, e.currentTarget as HTMLElement);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredItem(null);
+                    setTooltipItem(null);
+                  }}
+                  onClick={() => router.push(item.href)}
                 >
-                  <Link
-                    href={item.href}
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 ${pathname === item.href
-                        ? 'text-white shadow-lg'
-                        : 'text-gray-600 hover:text-white hover:shadow-md'
-                      }`}
-                    style={{
-                      background: pathname === item.href
-                        ? 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)'
-                        : 'rgba(255, 255, 255, 0.7)',
-                      backdropFilter: 'blur(10px)',
-                      border: pathname === item.href
-                        ? '2px solid rgba(139, 92, 246, 0.4)'
-                        : '1px solid rgba(255, 255, 255, 0.3)',
-                      boxShadow: pathname === item.href
-                        ? '0 0 20px rgba(139, 92, 246, 0.3), 0 8px 25px rgba(0, 0, 0, 0.1)'
-                        : '0 4px 15px rgba(0, 0, 0, 0.05)'
-                    }}
-                    onMouseEnter={(e) => {
-                      setHoveredItem(item.href);
-                      handleItemHover(item, e.currentTarget as HTMLElement);
-                    }}
-                    onMouseLeave={() => {
-                      setHoveredItem(null);
-                      setTooltipItem(null);
-                    }}
-                    onClick={(e) => handleItemClick(item, e)}
-                  >
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-r from-purple-400 to-pink-400 opacity-0"
-                      whileHover={{
-                        opacity: pathname === item.href ? 0 : 0.8,
-                        scale: 1.1
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
-                    <motion.div
-                      className="relative z-10"
-                      whileHover={{
-                        rotate: [0, -5, 5, 0],
-                        transition: { duration: 0.3 }
-                      }}
-                    >
-                      {renderIcon(item, pathname === item.href)}
-                    </motion.div>
-
-                    <motion.div
-                      className="absolute inset-0 bg-white rounded-xl"
-                      initial={{ scale: 0, opacity: 0.5 }}
-                      whileTap={{
-                        scale: 1.5,
-                        opacity: 0,
-                        transition: { duration: 0.3 }
-                      }}
-                    />
-                  </Link>
-                </motion.div>
+                  {renderIcon(item, pathname === item.href)}
+                </div>
               </motion.div>
             ))}
           </div>
