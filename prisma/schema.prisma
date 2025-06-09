@@ -89,6 +89,12 @@ model Profile {
   recipes          Recipe[]
   favoriteBoxes    Box[]     @relation("FavoriteBoxes")
   favoriteRecipes  Recipe[]  @relation("FavoriteRecipes")
+  lastSeenAt       DateTime? // For messaging presence
+  isOnline         Boolean   @default(false)
+  messagingEnabled Boolean   @default(true)
+  unreadNotifications Int   @default(0) // Cache for quick access
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }
 
 model Enterprise {
@@ -242,4 +248,20 @@ model FriendRequest {
   updatedAt   DateTime      @updatedAt
 
   @@unique([requesterId, receiverId])
+}
+
+model UserConnection {
+  id               String   @id @default(cuid())
+  userId           String   // References User.id
+  connectionId     String   // WebSocket/Socket.IO connection ID
+  deviceType       String?  // mobile, web, desktop
+  userAgent        String?
+  ipAddress        String?
+  connectedAt      DateTime @default(now())
+  lastActivity     DateTime @default(now())
+  isActive         Boolean  @default(true)
+
+  @@index([userId, isActive])
+  @@index([connectionId])
+  @@index([lastActivity])
 }

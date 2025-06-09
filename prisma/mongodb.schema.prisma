@@ -1,0 +1,182 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/lib/generated/mongodb"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("MONGODB_URL")
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  MESSAGE_RECEIVED
+  ORDER_STATUS_UPDATE
+  PANTRY_EXPIRY_WARNING
+  RECIPE_SHARED
+  BOX_AVAILABLE
+  SYSTEM_ANNOUNCEMENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+  RECIPE_SHARE
+  BOX_SHARE
+  LOCATION
+}
+
+enum MessageStatusType {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum ConversationType {
+  DIRECT
+  GROUP
+}
+
+model Notification {
+  id          String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId      String           // References User.id from PostgreSQL
+  type        NotificationType
+  title       String
+  message     String
+  data        Json?            // Additional data specific to notification type
+  isRead      Boolean          @default(false)
+  actionUrl   String?          // Deep link or URL for the notification action
+  createdAt   DateTime         @default(now())
+  expiresAt   DateTime?        // Optional expiration for notifications
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([type])
+}
+
+model Conversation {
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  type          ConversationType @default(DIRECT)
+  participants  String[]        // Array of User.id from PostgreSQL
+  name          String?         // For group conversations
+  image         String?         // Group conversation image
+  createdBy     String          // User.id who created the conversation
+  lastMessage   Json?           // Cache of last message for quick access
+  lastActivity  DateTime        @default(now())
+  isActive      Boolean         @default(true)
+  messages      Message[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@index([participants])
+  @@index([lastActivity])
+  @@index([type])
+}
+
+model Message {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String        @db.ObjectId
+  conversation   Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String        // References User.id from PostgreSQL
+  content        String
+  type           MessageType   @default(TEXT)
+  metadata       Json?         // Additional data for files, images, shared content
+  replyToId      String?       @db.ObjectId
+  replyTo        Message?      @relation("MessageReply", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies        Message[]     @relation("MessageReply")
+  reactions      MessageReaction[]
+  status         MessageStatusRecord[]
+  isEdited       Boolean       @default(false)
+  editedAt       DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([type])
+}
+
+model MessageStatusRecord {
+  id        String        @id @default(auto()) @map("_id") @db.ObjectId
+  messageId String        @db.ObjectId
+  message   Message       @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String        // References User.id from PostgreSQL
+  status    MessageStatusType
+  timestamp DateTime      @default(now())
+  
+  @@unique([messageId, userId])
+  @@index([userId])
+  @@index([status])
+}
+
+model MessageReaction {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  messageId String   @db.ObjectId
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  userId    String   // References User.id from PostgreSQL
+  emoji     String   // Unicode emoji or custom reaction identifier
+  createdAt DateTime @default(now())
+  
+  @@unique([messageId, userId, emoji])
+  @@index([messageId])
+}
+
+model UserPresence {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String    @unique // References User.id from PostgreSQL
+  isOnline     Boolean   @default(false)
+  lastSeen     DateTime  @default(now())
+  status       String?   // Custom status message
+  currentDevice String?  // Device identifier
+  updatedAt    DateTime  @updatedAt
+  
+  @@index([isOnline])
+  @@index([lastSeen])
+}
+
+model NotificationSettings {
+  id                    String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId                String  @unique // References User.id from PostgreSQL
+  pushNotifications     Boolean @default(true)
+  emailNotifications    Boolean @default(true)
+  friendRequests        Boolean @default(true)
+  messages              Boolean @default(true)
+  orderUpdates          Boolean @default(true)
+  pantryAlerts          Boolean @default(true)
+  recipeShares          Boolean @default(true)
+  marketplaceUpdates    Boolean @default(false)
+  systemAnnouncements   Boolean @default(true)
+  pushTokens            String[] // FCM tokens for push notifications
+  emailFrequency        String  @default("immediate") // immediate, daily, weekly
+  quietHoursStart       String? // HH:mm format
+  quietHoursEnd         String? // HH:mm format
+  timezone              String  @default("UTC")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model TypingIndicator {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  conversationId String   @db.ObjectId
+  userId         String   // References User.id from PostgreSQL
+  isTyping       Boolean  @default(true)
+  lastTyping     DateTime @default(now())
+  
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([lastTyping])
+}
+
+model MessageThread {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  originalMessageId String   @db.ObjectId
+  participants     String[] // User IDs participating in the thread
+  messageCount     Int      @default(0)
+  lastActivity     DateTime @default(now())
+  createdAt        DateTime @default(now())
+  
+  @@index([originalMessageId])
+  @@index([lastActivity])
+}
