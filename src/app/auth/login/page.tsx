@@ -1,14 +1,15 @@
-import GoogleLoginForm from '@/components/AllForms/LoginForm';
+import AuthBackground from '@/components/auth/AuthBackground';
+import ModernLoginForm from '@/components/auth/ModernLoginForm';
 
 export const metadata = {
-  title: 'Login - Food Loop',
-  description: 'Log in to your Food Loop account',
+  title: 'Entrar - Food Loop',
+  description: 'Entre na sua conta Food Loop',
 };
 
 export default function LoginPage() {
   return (
-    <div className="container mx-auto px-4">
-      <GoogleLoginForm />
-    </div>
+    <AuthBackground>
+      <ModernLoginForm />
+    </AuthBackground>
   );
 }
