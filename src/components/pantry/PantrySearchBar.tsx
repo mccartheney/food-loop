@@ -1,7 +1,9 @@
-// src/components/pantry/PantrySearchBar.tsx
+'use client';
+
 import { FormEvent } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiX } from 'react-icons/fi';
+import { FiSearch, FiX, FiFilter } from 'react-icons/fi';
+import styles from '../../app/app/pantry/styles.module.css';
 
 interface PantrySearchBarProps {
   searchTerm: string;
@@ -26,51 +28,145 @@ export default function PantrySearchBar({
 }: PantrySearchBarProps) {
   return (
     <motion.div
-      className="card bg-base-200 shadow-lg mb-6 p-4"
+      className={`${styles.searchContainer} rounded-2xl p-6 mb-6`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, duration: 0.5 }}
-      whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+      transition={{ delay: 0.3, duration: 0.7 }}
     >
-      <form onSubmit={onSearch} className="flex flex-col md:flex-row gap-3">
-        <div className="relative flex-grow">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="text-gray-400" />
-          </div>
-          <input
-            type="text"
-            placeholder="Search your pantry..."
-            className="input input-bordered w-full pl-10"
-            value={searchTerm}
-            onChange={e => onSearchTermChange(e.target.value)}
-          />
-          {searchTerm && (
-            <button
-              type="button"
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
-              onClick={onClearSearch}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Search Form */}
+        <form onSubmit={onSearch} className="flex-1 flex gap-3">
+          <div className="flex-1 relative">
+            <motion.div 
+              className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10"
+              whileHover={{ scale: 1.1 }}
+              transition={{ duration: 0.2 }}
             >
-              <FiX className="text-gray-400 hover:text-gray-600" />
-            </button>
+              <FiSearch size={20} className="text-gray-400" />
+            </motion.div>
+            
+            <input
+              type="text"
+              placeholder="Busque por nome, tipo ou validade..."
+              value={searchTerm}
+              onChange={(e) => onSearchTermChange(e.target.value)}
+              className={`${styles.searchInput} w-full pl-12 pr-12 py-3 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none`}
+            />
+            
+            {searchTerm && (
+              <motion.button
+                type="button"
+                onClick={onClearSearch}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
+                whileHover={{ scale: 1.2, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FiX size={20} />
+              </motion.button>
+            )}
+          </div>
+          
+          <motion.button
+            type="submit"
+            className={`${styles.primaryButton} px-6 py-3 rounded-xl flex items-center gap-2`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FiSearch size={18} />
+            <span className="hidden sm:inline font-medium">Buscar</span>
+          </motion.button>
+        </form>
+        
+        {/* Category Filter */}
+        <div className="flex items-center gap-3">
+          <motion.div 
+            className="flex items-center gap-2 text-gray-600"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <FiFilter size={16} />
+            <span className="text-sm font-medium whitespace-nowrap">Filtrar por:</span>
+          </motion.div>
+          
+          <motion.select
+            value={searchCategory}
+            onChange={(e) => onSearchCategoryChange(e.target.value as 'all' | 'name' | 'type')}
+            className={`${styles.categoryFilter} px-4 py-2 rounded-xl text-sm font-medium focus:outline-none`}
+            whileHover={{ scale: 1.02 }}
+            whileFocus={{ scale: 1.02 }}
+          >
+            <option value="all">Todos os Campos</option>
+            <option value="name">Nome</option>
+            <option value="type">Tipo</option>
+          </motion.select>
+        </div>
+      </div>
+      
+      {/* Search Results Summary */}
+      <motion.div
+        className="mt-4 flex items-center justify-between"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7, duration: 0.5 }}
+      >
+        <div className="text-sm text-gray-600">
+          {searchTerm ? (
+            <span>
+              Mostrando <span className="font-semibold text-green-600">{filteredCount}</span> de{' '}
+              <span className="font-semibold">{totalItems}</span> itens
+              <span className="ml-2">
+                para "<span className="font-medium text-gray-800">{searchTerm}</span>"
+                {searchCategory !== 'all' && (
+                  <span className="text-gray-500"> em {
+                    searchCategory === 'name' ? 'nome' : 
+                    searchCategory === 'type' ? 'tipo' : searchCategory
+                  }</span>
+                )}
+              </span>
+            </span>
+          ) : (
+            <span>
+              Exibindo todos os <span className="font-semibold text-blue-600">{totalItems}</span> itens da sua despensa
+            </span>
           )}
         </div>
-        <select
-          className="select select-bordered"
-          value={searchCategory}
-          onChange={e => onSearchCategoryChange(e.target.value as 'all' | 'name' | 'type')}
-        >
-          <option value="all">All Fields</option>
-          <option value="name">Name</option>
-          <option value="type">Type</option>
-        </select>
-      </form>
-      <div className="mt-2 text-xs text-gray-500">
-        {searchTerm ? (
-          <span>Found {filteredCount} items matching "{searchTerm}"</span>
-        ) : (
-          <span>Showing all {totalItems} items</span>
+        
+        {/* Quick filter badges */}
+        {!searchTerm && (
+          <div className="flex items-center gap-2">
+            <motion.button
+              onClick={() => onSearchTermChange('vencido')}
+              className="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Ver Vencidos
+            </motion.button>
+            <motion.button
+              onClick={() => onSearchTermChange('7 dias')}
+              className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Vencendo em Breve
+            </motion.button>
+          </div>
         )}
-      </div>
+      </motion.div>
+      
+      {/* Advanced Search Hint */}
+      {!searchTerm && (
+        <motion.div
+          className="mt-3 text-xs text-gray-400 flex items-center gap-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1, duration: 0.5 }}
+        >
+          <span>💡 Dica: Use termos como "vencido", "7 dias", "carne" ou nomes específicos</span>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

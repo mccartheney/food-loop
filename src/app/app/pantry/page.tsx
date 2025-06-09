@@ -1,6 +1,5 @@
 'use client';
 
-// Import additional icon for search functionality
 import { useState, useEffect, FormEvent, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { ItemType } from '@prisma/client';
@@ -15,7 +14,9 @@ import PantryRecentItemsList from '@/components/pantry/PantryRecentItemsList';
 import PantrySearchBar from '@/components/pantry/PantrySearchBar';
 import PantryItemsTable from '@/components/pantry/PantryItemsTable';
 import PantryItemsGrid from '@/components/pantry/PantryItemsGrid';
+import PantryStatsHeader from '@/components/pantry/PantryStatsHeader';
 import QrScanner from 'qr-scanner';
+import styles from './styles.module.css';
 
 // Client-side representation of a pantry item
 interface PantryDisplayItem {
@@ -144,7 +145,7 @@ const PantryPage = () => {
                 // Check if QR content is "nao me fodas"
                 if (result.data.trim() === "nao me fodas") {
                     // Convert all foodList items to the correct format for the API
-                    const allFoodItems = foodList.map(item => ({
+                    const allFoodItems = foodList.map((item: any) => ({
                         name: item.name,
                         quantity: item.quantity,
                         expire_date: item.expire_date,
@@ -413,7 +414,7 @@ const PantryPage = () => {
         clearMessages();
         setIsSubmittingAll(true);
 
-        const itemsToSubmit = foodList.map(item => ({
+        const itemsToSubmit = foodList.map((item: any) => ({
             name: item.name,
             quantity: item.quantity,
             expire_date: item.expire_date,
@@ -1465,6 +1466,11 @@ const PantryPage = () => {
                 successMessage={successMessage}
                 onClearError={() => setError(null)}
                 onClearSuccess={() => setSuccessMessage(null)}
+            />
+
+            {/* Stats Header */}
+            <PantryStatsHeader
+                items={pantryItems}
             />
 
             {/* Replace the Add Item Form with the modal and a floating action button */}
