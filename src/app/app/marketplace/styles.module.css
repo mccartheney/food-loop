@@ -1,0 +1,228 @@
+/* Marketplace Styles */
+
+/* Header Glass Effect */
+.headerGlass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+/* Stats Cards */
+.statsCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.statsCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Individual Stats Backgrounds */
+.statsTotal {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+}
+
+.statsCategories {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(110, 231, 183, 0.1));
+}
+
+.statsLocations {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+}
+
+.statsPremium {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(196, 181, 253, 0.1));
+}
+
+.statsEconomic {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(134, 239, 172, 0.1));
+}
+
+/* Search Bar */
+.searchContainer {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.searchEnhanced {
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  transition: all 0.3s ease;
+}
+
+.searchEnhanced:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Filter Sidebar */
+.filterSidebar {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+/* Product Cards */
+.productCard {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.9));
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.productCard:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.featuredCard {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(255, 255, 255, 0.9));
+  border: 2px solid rgba(251, 191, 36, 0.3);
+}
+
+/* View Toggle */
+.viewToggle {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(5px);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.viewToggleActive {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 1), rgba(37, 99, 235, 1));
+  color: white;
+}
+
+/* Category Chips */
+.categoryChip {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: rgba(59, 130, 246, 0.8);
+  transition: all 0.3s ease;
+}
+
+.categoryChip:hover {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(147, 197, 253, 0.2));
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Custom Scrollbar */
+.customScrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 130, 246, 0.3) rgba(0, 0, 0, 0.1);
+}
+
+.customScrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.customScrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.customScrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+/* Alert Styles */
+.alertSuccess {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(134, 239, 172, 0.1));
+  border: 1px solid rgba(34, 197, 94, 0.2);
+  color: rgba(21, 128, 61, 1);
+}
+
+.alertWarning {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  color: rgba(146, 64, 14, 1);
+}
+
+.alertError {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(252, 165, 165, 0.1));
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: rgba(153, 27, 27, 1);
+}
+
+/* Gradient Text */
+.gradientText {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .headerGlass {
+    padding: 1rem;
+  }
+  
+  .statsCard {
+    padding: 0.75rem;
+  }
+  
+  .filterSidebar {
+    padding: 1rem;
+  }
+}
+
+/* Animation Classes */
+.fadeInUp {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.scaleIn {
+  animation: scaleIn 0.5s ease-out forwards;
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Loading States */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
