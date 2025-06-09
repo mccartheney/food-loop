@@ -17,9 +17,9 @@ const DashboardStatsHeader: React.FC = () => {
   const stats = [
     {
       id: 'pantry',
-      label: 'Itens na Despensa',
+      label: 'Pantry Items',
       value: mockStats.pantryItems,
-      subValue: 'Produtos disponíveis',
+      subValue: 'Available products',
       icon: FiPackage,
       color: 'text-blue-600',
       bgClass: styles.statsPantry,
@@ -27,9 +27,9 @@ const DashboardStatsHeader: React.FC = () => {
     },
     {
       id: 'recipes',
-      label: 'Receitas Disponíveis',
+      label: 'Available Recipes',
       value: mockStats.availableRecipes,
-      subValue: 'Com ingredientes',
+      subValue: 'With ingredients',
       icon: FiBookOpen,
       color: 'text-purple-600',
       bgClass: styles.statsRecipes,
@@ -37,9 +37,9 @@ const DashboardStatsHeader: React.FC = () => {
     },
     {
       id: 'boxes',
-      label: 'Caixas Criadas',
+      label: 'Boxes Created',
       value: mockStats.boxesCreated,
-      subValue: 'Este mês',
+      subValue: 'This month',
       icon: FiBox,
       color: 'text-green-600',
       bgClass: styles.statsBoxes,
@@ -47,9 +47,9 @@ const DashboardStatsHeader: React.FC = () => {
     },
     {
       id: 'activity',
-      label: 'Atividade Recente',
+      label: 'Recent Activity',
       value: mockStats.recentActivity,
-      subValue: 'Últimos 7 dias',
+      subValue: 'Last 7 days',
       icon: FiActivity,
       color: 'text-orange-600',
       bgClass: styles.statsActivity,
@@ -57,9 +57,9 @@ const DashboardStatsHeader: React.FC = () => {
     },
     {
       id: 'economy',
-      label: 'Economia Total',
+      label: 'Total Savings',
       value: `€${mockStats.economySaved}`,
-      subValue: 'Desperdício evitado',
+      subValue: 'Waste avoided',
       icon: FiTrendingUp,
       color: 'text-emerald-600',
       bgClass: styles.statsEconomy,
@@ -69,9 +69,9 @@ const DashboardStatsHeader: React.FC = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Bom dia';
-    if (hour < 18) return 'Boa tarde';
-    return 'Boa noite';
+    if (hour < 12) return 'Good morning';
+    if (hour < 18) return 'Good afternoon';
+    return 'Good evening';
   };
 
   return (
@@ -90,10 +90,10 @@ const DashboardStatsHeader: React.FC = () => {
             >
               <FiHome className="text-blue-500" />
             </motion.div>
-            {getGreeting()}, Usuário!
+            {getGreeting()}, User!
           </h1>
           <p className="text-gray-600">
-            Aqui está um resumo da sua atividade no FoodLoop
+            Here's a summary of your FoodLoop activity
           </p>
         </div>
         
@@ -106,15 +106,15 @@ const DashboardStatsHeader: React.FC = () => {
         >
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{mockStats.pantryItems}</div>
-            <div className="text-xs text-gray-600">Itens</div>
+            <div className="text-xs text-gray-600">Items</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-purple-600">{mockStats.availableRecipes}</div>
-            <div className="text-xs text-gray-600">Receitas</div>
+            <div className="text-xs text-gray-600">Recipes</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">€{mockStats.economySaved}</div>
-            <div className="text-xs text-gray-600">Economia</div>
+            <div className="text-xs text-gray-600">Savings</div>
           </div>
         </motion.div>
       </div>
@@ -186,9 +186,9 @@ const DashboardStatsHeader: React.FC = () => {
           <div className="flex items-center gap-3">
             <FiPackage className="text-blue-600" size={20} />
             <div>
-              <div className="font-medium">Status da Despensa</div>
+              <div className="font-medium">Pantry Status</div>
               <div className="text-sm opacity-80">
-                {mockStats.pantryItems} itens disponíveis, {Math.floor(mockStats.pantryItems * 0.3)} próximos do vencimento
+                {mockStats.pantryItems} items available, {Math.floor(mockStats.pantryItems * 0.3)} expiring soon
               </div>
             </div>
           </div>
@@ -204,9 +204,9 @@ const DashboardStatsHeader: React.FC = () => {
           <div className="flex items-center gap-3">
             <FiBookOpen className="text-green-600" size={20} />
             <div>
-              <div className="font-medium">Receitas Sugeridas</div>
+              <div className="font-medium">Suggested Recipes</div>
               <div className="text-sm opacity-80">
-                {mockStats.availableRecipes} receitas podem ser feitas agora
+                {mockStats.availableRecipes} recipes can be made now
               </div>
             </div>
           </div>
@@ -222,9 +222,9 @@ const DashboardStatsHeader: React.FC = () => {
           <div className="flex items-center gap-3">
             <FiTrendingUp className="text-orange-600" size={20} />
             <div>
-              <div className="font-medium">Impacto Sustentável 🌱</div>
+              <div className="font-medium">Sustainability Impact 🌱</div>
               <div className="text-sm opacity-80">
-                €{mockStats.economySaved} em desperdício evitado este mês
+                €{mockStats.economySaved} in waste avoided this month
               </div>
             </div>
           </div>
