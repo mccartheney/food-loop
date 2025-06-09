@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { FiArrowLeft, FiSend } from 'react-icons/fi';
-import Link from 'next/link'; // Novo import para navegação
+import { FiSend, FiPaperclip, FiSmile } from 'react-icons/fi';
+import MessageHeader from './MessageHeader';
+import styles from '../../app/app/messages/styles.module.css';
 
 interface Message {
   id: number;
@@ -41,7 +42,10 @@ const mockMessages: Message[] = [
 const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
   const [messages, setMessages] = useState<Message[]>(mockMessages);
   const [newMessage, setNewMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isUserTyping, setIsUserTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -63,6 +67,16 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     
     setMessages([...messages, message]);
     setNewMessage('');
+    setIsUserTyping(false);
+    
+    // Simulate typing response
+    setTimeout(() => {
+      setIsTyping(true);
+    }, 1000);
+    
+    setTimeout(() => {
+      setIsTyping(false);
+    }, 3000);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -72,100 +86,178 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMessage(e.target.value);
+    
+    // Show typing indicator
+    if (!isUserTyping && e.target.value.length > 0) {
+      setIsUserTyping(true);
+    }
+    
+    // Clear existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+    
+    // Set new timeout to hide typing indicator
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsUserTyping(false);
+    }, 2000);
+  };
+
   return (
-    <div className="flex flex-col h-full rounded-xl overflow-hidden bg-white">
-      {/* Header with gray background */}
-      <div className="bg-[#D9D9D9] p-4 flex items-center">
-        {onBackClick && (
-          <button 
-            onClick={onBackClick}
-            className="btn btn-ghost btn-sm btn-circle mr-2"
-          >
-            <FiArrowLeft />
-          </button>
-        )}
-        <div className="avatar">
-          <div className="w-10 h-10 rounded-full bg-slate-300 flex items-center justify-center">
-            {conversation?.user?.avatar ? (
-              <Image
-                src={conversation.user.avatar}
-                alt={conversation.user.name}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            ) : (
-              <div className="text-xl text-slate-600">
-                {conversation?.user?.name?.charAt(0)}
-              </div>
-            )}
-          </div>
-        </div>
-        
-        {/* Link para o perfil do usuário */}
-        <Link 
-          href={`/app/profile/${conversation.id}`}
-          className="ml-3 font-medium text-gray-800 hover:underline transition-all"
-        >
-          {conversation?.user?.name}
-        </Link>
-      </div>
+    <motion.div 
+      className={`flex flex-col h-full rounded-3xl overflow-hidden ${styles.chatArea}`}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+    >
+      {/* Modern Header */}
+      <MessageHeader 
+        conversation={conversation}
+        onBackClick={onBackClick}
+        isOnline={true}
+        isTyping={isTyping}
+      />
       
-      {/* Messages - white background with gray recipient bubbles */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white">
+      {/* Messages Area */}
+      <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${styles.messagesScroll}`}>
         <AnimatePresence>
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <motion.div
               key={message.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ 
+                duration: 0.4, 
+                delay: index * 0.1,
+                type: "spring",
+                stiffness: 300
+              }}
+              className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'} mb-4`}
             >
-              <div 
-                className={`max-w-[70%] rounded-xl p-3 ${
+              <div className={`flex items-end gap-2 max-w-[70%] ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                {message.sender !== 'user' && (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-xs font-bold text-white mb-1">
+                    {conversation?.user?.name?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                
+                <div className={`rounded-2xl p-4 shadow-lg ${
                   message.sender === 'user' 
-                    ? 'bg-primary text-white' 
-                    : 'bg-[#D9D9D9] text-gray-800'
-                }`}
-              >
-                <p className="text-sm">{message.text}</p>
-                <div className={`text-xs mt-1 ${message.sender === 'user' ? 'text-primary-content opacity-70' : 'text-gray-500'}`}>
-                  {message.timestamp}
+                    ? `${styles.messageBubbleUser} text-white` 
+                    : `${styles.messageBubbleRecipient} text-gray-800`
+                }`}>
+                  <p className="text-sm leading-relaxed">{message.text}</p>
+                  <div className={`text-xs mt-2 ${
+                    message.sender === 'user' ? 'text-white/70' : 'text-gray-500'
+                  }`}>
+                    {message.timestamp}
+                  </div>
                 </div>
               </div>
             </motion.div>
           ))}
+          
+          {/* Typing Indicator */}
+          {isTyping && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-start mb-4"
+            >
+              <div className="flex items-end gap-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center text-xs font-bold text-white">
+                  {conversation?.user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <div className={`${styles.messageBubbleRecipient} rounded-2xl p-4 shadow-lg`}>
+                  <div className={`flex space-x-1 ${styles.typingDots}`}>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                    <span className="w-2 h-2 bg-gray-400 rounded-full"></span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+          
           <div ref={messagesEndRef} />
         </AnimatePresence>
       </div>
       
-      {/* Message Input - removed border */}
-      <div className="p-4 bg-white">
-        <div className="flex items-center bg-base-200 rounded-lg h-12">
-          <textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            className="w-full h-full px-4 bg-base-200 focus:bg-base-200 active:bg-base-200 hover:bg-base-200 focus:outline-none resize-none py-3 border-0 focus:ring-0 focus:border-0"
-            style={{ 
-              background: 'var(--fallback-b2,oklch(var(--b2)/var(--tw-bg-opacity)))', 
-              caretColor: '#000',
-              border: 'none',
-              boxShadow: 'none'
-            }}
-          />
-          <button 
+      {/* Enhanced Message Input */}
+      <div className="p-6 border-t border-white/20">
+        <div className="flex items-end gap-4">
+          <motion.button
+            className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            title="Anexar arquivo"
+          >
+            <FiPaperclip className="text-gray-600" size={18} />
+          </motion.button>
+          
+          <div className="flex-1">
+            <div className={`flex items-end ${styles.messageInput} rounded-2xl p-4 shadow-lg`}>
+              <textarea
+                value={newMessage}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                placeholder="Digite sua mensagem..."
+                className="w-full bg-transparent focus:outline-none resize-none text-gray-800 placeholder-gray-500 max-h-32"
+                rows={1}
+                style={{
+                  minHeight: '24px',
+                  lineHeight: '24px'
+                }}
+                onInput={(e) => {
+                  const target = e.target as HTMLTextAreaElement;
+                  target.style.height = 'auto';
+                  target.style.height = `${Math.min(target.scrollHeight, 128)}px`;
+                }}
+              />
+              <motion.button
+                className="ml-2 p-2 rounded-full hover:bg-gray-100 transition-all duration-200"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title="Emojis"
+              >
+                <FiSmile className="text-gray-500" size={18} />
+              </motion.button>
+            </div>
+          </div>
+          
+          <motion.button 
             onClick={handleSendMessage}
             disabled={!newMessage.trim()}
-            className="btn btn-circle btn-sm btn-ghost text-primary mr-2"
+            className={`p-4 rounded-2xl ${styles.sendButton} text-white shadow-lg transition-all duration-200 ${
+              !newMessage.trim() ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+            whileHover={newMessage.trim() ? { scale: 1.05 } : {}}
+            whileTap={newMessage.trim() ? { scale: 0.95 } : {}}
           >
-            <FiSend size={18} />
-          </button>
+            <FiSend size={20} />
+          </motion.button>
         </div>
+        
+        {/* Typing indicator for current user */}
+        {isUserTyping && (
+          <motion.div 
+            className="mt-2 text-xs text-gray-500 flex items-center gap-1"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 5 }}
+          >
+            <div className={`flex space-x-1 ${styles.typingDots}`}>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+              <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
+            </div>
+            <span>Você está digitando...</span>
+          </motion.div>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

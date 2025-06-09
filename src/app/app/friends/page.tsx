@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { motion } from 'framer-motion';
-import { FiUsers, FiUserPlus, FiSearch, FiCheck, FiX } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FiUsers, FiUserPlus, FiSearch, FiHeart, FiMessageCircle } from 'react-icons/fi';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import FriendCard from '@/components/friends/FriendCard';
+import FriendRequestCard from '@/components/friends/FriendRequestCard';
+import SearchInterface from '@/components/friends/SearchInterface';
+import styles from './styles.module.css';
 
 type TabType = 'friends' | 'requests' | 'search';
 
@@ -404,23 +408,28 @@ export default function FriendsPage() {
     }
   }, [activeTab, currentUser?.userId, searchResults.length, searchQuery, loadAllUsers]);
 
+  // Navigation to messages
+  const handleMessage = useCallback((userId: string) => {
+    window.open(`/app/messages`, '_blank');
+  }, []);
+
   // Tab configuration
   const tabs = [
     {
       id: 'friends' as TabType,
-      label: 'Friends',
+      label: 'Amigos',
       icon: FiUsers,
       count: friends.length,
     },
     {
       id: 'requests' as TabType,
-      label: 'Requests',
+      label: 'Solicitações',
       icon: FiUserPlus,
       count: requests.received.length + requests.sent.length,
     },
     {
       id: 'search' as TabType,
-      label: 'Find Friends',
+      label: 'Buscar',
       icon: FiSearch,
     },
   ];
@@ -429,72 +438,55 @@ export default function FriendsPage() {
     if (friendsLoading) {
       return (
         <div className="flex justify-center items-center py-12">
-          <div className="loading loading-spinner loading-lg"></div>
+          <div className={`w-8 h-8 rounded-full ${styles.loadingSpinner}`}></div>
         </div>
       );
     }
 
     if (friends.length === 0) {
       return (
-        <div className="text-center py-12">
-          <FiUsers className="mx-auto text-gray-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No friends yet</h3>
-          <p className="text-gray-500 mb-4">Start connecting with people!</p>
-          <button 
+        <motion.div 
+          className={`${styles.emptyState} rounded-2xl p-12 text-center`}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <FiUsers className={`mx-auto mb-6 ${styles.emptyIcon}`} size={64} />
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Ainda sem amigos</h3>
+          <p className="text-gray-500 mb-6 max-w-md mx-auto">
+            Comece a se conectar com pessoas incríveis! Use a busca para encontrar amigos e expandir sua rede.
+          </p>
+          <motion.button 
             onClick={() => setActiveTab('search')}
-            className="btn btn-primary"
+            className={`px-6 py-3 rounded-xl ${styles.primaryButton} flex items-center gap-2 mx-auto`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            Find Friends
-          </button>
-        </div>
+            <FiSearch size={18} />
+            <span className="font-medium">Encontrar Amigos</span>
+          </motion.button>
+        </motion.div>
       );
     }
 
     return (
-      <div className="space-y-4">
-        {friends.map((friend: Friend) => (
-          <motion.div
+      <motion.div 
+        className={`${styles.customScroll} space-y-2 max-h-[70vh] overflow-y-auto`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {friends.map((friend: Friend, index: number) => (
+          <FriendCard
             key={friend.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
-          >
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                {friend.profileImg ? (
-                  <img 
-                    src={friend.profileImg} 
-                    alt={friend.name} 
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  <span className="text-lg font-medium text-gray-600">
-                    {friend.name.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <div>
-                <h3 className="font-medium text-gray-900">{friend.name}</h3>
-                <p className="text-sm text-gray-500">{friend.bio || friend.email}</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => window.open(`/app/profile/${friend.userId}`, '_blank')}
-                className="btn btn-sm btn-outline"
-              >
-                View Profile
-              </button>
-              <button
-                onClick={() => removeFriend(friend.id)}
-                className="btn btn-sm btn-error btn-outline"
-              >
-                Remove
-              </button>
-            </div>
-          </motion.div>
+            friend={friend}
+            onRemove={removeFriend}
+            onViewProfile={(userId) => window.open(`/app/profile/${userId}`, '_blank')}
+            onMessage={handleMessage}
+            index={index}
+          />
         ))}
-      </div>
+      </motion.div>
     );
   };
 
@@ -502,7 +494,7 @@ export default function FriendsPage() {
     if (requestsLoading) {
       return (
         <div className="flex justify-center items-center py-12">
-          <div className="loading loading-spinner loading-lg"></div>
+          <div className={`w-8 h-8 rounded-full ${styles.loadingSpinner}`}></div>
         </div>
       );
     }
@@ -511,256 +503,82 @@ export default function FriendsPage() {
 
     if (!hasRequests) {
       return (
-        <div className="text-center py-12">
-          <FiUserPlus className="mx-auto text-gray-300 mb-4" size={48} />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No friend requests</h3>
-          <p className="text-gray-500">All caught up!</p>
-        </div>
+        <motion.div 
+          className={`${styles.emptyState} rounded-2xl p-12 text-center`}
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <FiUserPlus className={`mx-auto mb-6 ${styles.emptyIcon}`} size={64} />
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Tudo em dia!</h3>
+          <p className="text-gray-500">
+            Você não tem solicitações de amizade pendentes no momento.
+          </p>
+        </motion.div>
       );
     }
 
-    return (
-      <div className="space-y-6">
-        {/* Received Requests */}
-        {requests.received.length > 0 && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Received Requests ({requests.received.length})
-            </h3>
-            <div className="space-y-4">
-              {requests.received.map((request: FriendRequest) => (
-                <motion.div
-                  key={request.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                      {request.requesterProfileImg ? (
-                        <img 
-                          src={request.requesterProfileImg} 
-                          alt={request.requesterName || 'User'} 
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-medium text-gray-600">
-                          {request.requesterName?.charAt(0).toUpperCase() || 'U'}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{request.requesterName}</h3>
-                      <p className="text-sm text-gray-500">{request.requesterBio || request.requesterEmail}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => acceptRequest(request.id)}
-                      className="btn btn-sm btn-primary"
-                    >
-                      <FiCheck size={16} />
-                      Accept
-                    </button>
-                    <button
-                      onClick={() => rejectRequest(request.id)}
-                      className="btn btn-sm btn-outline"
-                    >
-                      <FiX size={16} />
-                      Decline
-                    </button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
+    const allRequests = [
+      ...requests.received.map(req => ({ ...req, type: 'received' as const })),
+      ...requests.sent.map(req => ({ ...req, type: 'sent' as const }))
+    ];
 
-        {/* Sent Requests */}
-        {requests.sent.length > 0 && (
-          <div>
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Sent Requests ({requests.sent.length})
-            </h3>
-            <div className="space-y-4">
-              {requests.sent.map((request: FriendRequest) => (
-                <motion.div
-                  key={request.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                      {request.receiverProfileImg ? (
-                        <img 
-                          src={request.receiverProfileImg} 
-                          alt={request.receiverName || 'User'} 
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-medium text-gray-600">
-                          {request.receiverName?.charAt(0).toUpperCase() || 'U'}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{request.receiverName}</h3>
-                      <p className="text-sm text-gray-500">{request.receiverBio || request.receiverEmail}</p>
-                      <p className="text-xs text-gray-400">Request pending...</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => cancelRequest(request.id)}
-                    className="btn btn-sm btn-outline"
-                  >
-                    Cancel
-                  </button>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+    return (
+      <motion.div 
+        className="space-y-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Statistics */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <motion.div 
+            className={`${styles.statsCard} rounded-xl p-4 text-center`}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="text-2xl font-bold text-blue-600">{requests.received.length}</div>
+            <div className="text-sm text-gray-600">Recebidas</div>
+          </motion.div>
+          <motion.div 
+            className={`${styles.statsCard} rounded-xl p-4 text-center`}
+            whileHover={{ scale: 1.02 }}
+          >
+            <div className="text-2xl font-bold text-yellow-600">{requests.sent.length}</div>
+            <div className="text-sm text-gray-600">Enviadas</div>
+          </motion.div>
+        </div>
+
+        {/* Requests list */}
+        <div className={`${styles.customScroll} space-y-2 max-h-[60vh] overflow-y-auto`}>
+          {allRequests.map((request, index) => (
+            <FriendRequestCard
+              key={request.id}
+              request={request}
+              onAccept={acceptRequest}
+              onReject={rejectRequest}
+              onCancel={cancelRequest}
+              index={index}
+            />
+          ))}
+        </div>
+      </motion.div>
     );
   };
 
   const renderSearch = () => {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg p-6 shadow-sm border">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Find Friends</h3>
-          <div className="flex space-x-4">
-            <input
-              type="text"
-              placeholder="Enter user ID, name, or email..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-              className="input input-bordered flex-1"
-            />
-            <button
-              onClick={handleSearch}
-              disabled={searchLoading}
-              className="btn btn-primary"
-            >
-              {searchLoading ? <div className="loading loading-spinner loading-sm"></div> : <FiSearch size={20} />}
-              Search
-            </button>
-          </div>
-        </div>
-
-        {/* Search Results */}
-        <div>
-          {searchLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="loading loading-spinner loading-lg"></div>
-            </div>
-          ) : searchResults.length > 0 ? (
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900">Search Results</h3>
-              {searchResults.map((user) => (
-                <motion.div
-                  key={user.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white rounded-lg p-4 shadow-sm border flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                      {user.profileImg ? (
-                        <img 
-                          src={user.profileImg} 
-                          alt={user.name} 
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-lg font-medium text-gray-600">
-                          {user.name.charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{user.name}</h3>
-                      <p className="text-sm text-gray-500">{user.bio || user.email}</p>
-                      {user.address && (
-                        <p className="text-xs text-gray-400">📍 {user.address}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={() => window.open(`/app/profile/${user.userId}`, '_blank')}
-                      className="btn btn-sm btn-outline"
-                    >
-                      View Profile
-                    </button>
-                    {user.friendshipStatus === 'friend' && (
-                      <span className="px-3 py-1 text-sm bg-green-100 text-green-800 rounded-full">
-                        Already Friend
-                      </span>
-                    )}
-                    {user.friendshipStatus === 'pending_sent' && (
-                      <div className="flex items-center space-x-2">
-                        <span className="px-3 py-1 text-sm bg-yellow-100 text-yellow-800 rounded-full">
-                          Request Sent
-                        </span>
-                        {user.requestId && (
-                          <button
-                            onClick={() => cancelRequest(user.requestId!)}
-                            className="btn btn-sm btn-outline"
-                          >
-                            Cancel
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    {user.friendshipStatus === 'pending_received' && user.requestId && (
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => acceptRequest(user.requestId!)}
-                          className="btn btn-sm btn-primary"
-                        >
-                          <FiCheck size={16} />
-                          Accept Request
-                        </button>
-                        <button
-                          onClick={() => rejectRequest(user.requestId!)}
-                          className="btn btn-sm btn-outline"
-                        >
-                          <FiX size={16} />
-                          Decline
-                        </button>
-                      </div>
-                    )}
-                    {user.friendshipStatus === 'none' && (
-                      <button
-                        onClick={() => sendFriendRequest(user.userId)}
-                        className="btn btn-sm btn-primary"
-                      >
-                        <FiUserPlus size={16} />
-                        Add Friend
-                      </button>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : searchQuery && !searchLoading ? (
-            <div className="text-center py-12">
-              <FiSearch className="mx-auto text-gray-300 mb-4" size={48} />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
-              <p className="text-gray-500">Try searching with a different term</p>
-            </div>
-          ) : !searchLoading && searchResults.length === 0 && !searchQuery.trim() ? (
-            <div className="text-center py-12">
-              <FiUsers className="mx-auto text-gray-300 mb-4" size={48} />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">All Users</h3>
-              <p className="text-gray-500">Here you can see all users and connect with them!</p>
-            </div>
-          ) : null}
-        </div>
-      </div>
+      <SearchInterface
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onSearch={handleSearch}
+        searchResults={searchResults}
+        isLoading={searchLoading}
+        onSendRequest={sendFriendRequest}
+        onAcceptRequest={acceptRequest}
+        onRejectRequest={rejectRequest}
+        onCancelRequest={cancelRequest}
+        onViewProfile={(userId) => window.open(`/app/profile/${userId}`, '_blank')}
+      />
     );
   };
 
@@ -768,61 +586,104 @@ export default function FriendsPage() {
     return (
       <DashboardLayout>
         <div className="flex justify-center items-center py-12">
-          <div className="loading loading-spinner loading-lg"></div>
+          <div className={`w-8 h-8 rounded-full ${styles.loadingSpinner}`}></div>
         </div>
       </DashboardLayout>
     );
   }
 
   const content = (
-    <div className="max-w-4xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Friends</h1>
-        <p className="text-gray-600">Manage your connections and discover new friends</p>
-        {currentUser && (
-          <p className="text-sm text-gray-500 mt-2">
-            Welcome back, {currentUser.user.name}! 
-            {currentUser.bio && ` • ${currentUser.bio}`}
-          </p>
-        )}
-      </div>
+    <div className="max-w-6xl mx-auto">
+      {/* Modern Header with Glassmorphism */}
+      <motion.header 
+        className={`${styles.headerGlass} rounded-2xl p-6 mb-6 sticky top-0 z-10`}
+        initial={{ y: -50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold gradient-text mb-2 flex items-center gap-3">
+              <FiHeart className="text-pink-500" />
+              Amigos
+            </h1>
+            <p className="text-gray-600">Gerencie suas conexões e descubra novos amigos</p>
+            {currentUser && (
+              <p className="text-sm text-gray-500 mt-2">
+                Olá, {currentUser.user.name}! 
+                {currentUser.bio && ` • ${currentUser.bio}`}
+              </p>
+            )}
+          </div>
+          
+          {/* Statistics Cards */}
+          <div className="flex gap-4">
+            <motion.div 
+              className={`${styles.statsCard} rounded-xl p-4 text-center min-w-[80px]`}
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="text-2xl font-bold text-blue-600">{friends.length}</div>
+              <div className="text-xs text-gray-600">Amigos</div>
+            </motion.div>
+            <motion.div 
+              className={`${styles.statsCard} rounded-xl p-4 text-center min-w-[80px]`}
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="text-2xl font-bold text-purple-600">
+                {requests.received.length + requests.sent.length}
+              </div>
+              <div className="text-xs text-gray-600">Pendentes</div>
+            </motion.div>
+          </div>
+        </div>
+      </motion.header>
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border mb-6">
-        <div className="flex border-b">
+      {/* Modern Tab Navigation */}
+      <motion.div 
+        className={`${styles.tabNav} rounded-2xl mb-6 overflow-hidden`}
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="flex">
           {tabs.map((tab) => (
-            <button
+            <motion.button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 flex items-center justify-center space-x-2 py-4 px-6 text-sm font-medium transition-colors ${
+              className={`flex-1 flex items-center justify-center space-x-3 py-4 px-6 text-sm font-medium transition-all duration-300 ${
                 activeTab === tab.id
-                  ? 'text-primary border-b-2 border-primary bg-primary/5'
-                  : 'text-gray-500 hover:text-gray-700'
+                  ? `${styles.tabButtonActive}`
+                  : `${styles.tabButton}`
               }`}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               <tab.icon size={20} />
-              <span>{tab.label}</span>
+              <span className="font-medium">{tab.label}</span>
               {tab.count !== undefined && tab.count > 0 && (
-                <span className="bg-primary text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center">
+                <span className={`${styles.tabBadge} text-white text-xs rounded-full px-2 py-1 min-w-[20px] h-5 flex items-center justify-center font-medium`}>
                   {tab.count}
                 </span>
               )}
-            </button>
+            </motion.button>
           ))}
         </div>
-      </div>
-
-      {/* Tab Content */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        {activeTab === 'friends' && renderFriendsList()}
-        {activeTab === 'requests' && renderRequestsList()}
-        {activeTab === 'search' && renderSearch()}
       </motion.div>
+
+      {/* Tab Content with Enhanced Animations */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, x: activeTab === 'search' ? 20 : activeTab === 'friends' ? -20 : 0, scale: 0.95 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={{ opacity: 0, x: activeTab === 'search' ? -20 : activeTab === 'friends' ? 20 : 0, scale: 0.95 }}
+          transition={{ duration: 0.4, ease: "easeInOut" }}
+        >
+          {activeTab === 'friends' && renderFriendsList()}
+          {activeTab === 'requests' && renderRequestsList()}
+          {activeTab === 'search' && renderSearch()}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 

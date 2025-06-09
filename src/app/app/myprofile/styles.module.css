@@ -1,0 +1,119 @@
+/* Custom animations for the profile page */
+@keyframes profileGlow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), 0 0 40px rgba(147, 51, 234, 0.3);
+  }
+}
+
+@keyframes statsPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.profileAvatar {
+  animation: profileGlow 3s ease-in-out infinite;
+}
+
+.statsCard:hover {
+  animation: statsPulse 0.6s ease-in-out;
+}
+
+.floatingIcon {
+  animation: floatUp 2s ease-in-out infinite;
+}
+
+/* Enhanced glassmorphism for profile cards */
+.profileCard {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    0 2px 16px 0 rgba(31, 38, 135, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .profileCard {
+    backdrop-filter: blur(15px);
+    margin: 0 1rem;
+  }
+  
+  .statsGrid {
+    gap: 0.75rem;
+  }
+  
+  .profileHeader {
+    padding: 1rem;
+  }
+}
+
+/* Smooth scrolling for tab content */
+.tabContent {
+  scroll-behavior: smooth;
+}
+
+/* Enhanced button styles */
+.gradientButton {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gradientButton:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+/* Profile info animations */
+.profileInfo {
+  transition: all 0.3s ease;
+}
+
+.profileInfo:hover {
+  transform: translateY(-2px);
+}
+
+/* Tab indicator animation */
+.tabIndicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar for modal content */
+.modalContent::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modalContent::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.modalContent::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+}
+
+.modalContent::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}

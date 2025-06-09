@@ -378,7 +378,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       </AnimatePresence>
 
       <div className={`flex-1 ${!isMobile ? 'ml-14' : 'mt-16'}`}>
-        <main className="max-w-7xl mx-auto p-4">
+        <main className="max-w-10xl mx-auto p-4">
           {children}
         </main>
       </div>
