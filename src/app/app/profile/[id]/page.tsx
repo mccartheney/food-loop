@@ -8,6 +8,8 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileActions from "@/components/profile/ProfileActions";
 import FriendModal from "@/components/profile/FriendModal"; // Import the separate component
+import ProfileTradeGrid from "@/components/trades/ProfileTradeGrid";
+import { useSession } from 'next-auth/react';
 
 interface Highlight {
   id: string;
@@ -203,6 +205,7 @@ const generateMockPosts = (userId: string): Post[] => {
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -328,30 +331,12 @@ export default function ProfilePage() {
         <ProfileActions userId={profile.id} />
       </div>
 
-      {/* Posts section */}
-      <div className="border-t py-3 flex justify-center">
-        <h3 className="text-primary font-medium">Posts</h3>
-      </div>
-
-      {/* Posts grid */}
-      <div className="grid grid-cols-3 gap-1">
-        {posts.map((post, index) => (
-          <div
-            key={post.id}
-            className={`aspect-square flex items-center justify-center ${
-              index % 4 === 0
-                ? "bg-blue-100"
-                : index % 4 === 1
-                ? "bg-amber-100"
-                : index % 4 === 2
-                ? "bg-rose-100"
-                : "bg-emerald-100"
-            }`}
-          >
-            <div className="text-lg text-gray-500">Post {index + 1}</div>
-          </div>
-        ))}
-      </div>
+      {/* Trade Grid - replaces posts */}
+      <ProfileTradeGrid
+        userId={id || ''}
+        userEmail={session?.user?.email || undefined}
+        isOwnProfile={id === 'current-user'} // This will be updated when we have proper user matching
+      />
 
       {/* Using the imported FriendModal component */}
       <FriendModal

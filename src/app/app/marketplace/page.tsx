@@ -1,16 +1,41 @@
 'use client';
 
-import { useState, useMemo, FormEvent } from 'react';
+import { useState, useMemo, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiShoppingBag, FiFilter, FiGrid, FiList, FiSearch, FiX, FiMapPin, FiDollarSign } from 'react-icons/fi';
+import { FiShoppingBag, FiFilter, FiGrid, FiList, FiSearch, FiX, FiMapPin, FiDollarSign, FiRefreshCw } from 'react-icons/fi';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProductGrid from '@/components/marketplace/ProductGrid';
 import MarketplaceListView from '@/components/marketplace/MarketplaceListView';
 import MarketplaceSidebar from '@/components/marketplace/MarketplaceSidebar';
 import MarketplaceStatsHeader from '@/components/marketplace/MarketplaceStatsHeader';
 import MarketplaceSearchBar from '@/components/marketplace/MarketplaceSearchBar';
+import TradePostCard from '@/components/trades/TradePostCard';
+import { ItemType } from '@prisma/client';
 import styles from './styles.module.css';
+
+interface TradeItem {
+  id: string;
+  name: string;
+  quantity: number;
+  type: ItemType;
+  img?: string;
+}
+
+interface Trade {
+  id: string;
+  title: string;
+  description: string;
+  offeredItems: TradeItem[];
+  status: 'active' | 'completed';
+  createdAt: Date;
+  endDate?: Date;
+  location?: string;
+  wantedItems?: string;
+  participants?: any[];
+  isOwner: boolean;
+}
 
 export interface Product {
   id: string;
@@ -42,33 +67,86 @@ const MOCK_PRODUCTS: Product[] = [
 
 export default function MarketplacePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchCategory, setSearchCategory] = useState<'all' | 'name' | 'location'>('all');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [trades, setTrades] = useState<Trade[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Filter products based on search
-  const filteredProducts = useMemo(() => {
+  // Fetch trades from API
+  const fetchTrades = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const params = new URLSearchParams({
+        status: 'active' // Only show active trades in marketplace
+      });
+
+      if (session?.user?.email) {
+        params.append('email', session.user.email);
+      }
+
+      const response = await fetch(`/api/trades?${params.toString()}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch trades');
+      }
+
+      setTrades(data.trades || []);
+    } catch (err: any) {
+      console.error('Error fetching trades:', err);
+      setError(err.message || 'Failed to load trades');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrades();
+  }, [session?.user?.email]);
+
+  // Filter trades based on search
+  const filteredTrades = useMemo(() => {
     if (!searchQuery.trim()) {
-      return MOCK_PRODUCTS;
+      return trades;
     }
 
     const searchLower = searchQuery.toLowerCase();
     
-    return MOCK_PRODUCTS.filter(product => {
+    return trades.filter(trade => {
       switch (searchCategory) {
         case 'name':
-          return product.name.toLowerCase().includes(searchLower);
+          return trade.title.toLowerCase().includes(searchLower) ||
+                 trade.offeredItems.some(item => item.name.toLowerCase().includes(searchLower));
         case 'location':
-          return product.location.toLowerCase().includes(searchLower);
+          return trade.location?.toLowerCase().includes(searchLower);
         case 'all':
         default:
           return (
-            product.name.toLowerCase().includes(searchLower) ||
-            product.location.toLowerCase().includes(searchLower)
+            trade.title.toLowerCase().includes(searchLower) ||
+            trade.description.toLowerCase().includes(searchLower) ||
+            trade.location?.toLowerCase().includes(searchLower) ||
+            trade.offeredItems.some(item => item.name.toLowerCase().includes(searchLower)) ||
+            trade.wantedItems?.toLowerCase().includes(searchLower)
           );
       }
     });
-  }, [searchQuery, searchCategory]);
+  }, [trades, searchQuery, searchCategory]);
+
+  // For backward compatibility with existing components, create mock products from trades
+  const filteredProducts = useMemo(() => {
+    return filteredTrades.map(trade => ({
+      id: trade.id,
+      name: trade.title,
+      location: trade.location || 'Unknown',
+      price: 'Trade', // Instead of price, show "Trade"
+      imageUrl: trade.offeredItems[0]?.img
+    }));
+  }, [filteredTrades]);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
@@ -215,32 +293,97 @@ export default function MarketplacePage() {
               </motion.div>
             </motion.div>
 
-            {/* Products Display */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={viewMode}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
+            {/* Loading State */}
+            {loading && (
+              <div className="flex justify-center items-center py-12">
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                >
+                  <FiRefreshCw className="w-8 h-8 text-primary" />
+                </motion.div>
+                <span className="ml-3 text-gray-600">Loading trades...</span>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="text-center py-12">
+                <p className="text-red-600 mb-4">{error}</p>
+                <button 
+                  onClick={fetchTrades}
+                  className="btn btn-outline btn-sm"
+                >
+                  <FiRefreshCw className="mr-2" />
+                  Try Again
+                </button>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && filteredTrades.length === 0 && (
+              <motion.div 
+                className="text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
               >
-                {viewMode === 'grid' ? (
-                  <ProductGrid 
-                    products={filteredProducts}
-                    onProductClick={handleProductClick}
-                    searchTerm={searchQuery}
-                    onClearSearch={clearSearch}
-                  />
-                ) : (
-                  <MarketplaceListView
-                    products={filteredProducts}
-                    onProductClick={handleProductClick}
-                    searchTerm={searchQuery}
-                    onClearSearch={clearSearch}
-                  />
+                <div className="text-6xl mb-4">🤝</div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  {searchQuery ? 'No trades match your search' : 'No active trades available'}
+                </h3>
+                <p className="text-gray-500 mb-6">
+                  {searchQuery 
+                    ? 'Try adjusting your search terms or clear the search to see all trades.'
+                    : 'Be the first to create a trade! Visit your pantry to get started.'
+                  }
+                </p>
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="btn btn-outline btn-sm"
+                  >
+                    <FiX className="mr-2" />
+                    Clear Search
+                  </button>
                 )}
               </motion.div>
-            </AnimatePresence>
+            )}
+
+            {/* Trades Display */}
+            {!loading && !error && filteredTrades.length > 0 && (
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={viewMode}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredTrades.map((trade) => (
+                        <TradePostCard
+                          key={trade.id}
+                          trade={trade}
+                          onViewDetails={(tradeId) => router.push(`/app/trades/${tradeId}`)}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {filteredTrades.map((trade) => (
+                        <TradePostCard
+                          key={trade.id}
+                          trade={trade}
+                          onViewDetails={(tradeId) => router.push(`/app/trades/${tradeId}`)}
+                          className="w-full"
+                        />
+                      ))}
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            )}
           </div>
         </div>
       </motion.div>
