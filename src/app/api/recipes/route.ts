@@ -150,6 +150,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    console.log(transformedRecipes)
     return NextResponse.json({
       success: true,
       recipes: transformedRecipes
@@ -274,7 +275,7 @@ function extractDifficulty(description: string): string {
 }
 
 function extractServings(description: string): number {
-  const servingsPattern = /(\d+)\s*(porções?|servings?)/i;
+  const servingsPattern = /Porções:\s*(\d+)/i;
   const match = description.match(servingsPattern);
   return match ? parseInt(match[1]) : 2;
 }
