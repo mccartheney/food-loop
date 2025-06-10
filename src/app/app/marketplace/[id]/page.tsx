@@ -356,47 +356,62 @@ export default function TradeDetailsPage() {
                   <h2 className="card-title">
                     Trade Offers ({trade.participants.length})
                   </h2>
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     {trade.participants.map((participant) => (
-                      <div key={participant.id} className="flex items-center justify-between p-3 bg-base-200 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="avatar placeholder">
-                            <div className="bg-neutral-focus text-neutral-content rounded-full w-10">
-                              <span className="text-sm">
-                                {participant.participantName.charAt(0).toUpperCase()}
-                              </span>
+                      <div key={participant.id} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3 flex-1">
+                            <div className="avatar placeholder">
+                              <div className="bg-neutral-focus text-neutral-content rounded-full w-10">
+                                <span className="text-sm">
+                                  {participant.participantName.charAt(0).toUpperCase()}
+                                </span>
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium">{participant.participantName}</h3>
+                              <p className="text-sm text-gray-500 mb-3">
+                                Made offer on {new Date(participant.date).toLocaleDateString()}
+                              </p>
+                              
+                              {/* Show offered items */}
+                              {participant.offeredItems && participant.offeredItems.length > 0 ? (
+                                <div className="bg-white rounded-lg p-3 border">
+                                  <h4 className="font-medium text-sm text-gray-700 mb-2">
+                                    Items Offered:
+                                  </h4>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                    {participant.offeredItems.map((item) => (
+                                      <div key={item.id} className="flex items-center gap-2 text-sm">
+                                        {getItemIcon(item.type)}
+                                        <span>{item.quantity}x {item.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+                                  <p className="text-sm text-yellow-700">
+                                    No items specified in this offer
+                                  </p>
+                                </div>
+                              )}
                             </div>
                           </div>
-                          <div>
-                            <h3 className="font-medium">{participant.participantName}</h3>
-                            <p className="text-sm text-gray-500">
-                              Made offer on {new Date(participant.date).toLocaleDateString()}
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              {participant.quantity} item(s) offered
-                            </p>
-                          </div>
+                          
+                          {isOwner && !isCompleted && (
+                            <div className="ml-4">
+                              <button
+                                onClick={() => completeTrade(participant.id)}
+                                disabled={actionLoading}
+                                className="btn btn-primary btn-sm"
+                              >
+                                <FiCheck className="mr-1" />
+                                Complete Trade
+                              </button>
+                            </div>
+                          )}
                         </div>
-                        
-                        {isOwner && !isCompleted && (
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => acceptParticipant(participant.id)}
-                              disabled={actionLoading}
-                              className="btn btn-success btn-sm"
-                            >
-                              <FiCheck className="mr-1" />
-                              Accept
-                            </button>
-                            <button
-                              onClick={() => completeTrade(participant.id)}
-                              disabled={actionLoading}
-                              className="btn btn-primary btn-sm"
-                            >
-                              Complete Trade
-                            </button>
-                          </div>
-                        )}
                       </div>
                     ))}
                   </div>

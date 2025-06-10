@@ -81,12 +81,29 @@ export async function GET(request: NextRequest) {
         orderBy: { date: 'desc' }
       });
 
-      const formattedTrades = userTrades.map(trade => {
+      const formattedTrades = await Promise.all(userTrades.map(async (trade) => {
         // Extract creator ID from description
         const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
         const creatorId = creatorMatch ? creatorMatch[1] : null;
         const cleanDescription = trade.description.replace(/TRADE_CREATOR:[^\n]+\n/, '');
         
+        // Get creator profile info
+        const creatorProfile = creatorId ? await prisma.profile.findUnique({
+          where: { id: creatorId },
+          include: { user: true }
+        }) : null;
+
+        // Determine user's relationship to this trade
+        const isOwner = creatorId === userProfile.id;
+        const hasParticipated = trade.orders.some(order => order.profileId === userProfile.id);
+        
+        let participationType = 'none';
+        if (isOwner) {
+          participationType = 'creator';
+        } else if (hasParticipated) {
+          participationType = 'participant';
+        }
+
         return {
           id: trade.id,
           title: trade.name,
@@ -96,12 +113,14 @@ export async function GET(request: NextRequest) {
           createdAt: trade.date,
           endDate: trade.endDate,
           ownerId: creatorId,
-          isOwner: creatorId === userProfile.id,
+          ownerName: creatorProfile?.user.name || 'Unknown',
+          isOwner: isOwner,
+          participationType: participationType,
           participants: trade.orders,
           location: cleanDescription.includes('📍') ? cleanDescription.split('📍')[1]?.split('\n')[0] : null,
           wantedItems: cleanDescription.includes('🔄 Wants:') ? cleanDescription.split('🔄 Wants:')[1]?.split('\n')[0]?.trim() : null,
         };
-      });
+      }));
 
       return NextResponse.json({ trades: formattedTrades });
     }

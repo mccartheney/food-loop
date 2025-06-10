@@ -77,17 +77,38 @@ export async function GET(
         name: creatorProfile.user.name,
         email: creatorProfile.user.email
       } : null,
-      participants: trade.orders.map(order => ({
-        id: order.id,
-        profileId: order.profileId,
-        participantName: order.profile.user.name,
-        participantEmail: order.profile.user.email,
-        date: order.date,
-        quantity: order.quantity,
-        offeredItems: order.profile.pantry?.items.filter(item => 
-          // This would need to be enhanced to track which items each participant offered
-          item.pantryId === order.profile.pantry?.id
-        ) || []
+      participants: await Promise.all(trade.orders.map(async (order) => {
+        // Find the participant's offer box to get their actual offered items
+        const participantOfferBoxes = await prisma.box.findMany({
+          where: {
+            price: -1, // Special price for participant offers
+            description: {
+              contains: `PARTICIPANT_OFFER:${order.profileId}`
+            },
+            orders: {
+              some: {
+                id: order.id
+              }
+            }
+          },
+          include: {
+            items: true
+          }
+        });
+
+        const offeredItems = participantOfferBoxes.length > 0 
+          ? participantOfferBoxes[0].items 
+          : [];
+
+        return {
+          id: order.id,
+          profileId: order.profileId,
+          participantName: order.profile.user.name,
+          participantEmail: order.profile.user.email,
+          date: order.date,
+          quantity: order.quantity,
+          offeredItems: offeredItems
+        };
       })),
       location: cleanDescription.includes('📍') ? 
         cleanDescription.split('📍')[1]?.split('\n')[0] : null,
