@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FiStar, FiClock, FiHeart, FiUser } from 'react-icons/fi';
+import { useSession } from 'next-auth/react';
 import styles from '../../app/app/recipes/styles.module.css';
 
 interface RecipeCardProps {
@@ -11,7 +12,6 @@ interface RecipeCardProps {
     subtitle: string;
     imageUrl: string;
     cookTime: number;
-    rating: number;
     difficulty: 'easy' | 'medium' | 'hard';
     servings: number;
     isPopular?: boolean;
@@ -19,21 +19,65 @@ interface RecipeCardProps {
     category: string;
   };
   onClick?: () => void;
+  onFavoriteToggle?: (recipeId: string, isFavorited: boolean) => void;
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({
   recipe,
-  onClick
+  onClick,
+  onFavoriteToggle
 }) => {
+  const { data: session } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [localIsFavorited, setLocalIsFavorited] = useState(recipe.isFavorited);
+  
   const difficultyMap = {
     easy: { label: 'Fácil', className: styles.difficultyEasy },
     medium: { label: 'Médio', className: styles.difficultyMedium },
     hard: { label: 'Difícil', className: styles.difficultyHard }
   };
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Add favorite functionality here
+    
+    if (!session?.user?.email || isLoading) {
+      return;
+    }
+    
+    setIsLoading(true);
+    const previousState = localIsFavorited;
+    
+    // Optimistic update
+    setLocalIsFavorited(!localIsFavorited);
+    
+    try {
+      const method = localIsFavorited ? 'DELETE' : 'POST';
+      const response = await fetch(`/api/recipes/${recipe.id}/favorite`, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user.email
+        })
+      });
+
+      if (response.ok) {
+        // Notify parent component about the change
+        onFavoriteToggle?.(recipe.id, !previousState);
+      } else {
+        // Revert on error
+        setLocalIsFavorited(previousState);
+        const errorData = await response.json();
+        console.error('Error toggling favorite:', errorData.error);
+      }
+    } catch (error) {
+      // Revert on error
+      setLocalIsFavorited(previousState);
+      console.error('Error toggling favorite:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -81,7 +125,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         >
           <FiHeart 
             size={16} 
-            className={recipe.isFavorited ? 'text-red-500 fill-current' : 'text-gray-600'} 
+            className={localIsFavorited ? 'text-red-500 fill-current' : 'text-gray-600'} 
           />
         </motion.button>
       </div>
@@ -97,25 +141,14 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         <p className={styles.recipeSubtitle}>{recipe.category}</p>
         
         <div className={styles.recipeFooter}>
-          <div className={styles.recipeRating}>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <FiStar
-                  key={i}
-                  size={14}
-                  className={i < Math.floor(recipe.rating / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
-                />
-              ))}
-            </div>
-            <span className={styles.ratingNumber}>
-              {(recipe.rating / 20).toFixed(1)}
-            </span>
-          </div>
-          
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-1">
               <FiUser size={14} />
-              <span>{recipe.servings}</span>
+              <span>{recipe.servings} porções</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FiClock size={14} />
+              <span>{recipe.cookTime}min</span>
             </div>
           </div>
         </div>
