@@ -1,24 +1,79 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { FiHome, FiPackage, FiBookOpen, FiBox, FiActivity, FiTrendingUp } from 'react-icons/fi';
 import styles from '../../app/app/styles.module.css';
 
-const DashboardStatsHeader: React.FC = () => {
-  // Mock data - in a real app, this would come from props or API
-  const mockStats = {
-    pantryItems: 24,
-    availableRecipes: 15,
-    boxesCreated: 8,
-    recentActivity: 12,
-    economySaved: 85.50
-  };
+interface DashboardStats {
+  pantryItems: number;
+  availableRecipes: number;
+  recentActivity: number;
+  economySaved: number;
+}
 
-  const stats = [
+const DashboardStatsHeader: React.FC = () => {
+  const [stats, setStats] = useState<DashboardStats>({
+    pantryItems: 0,
+    availableRecipes: 0,
+    recentActivity: 0,
+    economySaved: 0
+  });
+  const [loading, setLoading] = useState(true);
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      if (!session?.user?.email) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        // Fetch pantry items count
+        const pantryResponse = await fetch(`/api/pantry?email=${encodeURIComponent(session.user.email)}`);
+        const pantryData = await pantryResponse.json();
+        const pantryItemsCount = pantryData.items ? pantryData.items.length : 0;
+
+        // Fetch recipes count
+        const recipesResponse = await fetch(`/api/recipes?email=${encodeURIComponent(session.user.email)}`);
+        const recipesData = await recipesResponse.json();
+        const recipesCount = recipesData.recipes ? recipesData.recipes.length : 0;
+
+        // Calculate recent activity (last 7 days)
+        const recentActivityCount = pantryData.items ? 
+          pantryData.items.filter((item: any) => {
+            const itemDate = new Date(item.dateBought);
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+            return itemDate >= sevenDaysAgo;
+          }).length : 0;
+
+        // Calculate estimated economy (basic calculation)
+        const estimatedEconomy = pantryItemsCount * 2.5; // €2.5 per item saved from waste
+
+        setStats({
+          pantryItems: pantryItemsCount,
+          availableRecipes: recipesCount,
+          recentActivity: recentActivityCount + recipesCount, // Add recent recipes
+          economySaved: estimatedEconomy
+        });
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardStats();
+  }, [session]);
+
+  const statsConfig = [
     {
       id: 'pantry',
       label: 'Itens na Despensa',
-      value: mockStats.pantryItems,
+      value: loading ? '...' : stats.pantryItems,
       subValue: 'Produtos disponíveis',
       icon: FiPackage,
       color: 'text-blue-600',
@@ -28,27 +83,17 @@ const DashboardStatsHeader: React.FC = () => {
     {
       id: 'recipes',
       label: 'Receitas Disponíveis',
-      value: mockStats.availableRecipes,
-      subValue: 'Com ingredientes',
+      value: loading ? '...' : stats.availableRecipes,
+      subValue: 'Criadas por você',
       icon: FiBookOpen,
       color: 'text-purple-600',
       bgClass: styles.statsRecipes,
       gradient: 'from-purple-500 to-purple-600'
     },
     {
-      id: 'boxes',
-      label: 'Caixas Criadas',
-      value: mockStats.boxesCreated,
-      subValue: 'Este mês',
-      icon: FiBox,
-      color: 'text-green-600',
-      bgClass: styles.statsBoxes,
-      gradient: 'from-green-500 to-green-600'
-    },
-    {
       id: 'activity',
       label: 'Atividade Recente',
-      value: mockStats.recentActivity,
+      value: loading ? '...' : stats.recentActivity,
       subValue: 'Últimos 7 dias',
       icon: FiActivity,
       color: 'text-orange-600',
@@ -57,8 +102,8 @@ const DashboardStatsHeader: React.FC = () => {
     },
     {
       id: 'economy',
-      label: 'Economia Total',
-      value: `€${mockStats.economySaved}`,
+      label: 'Economia Estimada',
+      value: loading ? '...' : `€${stats.economySaved.toFixed(2)}`,
       subValue: 'Desperdício evitado',
       icon: FiTrendingUp,
       color: 'text-emerald-600',
@@ -72,6 +117,14 @@ const DashboardStatsHeader: React.FC = () => {
     if (hour < 12) return 'Bom dia';
     if (hour < 18) return 'Boa tarde';
     return 'Boa noite';
+  };
+
+  const getUserName = () => {
+    if (session?.user?.name) {
+      const firstName = session.user.name.split(' ')[0];
+      return firstName;
+    }
+    return 'Usuário';
   };
 
   return (
@@ -90,7 +143,7 @@ const DashboardStatsHeader: React.FC = () => {
             >
               <FiHome className="text-blue-500" />
             </motion.div>
-            {getGreeting()}, Usuário!
+            {getGreeting()}, {getUserName()}!
           </h1>
           <p className="text-gray-600">
             Aqui está um resumo da sua atividade no FoodLoop
@@ -105,23 +158,29 @@ const DashboardStatsHeader: React.FC = () => {
           transition={{ delay: 0.3, duration: 0.5 }}
         >
           <div className="text-center">
-            <div className="text-2xl font-bold text-blue-600">{mockStats.pantryItems}</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {loading ? '...' : stats.pantryItems}
+            </div>
             <div className="text-xs text-gray-600">Itens</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-purple-600">{mockStats.availableRecipes}</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {loading ? '...' : stats.availableRecipes}
+            </div>
             <div className="text-xs text-gray-600">Receitas</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">€{mockStats.economySaved}</div>
+            <div className="text-2xl font-bold text-green-600">
+              {loading ? '...' : `€${stats.economySaved.toFixed(2)}`}
+            </div>
             <div className="text-xs text-gray-600">Economia</div>
           </div>
         </motion.div>
       </div>
 
       {/* Statistics Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        {stats.map((stat, index) => (
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statsConfig.map((stat, index) => (
           <motion.div
             key={stat.id}
             className={`${styles.statsCard} ${stat.bgClass} rounded-xl p-4 text-center`}
@@ -188,7 +247,7 @@ const DashboardStatsHeader: React.FC = () => {
             <div>
               <div className="font-medium">Status da Despensa</div>
               <div className="text-sm opacity-80">
-                {mockStats.pantryItems} itens disponíveis, {Math.floor(mockStats.pantryItems * 0.3)} próximos do vencimento
+                {loading ? 'Carregando...' : `${stats.pantryItems} itens disponíveis, ${Math.floor(stats.pantryItems * 0.3)} próximos do vencimento`}
               </div>
             </div>
           </div>
@@ -204,9 +263,9 @@ const DashboardStatsHeader: React.FC = () => {
           <div className="flex items-center gap-3">
             <FiBookOpen className="text-green-600" size={20} />
             <div>
-              <div className="font-medium">Receitas Sugeridas</div>
+              <div className="font-medium">Receitas Criadas</div>
               <div className="text-sm opacity-80">
-                {mockStats.availableRecipes} receitas podem ser feitas agora
+                {loading ? 'Carregando...' : `${stats.availableRecipes} receitas no seu perfil`}
               </div>
             </div>
           </div>
@@ -224,7 +283,7 @@ const DashboardStatsHeader: React.FC = () => {
             <div>
               <div className="font-medium">Impacto Sustentável 🌱</div>
               <div className="text-sm opacity-80">
-                €{mockStats.economySaved} em desperdício evitado este mês
+                {loading ? 'Carregando...' : `€${stats.economySaved.toFixed(2)} em desperdício evitado`}
               </div>
             </div>
           </div>
