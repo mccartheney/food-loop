@@ -21,6 +21,7 @@ interface Recipe {
 interface RecipeGridProps {
   recipes: Recipe[];
   onRecipeClick?: (recipeId: string) => void;
+  onFavoriteToggle?: (recipeId: string, isFavorited: boolean) => void;
   loading?: boolean;
   title?: string;
 }
@@ -28,6 +29,7 @@ interface RecipeGridProps {
 const RecipeGrid: React.FC<RecipeGridProps> = ({ 
   recipes, 
   onRecipeClick, 
+  onFavoriteToggle,
   loading = false,
   title 
 }) => {
@@ -110,6 +112,7 @@ const RecipeGrid: React.FC<RecipeGridProps> = ({
             <RecipeCard 
               recipe={recipe}
               onClick={() => onRecipeClick && onRecipeClick(recipe.id)}
+              onFavoriteToggle={onFavoriteToggle}
             />
           </motion.div>
         ))}

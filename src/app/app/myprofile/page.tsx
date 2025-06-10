@@ -110,7 +110,7 @@ const UserRecipesTab = ({ userId }: { userId: string }) => {
 };
 
 // User Favorites Tab Component
-const UserFavoritesTab = () => {
+const UserFavoritesTab = ({ userEmail }: { userEmail: string }) => {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -119,7 +119,7 @@ const UserFavoritesTab = () => {
     const fetchFavorites = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/recipes/favorites');
+        const response = await fetch(`/api/recipes/favorites?email=${encodeURIComponent(userEmail)}`);
         if (response.ok) {
           const data = await response.json();
           if (data.success) {
@@ -133,8 +133,10 @@ const UserFavoritesTab = () => {
       }
     };
 
-    fetchFavorites();
-  }, []);
+    if (userEmail) {
+      fetchFavorites();
+    }
+  }, [userEmail]);
 
   if (loading) {
     return (
@@ -819,7 +821,7 @@ export default function MyProfilePage() {
                   <UserRecipesTab userId={profile.user.id} />
                 )}
                 {activeTab === 'saved' && (
-                  <UserFavoritesTab />
+                  <UserFavoritesTab userEmail={session?.user?.email || ''} />
                 )}
               </motion.div>
             </AnimatePresence>

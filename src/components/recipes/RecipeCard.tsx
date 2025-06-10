@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { FiStar, FiClock, FiHeart, FiUser } from 'react-icons/fi';
+import { useSession } from 'next-auth/react';
 import styles from '../../app/app/recipes/styles.module.css';
 
 interface RecipeCardProps {
@@ -19,12 +20,18 @@ interface RecipeCardProps {
     category: string;
   };
   onClick?: () => void;
+  onFavoriteToggle?: (recipeId: string, isFavorited: boolean) => void;
 }
 
 const RecipeCard: React.FC<RecipeCardProps> = ({
   recipe,
-  onClick
+  onClick,
+  onFavoriteToggle
 }) => {
+  const { data: session } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [localIsFavorited, setLocalIsFavorited] = useState(recipe.isFavorited);
+  
   const difficultyMap = {
     easy: { label: 'Fácil', className: styles.difficultyEasy },
     medium: { label: 'Médio', className: styles.difficultyMedium },
@@ -34,18 +41,43 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
   const handleFavoriteClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
+    if (!session?.user?.email || isLoading) {
+      return;
+    }
+    
+    setIsLoading(true);
+    const previousState = localIsFavorited;
+    
+    // Optimistic update
+    setLocalIsFavorited(!localIsFavorited);
+    
     try {
-      const method = recipe.isFavorited ? 'DELETE' : 'POST';
+      const method = localIsFavorited ? 'DELETE' : 'POST';
       const response = await fetch(`/api/recipes/${recipe.id}/favorite`, {
         method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user.email
+        })
       });
 
       if (response.ok) {
-        // Trigger a page refresh or update the recipe state
-        window.location.reload();
+        // Notify parent component about the change
+        onFavoriteToggle?.(recipe.id, !previousState);
+      } else {
+        // Revert on error
+        setLocalIsFavorited(previousState);
+        const errorData = await response.json();
+        console.error('Error toggling favorite:', errorData.error);
       }
     } catch (error) {
+      // Revert on error
+      setLocalIsFavorited(previousState);
       console.error('Error toggling favorite:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,7 +126,7 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         >
           <FiHeart 
             size={16} 
-            className={recipe.isFavorited ? 'text-red-500 fill-current' : 'text-gray-600'} 
+            className={localIsFavorited ? 'text-red-500 fill-current' : 'text-gray-600'} 
           />
         </motion.button>
       </div>

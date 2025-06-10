@@ -43,7 +43,12 @@ export default function RecipeDetailPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`/api/recipes/${id}`);
+      // Add user email to get favorite status
+      const url = session?.user?.email 
+        ? `/api/recipes/${id}?email=${encodeURIComponent(session.user.email)}`
+        : `/api/recipes/${id}`;
+
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Recipe not found');
       }
@@ -64,7 +69,7 @@ export default function RecipeDetailPage() {
 
   // Toggle favorite
   const toggleFavorite = async () => {
-    if (!recipe || favoriteLoading) return;
+    if (!recipe || favoriteLoading || !session?.user?.email) return;
 
     try {
       setFavoriteLoading(true);
@@ -72,6 +77,12 @@ export default function RecipeDetailPage() {
       
       const response = await fetch(`/api/recipes/${recipe.id}/favorite`, {
         method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user.email
+        })
       });
 
       if (response.ok) {
@@ -82,6 +93,9 @@ export default function RecipeDetailPage() {
             ? (prev.favoritesCount || 1) - 1 
             : (prev.favoritesCount || 0) + 1
         } : null);
+      } else {
+        const errorData = await response.json();
+        console.error('Error toggling favorite:', errorData.error);
       }
     } catch (error) {
       console.error('Error toggling favorite:', error);

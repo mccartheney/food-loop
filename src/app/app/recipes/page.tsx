@@ -48,7 +48,12 @@ export default function RecipesPage() {
       setLoading(true);
       setError(null);
 
-      const response = await fetch('/api/recipes');
+      // Add user email to get favorite status
+      const url = session?.user?.email 
+        ? `/api/recipes?email=${encodeURIComponent(session.user.email)}`
+        : '/api/recipes';
+        
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch recipes');
       }
@@ -70,8 +75,10 @@ export default function RecipesPage() {
 
   // Fetch favorite recipes
   const fetchFavorites = async () => {
+    if (!session?.user?.email) return;
+    
     try {
-      const response = await fetch('/api/recipes/favorites');
+      const response = await fetch(`/api/recipes/favorites?email=${encodeURIComponent(session.user.email)}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -88,7 +95,9 @@ export default function RecipesPage() {
     
     if (session?.user) {
       fetchRecipes();
-      fetchFavorites();
+      if (session.user.email) {
+        fetchFavorites();
+      }
     } else {
       setLoading(false);
       setError('Please sign in to view recipes');
@@ -127,6 +136,34 @@ export default function RecipesPage() {
 
   const handleRecipeClick = (recipeId: string) => {
     router.push(`/app/recipes/${recipeId}`);
+  };
+
+  const handleFavoriteToggle = (recipeId: string, isFavorited: boolean) => {
+    // Update the recipe in all recipes list
+    setAllRecipes(prev => prev.map(recipe => 
+      recipe.id === recipeId 
+        ? { ...recipe, isFavorited } 
+        : recipe
+    ));
+    
+    // Update filtered recipes
+    setFilteredRecipes(prev => prev.map(recipe => 
+      recipe.id === recipeId 
+        ? { ...recipe, isFavorited } 
+        : recipe
+    ));
+    
+    // Update favorites list
+    if (isFavorited) {
+      // Recipe was favorited, add to favorites if not already there
+      const recipeToAdd = allRecipes.find(r => r.id === recipeId);
+      if (recipeToAdd && !favoriteRecipes.find(r => r.id === recipeId)) {
+        setFavoriteRecipes(prev => [...prev, { ...recipeToAdd, isFavorited: true }]);
+      }
+    } else {
+      // Recipe was unfavorited, remove from favorites
+      setFavoriteRecipes(prev => prev.filter(r => r.id !== recipeId));
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -262,6 +299,7 @@ export default function RecipesPage() {
                     title="🌟 Receitas Populares"
                     recipes={popularRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
@@ -279,6 +317,7 @@ export default function RecipesPage() {
                     title="🍽️ Receitas Recentes"
                     recipes={recentRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
@@ -296,6 +335,7 @@ export default function RecipesPage() {
                     title="❤️ Suas Favoritas"
                     recipes={favoriteRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
@@ -312,6 +352,7 @@ export default function RecipesPage() {
                     title={`🔍 Resultados da Busca (${filteredRecipes.length})`}
                     recipes={filteredRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
