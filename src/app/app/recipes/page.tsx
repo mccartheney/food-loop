@@ -334,7 +334,24 @@ export default function RecipesPage() {
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         {/* Stats Header */}
-        <RecipesStatsHeader />
+        <RecipesStatsHeader 
+          totalRecipes={allRecipes.length}
+          favoriteRecipes={favoriteRecipes.length}
+          averageCookTime={allRecipes.length > 0 ? Math.round(allRecipes.reduce((sum, recipe) => sum + recipe.cookTime, 0) / allRecipes.length) : 0}
+          popularRecipes={allRecipes.filter(recipe => recipe.isPopular).length}
+          onShowPopular={() => setSelectedQuickFilters(['popular'])}
+          onShowFavorites={() => {
+            // Clear all other filters and show only favorites
+            setSelectedCategories([]);
+            setSelectedDifficulties([]);
+            setSelectedQuickFilters([]);
+            setSelectedCookTime([]);
+            setSelectedServings([]);
+            setSearchQuery('');
+            setSidebarSearch('');
+            setFilteredRecipes(favoriteRecipes);
+          }}
+        />
 
         {/* Search Bar */}
         <RecipesSearchBar 
@@ -467,18 +484,6 @@ export default function RecipesPage() {
           </div>
         </div>
 
-        {/* Floating Add Recipe Button */}
-        <motion.button
-          onClick={() => router.push('/app/recipes/create')}
-          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, duration: 0.3 }}
-        >
-          <span className="text-2xl font-bold">+</span>
-        </motion.button>
       </div>
     </DashboardLayout>
   );

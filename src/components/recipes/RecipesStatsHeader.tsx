@@ -1,7 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FiClock, FiStar, FiTrendingUp, FiHeart, FiBook, FiUser } from 'react-icons/fi';
+import { FiClock, FiStar, FiTrendingUp, FiHeart, FiBook, FiUser, FiPlus } from 'react-icons/fi';
+import { useRouter } from 'next/navigation';
 import styles from '../../app/app/recipes/styles.module.css';
 
 interface RecipesStatsHeaderProps {
@@ -9,18 +10,19 @@ interface RecipesStatsHeaderProps {
   favoriteRecipes?: number;
   averageCookTime?: number;
   popularRecipes?: number;
-  completedRecipes?: number;
-  savedRecipes?: number;
+  onShowPopular?: () => void;
+  onShowFavorites?: () => void;
 }
 
 const RecipesStatsHeader: React.FC<RecipesStatsHeaderProps> = ({
-  totalRecipes = 156,
-  favoriteRecipes = 23,
-  averageCookTime = 35,
-  popularRecipes = 12,
-  completedRecipes = 89,
-  savedRecipes = 34
+totalRecipes = 0,
+favoriteRecipes = 0,
+averageCookTime = 0,
+popularRecipes = 0,
+onShowPopular,
+onShowFavorites
 }) => {
+  const router = useRouter();
   const stats = [
     {
       icon: FiBook,
@@ -49,20 +51,6 @@ const RecipesStatsHeader: React.FC<RecipesStatsHeaderProps> = ({
       value: popularRecipes,
       suffix: '',
       color: '#10b981'
-    },
-    {
-      icon: FiUser,
-      label: 'Cozinhadas',
-      value: completedRecipes,
-      suffix: '',
-      color: '#8b5cf6'
-    },
-    {
-      icon: FiStar,
-      label: 'Guardadas',
-      value: savedRecipes,
-      suffix: '',
-      color: '#f97316'
     }
   ];
 
@@ -166,6 +154,7 @@ const RecipesStatsHeader: React.FC<RecipesStatsHeaderProps> = ({
         transition={{ duration: 0.5, delay: 0.8 }}
       >
         <motion.button
+          onClick={onShowPopular}
           className="px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -177,6 +166,7 @@ const RecipesStatsHeader: React.FC<RecipesStatsHeaderProps> = ({
         </motion.button>
 
         <motion.button
+          onClick={onShowFavorites}
           className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
@@ -188,13 +178,14 @@ const RecipesStatsHeader: React.FC<RecipesStatsHeaderProps> = ({
         </motion.button>
 
         <motion.button
+          onClick={() => router.push('/app/recipes/create')}
           className="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-300"
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.95 }}
         >
           <div className="flex items-center gap-2">
-            <FiUser size={18} />
-            <span>Receita Aleatória</span>
+            <FiPlus size={18} />
+            <span>Adicionar Receita</span>
           </div>
         </motion.button>
       </motion.div>

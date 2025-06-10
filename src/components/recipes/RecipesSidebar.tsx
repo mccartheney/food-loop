@@ -263,26 +263,6 @@ const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
         </div>
       </div>
 
-      {/* Recipe of the Day */}
-      <motion.div 
-        className="mt-6 p-4 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl border border-purple-200"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-      >
-        <div className="text-center">
-          <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-            <FiStar className="text-white" size={20} />
-          </div>
-          <h4 className="font-semibold text-purple-800 mb-2">Receita do Dia</h4>
-          <p className="text-sm text-purple-700 mb-3">
-            Risotto de Cogumelos
-          </p>
-          <button className="w-full bg-gradient-to-r from-purple-500 to-blue-500 text-white py-2 px-4 rounded-lg text-sm font-medium hover:shadow-lg transition-shadow">
-            Ver Receita
-          </button>
-        </div>
-      </motion.div>
     </motion.div>
   );
 };
