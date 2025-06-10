@@ -6,9 +6,13 @@ interface TradeCreateInput {
   email: string;
   title: string;
   description: string;
-  offeredItemIds: string[]; // Items from user's pantry they want to trade
+  offeredItemIds: string[]; // Items from user's pantry they want to trade (now single item)
   wantedItems: string[]; // What they want in return (item names/types)
   location?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 // Interface for trade participation
@@ -160,16 +164,24 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const { email, title, description, offeredItemIds, wantedItems, location } = 
+  const { email, title, description, offeredItemIds, wantedItems, location, coordinates } = 
     (await request.json()) as TradeCreateInput;
 
   if (!email) {
     return NextResponse.json({ error: 'Email is required' }, { status: 400 });
   }
 
-  if (!title || !offeredItemIds || offeredItemIds.length === 0 || !wantedItems || wantedItems.length === 0) {
+  // For new single-item trades, we don't require wantedItems since users will make offers
+  if (!title || !offeredItemIds || offeredItemIds.length === 0) {
     return NextResponse.json({ 
-      error: 'Title, offered items, and wanted items are required' 
+      error: 'Title and at least one offered item are required' 
+    }, { status: 400 });
+  }
+
+  // Validate single item for new trade system
+  if (offeredItemIds.length > 1) {
+    return NextResponse.json({ 
+      error: 'Only one item can be offered per trade' 
     }, { status: 400 });
   }
 
@@ -204,9 +216,24 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Create the trade description with wanted items and location
-    const wantedItemsText = wantedItems.join(', ');
-    const fullDescription = `${description}\n\n🔄 Wants: ${wantedItemsText}${location ? `\n📍 ${location}` : ''}`;
+    // Create the trade description with location and coordinates
+    let fullDescription = description;
+    
+    // Add location info if provided
+    if (location) {
+      fullDescription += `\n\n📍 ${location}`;
+    }
+    
+    // Add coordinates if provided (for map display)
+    if (coordinates) {
+      fullDescription += `\n🗺️ COORDS:${coordinates.lat},${coordinates.lng}`;
+    }
+
+    // For backward compatibility, add wanted items if provided
+    if (wantedItems && wantedItems.length > 0) {
+      const wantedItemsText = wantedItems.join(', ');
+      fullDescription += `\n🔄 Wants: ${wantedItemsText}`;
+    }
 
     // Create the trade using Box model
     // Store creator info in description and leave ngoId as null since it must reference actual NGO

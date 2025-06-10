@@ -17,6 +17,7 @@ import {
   FiRefreshCw 
 } from 'react-icons/fi';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
+import TradeOfferModal from '@/components/trades/TradeOfferModal';
 import { ItemType } from '@prisma/client';
 
 interface TradeItem {
@@ -84,6 +85,7 @@ export default function TradeDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
   // Fetch trade details
   const fetchTradeDetails = async () => {
@@ -114,38 +116,6 @@ export default function TradeDetailsPage() {
       fetchTradeDetails();
     }
   }, [session?.user?.email, tradeId]);
-
-  // Participate in trade
-  const participateInTrade = async () => {
-    if (!session?.user?.email) return;
-
-    setActionLoading(true);
-    try {
-      const response = await fetch(`/api/trades`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: session.user.email,
-          tradeId: tradeId,
-          offeredItemIds: [] // For now, empty - could be enhanced to select items
-        })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to participate in trade');
-      }
-
-      // Refresh trade details
-      fetchTradeDetails();
-    } catch (err: any) {
-      console.error('Error participating in trade:', err);
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
 
   // Accept participant
   const acceptParticipant = async (participantId: string) => {
@@ -374,25 +344,7 @@ export default function TradeDetailsPage() {
               </div>
             </motion.div>
 
-            {/* Wanted Items */}
-            {trade.wantedItems && (
-              <motion.div 
-                className="card bg-base-100 shadow-lg"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <div className="card-body">
-                  <h2 className="card-title">Items Wanted in Return</h2>
-                  <div className="flex items-center gap-2 p-3 bg-base-200 rounded-lg">
-                    <FiArrowRight className="text-gray-400" />
-                    <span>{trade.wantedItems}</span>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Participants */}
+            {/* Participants/Offers */}
             {trade.participants.length > 0 && (
               <motion.div 
                 className="card bg-base-100 shadow-lg"
@@ -402,7 +354,7 @@ export default function TradeDetailsPage() {
               >
                 <div className="card-body">
                   <h2 className="card-title">
-                    Interested Participants ({trade.participants.length})
+                    Trade Offers ({trade.participants.length})
                   </h2>
                   <div className="space-y-3">
                     {trade.participants.map((participant) => (
@@ -418,7 +370,10 @@ export default function TradeDetailsPage() {
                           <div>
                             <h3 className="font-medium">{participant.participantName}</h3>
                             <p className="text-sm text-gray-500">
-                              Interested on {new Date(participant.date).toLocaleDateString()}
+                              Made offer on {new Date(participant.date).toLocaleDateString()}
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              {participant.quantity} item(s) offered
                             </p>
                           </div>
                         </div>
@@ -469,13 +424,6 @@ export default function TradeDetailsPage() {
                 ) : isOwner ? (
                   <div className="space-y-3">
                     <button
-                      onClick={() => router.push(`/app/marketplace/edit/${tradeId}`)}
-                      className="btn btn-outline w-full"
-                    >
-                      <FiEdit className="mr-2" />
-                      Edit Trade
-                    </button>
-                    <button
                       onClick={deleteTrade}
                       disabled={actionLoading}
                       className="btn btn-error btn-outline w-full"
@@ -487,20 +435,16 @@ export default function TradeDetailsPage() {
                 ) : hasParticipated ? (
                   <div className="alert alert-info">
                     <FiCheck />
-                    <span>You've expressed interest in this trade</span>
+                    <span>You've made an offer for this trade</span>
                   </div>
                 ) : (
                   <button
-                    onClick={participateInTrade}
+                    onClick={() => setShowOfferModal(true)}
                     disabled={actionLoading}
                     className="btn btn-primary w-full"
                   >
-                    {actionLoading ? (
-                      <span className="loading loading-spinner loading-sm mr-2"></span>
-                    ) : (
-                      <FiCheck className="mr-2" />
-                    )}
-                    Show Interest
+                    <FiArrowRight className="mr-2" />
+                    Make an Offer
                   </button>
                 )}
               </div>
@@ -536,15 +480,27 @@ export default function TradeDetailsPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="font-medium">Participants:</span>
+                    <span className="font-medium">Offers Received:</span>
                     <br />
-                    {trade.participants.length} interested
+                    {trade.participants.length} offer(s)
                   </div>
                 </div>
               </div>
             </motion.div>
           </div>
         </div>
+
+        {/* Trade Offer Modal */}
+        <TradeOfferModal
+          isOpen={showOfferModal}
+          onClose={() => setShowOfferModal(false)}
+          tradeId={tradeId || ''}
+          tradeTitle={trade.title}
+          onOfferSubmitted={() => {
+            setShowOfferModal(false);
+            fetchTradeDetails(); // Refresh to show new offer
+          }}
+        />
       </div>
     </DashboardLayout>
   );
