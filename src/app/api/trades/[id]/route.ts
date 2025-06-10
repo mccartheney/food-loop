@@ -15,7 +15,7 @@ interface TradeCompleteInput {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get('email');
@@ -25,8 +25,9 @@ export async function GET(
   }
 
   try {
+    const { id } = await params;
     const trade = await prisma.box.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         items: true,
         orders: {
@@ -104,7 +105,7 @@ export async function GET(
 // Accept a trade participant
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { email, participantId } = (await request.json()) as TradeAcceptInput;
 
@@ -115,6 +116,7 @@ export async function PATCH(
   }
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
       where: { email },
       include: { profile: true },
@@ -126,7 +128,7 @@ export async function PATCH(
 
     // Find the trade
     const trade = await prisma.box.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         items: true,
         orders: {
@@ -168,7 +170,7 @@ export async function PATCH(
 
     // Mark the trade as completed
     await prisma.box.update({
-      where: { id: params.id },
+      where: { id },
       data: { hasSoldOrDonated: true }
     });
 
@@ -190,7 +192,7 @@ export async function PATCH(
 // Complete a trade (transfer items)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { email, participantId } = (await request.json()) as TradeCompleteInput;
 
@@ -201,6 +203,7 @@ export async function POST(
   }
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
       where: { email },
       include: { 
@@ -218,7 +221,7 @@ export async function POST(
 
     // Find the trade
     const trade = await prisma.box.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         items: true,
         orders: {
@@ -259,6 +262,24 @@ export async function POST(
       }, { status: 400 });
     }
 
+    // Find the participant's offer box (contains items they offered)
+    const participantOfferBoxes = await prisma.box.findMany({
+      where: {
+        price: -1, // Special price for participant offers
+        description: {
+          contains: `PARTICIPANT_OFFER:${participant.profileId}`
+        },
+        orders: {
+          some: {
+            id: participantId
+          }
+        }
+      },
+      include: {
+        items: true
+      }
+    });
+
     // Transfer items from trade creator to participant
     // Move the offered items to participant's pantry
     await prisma.item.updateMany({
@@ -271,9 +292,30 @@ export async function POST(
       }
     });
 
+    // Transfer items from participant to trade creator (if they made an offer)
+    if (participantOfferBoxes.length > 0) {
+      const participantOfferBox = participantOfferBoxes[0]; // Should only be one
+      
+      // Move participant's offered items to creator's pantry
+      await prisma.item.updateMany({
+        where: {
+          boxId: participantOfferBox.id
+        },
+        data: {
+          pantryId: user.profile.pantry.id,
+          boxId: null // Remove from offer box
+        }
+      });
+
+      // Delete the temporary offer box
+      await prisma.box.delete({
+        where: { id: participantOfferBox.id }
+      });
+    }
+
     // Mark the trade as completed
     await prisma.box.update({
-      where: { id: params.id },
+      where: { id },
       data: { hasSoldOrDonated: true }
     });
 
@@ -326,7 +368,7 @@ export async function POST(
 // Delete a trade
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { email } = await request.json() as { email: string };
 
@@ -335,6 +377,7 @@ export async function DELETE(
   }
 
   try {
+    const { id } = await params;
     const user = await prisma.user.findUnique({
       where: { email },
       include: { profile: true },
@@ -346,7 +389,7 @@ export async function DELETE(
 
     // Find the trade
     const trade = await prisma.box.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { items: true }
     });
 
@@ -388,7 +431,7 @@ export async function DELETE(
 
     // Delete the trade
     await prisma.box.delete({
-      where: { id: params.id }
+      where: { id }
     });
 
     return NextResponse.json({ message: 'Trade deleted successfully' });

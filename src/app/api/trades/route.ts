@@ -339,6 +339,34 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Create a temporary box to hold the participant's offered items
+    let participantOfferBox = null;
+    if (offeredItemIds && offeredItemIds.length > 0) {
+      participantOfferBox = await prisma.box.create({
+        data: {
+          name: `Offer for ${trade.name}`,
+          description: `PARTICIPANT_OFFER:${user.profile.id}`,
+          quantity: offeredItemIds.length,
+          date: new Date(),
+          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          price: -1, // Special price to identify participant offers
+          hasSoldOrDonated: false,
+          ngoId: null,
+        }
+      });
+
+      // Link the offered items to this temporary box
+      await prisma.item.updateMany({
+        where: {
+          id: { in: offeredItemIds },
+          pantryId: user.profile.pantry?.id
+        },
+        data: {
+          boxId: participantOfferBox.id
+        }
+      });
+    }
+
     // Create an order to represent participation interest
     const participation = await prisma.order.create({
       data: {
@@ -359,6 +387,18 @@ export async function PATCH(request: NextRequest) {
         }
       }
     });
+
+    // If we created an offer box, link it to the order
+    if (participantOfferBox) {
+      await prisma.order.update({
+        where: { id: participation.id },
+        data: {
+          boxes: {
+            connect: { id: participantOfferBox.id }
+          }
+        }
+      });
+    }
 
     return NextResponse.json({ 
       message: 'Trade participation request sent successfully',
