@@ -26,50 +26,50 @@ interface Conversation {
 const conversations: Conversation[] = [
   {
     id: 1,
-    user: { name: 'Ana Silva', avatar: '/avatars/user1.png', location: 'Porto' },
-    lastMessage: 'Olá! Tenho tomates frescos para compartilhar',
+    user: { name: 'Anna Smith', avatar: '/avatars/user1.png', location: 'Porto' },
+    lastMessage: 'Hi! I have fresh tomatoes to share',
     timestamp: '2h',
     unread: false
   },
   {
     id: 2,
-    user: { name: 'Carlos Santos', avatar: '/avatars/user2.png', location: 'Lisboa' },
-    lastMessage: 'Obrigado pela receita!',
+    user: { name: 'Charles Santos', avatar: '/avatars/user2.png', location: 'Lisbon' },
+    lastMessage: 'Thank you for the recipe!',
     timestamp: '5h',
     unread: true
   },
   {
     id: 3,
     user: { name: 'Maria Costa', avatar: '/avatars/user3.png', location: 'Faro' },
-    lastMessage: 'Você está disponível amanhã?',
+    lastMessage: 'Are you available tomorrow?',
     timestamp: '1d',
     unread: false
   },
   {
     id: 4,
-    user: { name: 'João Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
-    lastMessage: 'Tenho alguns ingredientes para partilhar',
+    user: { name: 'John Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
+    lastMessage: 'I have some ingredients to share',
     timestamp: '2d',
     unread: false
   },
   {
     id: 5,
     user: { name: 'Sofia Oliveira', avatar: '/avatars/user5.png', location: 'Coimbra' },
-    lastMessage: 'Perfeito! Muito obrigada',
+    lastMessage: 'Perfect! Thank you very much',
     timestamp: '3d',
     unread: false
   },
   {
     id: 6,
-    user: { name: 'Pedro Martins', avatar: '/avatars/user6.png', location: 'Setúbal' },
-    lastMessage: 'Vemo-nos em breve',
+    user: { name: 'Peter Martin', avatar: '/avatars/user6.png', location: 'Setúbal' },
+    lastMessage: 'See you soon',
     timestamp: '1s',
     unread: false
   },
   {
     id: 7,
     user: { name: 'Rita Fernandes', avatar: '/avatars/user7.png', location: 'Aveiro' },
-    lastMessage: 'Adorei a receita!',
+    lastMessage: 'I loved the recipe!',
     timestamp: '1s',
     unread: false
   }
@@ -128,13 +128,13 @@ export default function MessagesPage() {
         >
           <FiMessageCircle className="text-white" size={32} />
         </motion.div>
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Selecione uma conversa</h3>
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Select a conversation</h3>
         <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
-          Escolha uma conversa da lista para começar a trocar mensagens com outros usuários.
+          Choose a conversation from the list to start exchanging messages with other users.
         </p>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-400">
           <FiUsers size={16} />
-          <span>{conversations.length} conversas ativas</span>
+          <span>{conversations.length} active conversations</span>
         </div>
       </div>
     </motion.div>
@@ -150,11 +150,11 @@ export default function MessagesPage() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center">
-          <h1 className="text-xl font-bold gradient-text">Mensagens</h1>
+          <h1 className="text-xl font-bold gradient-text">Messages</h1>
           <div className="ml-auto flex items-center gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>{conversations.filter(c => c.unread).length} não lidas</span>
+              <span>{conversations.filter(c => c.unread).length} unread</span>
             </div>
           </div>
         </div>

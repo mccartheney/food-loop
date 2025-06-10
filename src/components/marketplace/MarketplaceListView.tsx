@@ -47,8 +47,8 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
 
   const getPriceCategory = (price: string) => {
     const priceValue = parseFloat(price);
-    if (priceValue <= 2) return { color: 'badge-success', label: 'Económico', bgColor: 'bg-green-50' };
-    if (priceValue <= 4) return { color: 'badge-warning', label: 'Médio', bgColor: 'bg-yellow-50' };
+    if (priceValue <= 2) return { color: 'badge-success', label: 'Economy', bgColor: 'bg-green-50' };
+    if (priceValue <= 4) return { color: 'badge-warning', label: 'Medium', bgColor: 'bg-yellow-50' };
     return { color: 'badge-error', label: 'Premium', bgColor: 'bg-purple-50' };
   };
 
@@ -76,7 +76,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
               animate={{ y: 0, opacity: 0.7 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              Nenhum produto encontrado
+              No products found
             </motion.p>
             <motion.p 
               className="text-sm text-neutral-content opacity-60 mb-4"
@@ -84,7 +84,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
               animate={{ y: 0, opacity: 0.6 }}
               transition={{ delay: 0.7, duration: 0.5 }}
             >
-              Tente ajustar sua pesquisa ou navegue por categorias
+              Try adjusting your search or browse by categories
             </motion.p>
             {onClearSearch && (
               <motion.button 
@@ -96,7 +96,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
               >
-                <FiX className="mr-2" /> Limpar Pesquisa
+                <FiX className="mr-2" /> Clear Search
               </motion.button>
             )}
           </div>
@@ -116,7 +116,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
               animate={{ y: 0, opacity: 0.7 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              Nenhum produto disponível
+              No products available
             </motion.p>
             <motion.p 
               className="text-sm text-neutral-content opacity-60"
@@ -124,7 +124,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
               animate={{ y: 0, opacity: 0.6 }}
               transition={{ delay: 0.7, duration: 0.5 }}
             >
-              Produtos serão exibidos aqui quando estiverem disponíveis
+              Products will be displayed here when available
             </motion.p>
           </div>
         )}
@@ -235,7 +235,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
                           animate={{ opacity: 1, scale: 1 }}
                           transition={{ delay: 0.6, duration: 0.3 }}
                         >
-                          <div className="text-sm text-gray-500 mb-1">Preço</div>
+                          <div className="text-sm text-gray-500 mb-1">Price</div>
                           <div className="text-3xl font-bold text-primary">€{product.price}</div>
                         </motion.div>
 
@@ -282,7 +282,7 @@ const MarketplaceListView: React.FC<MarketplaceListViewProps> = ({
                               onProductClick && onProductClick(product.id);
                             }}
                           >
-                            Ver Detalhes
+                            View Details
                           </motion.button>
                         </motion.div>
                       </div>

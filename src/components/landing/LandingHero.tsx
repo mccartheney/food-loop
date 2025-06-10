@@ -35,7 +35,7 @@ const LandingHero: React.FC = () => {
             <FiRefreshCw size={16} className="text-amber-400" />
           </motion.div>
           <span className="text-white/90 text-sm font-medium">
-            🌱 Revolução Sustentável
+            🌱 Sustainable Revolution
           </span>
         </motion.div>
 
@@ -46,7 +46,7 @@ const LandingHero: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.5 }}
         >
-          Junte-se ao{' '}
+          Join the{' '}
           <span className={styles.heroAccent}>Food Loop</span>
           <br />
           Revolution
@@ -59,9 +59,9 @@ const LandingHero: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.7 }}
         >
-          🍃 Conectamos pessoas, empresas e ONGs para eliminar o desperdício alimentar.
+          🍃 We connect people, businesses and NGOs to eliminate food waste.
           <br />
-          Transforme excesso em impacto positivo na sua comunidade.
+          Transform excess into positive impact in your community.
         </motion.p>
 
         {/* CTA Buttons */}
@@ -79,7 +79,7 @@ const LandingHero: React.FC = () => {
               href="/auth/register" 
               className={`${styles.heroButton} ${styles.heroButtonPrimary}`}
             >
-              Começar Agora
+              Get Started
               <motion.div
                 animate={{ x: [0, 5, 0] }}
                 transition={{ duration: 1.5, repeat: Infinity }}
@@ -98,18 +98,18 @@ const LandingHero: React.FC = () => {
               className={`${styles.heroButton} ${styles.heroButtonSecondary}`}
             >
               <FiArrowRight size={18} />
-              Entrar na Conta
+              Sign In
             </Link>
           </motion.div>
 
           <motion.button
-            onClick={() => scrollToSection('funcionalidades')}
+            onClick={() => scrollToSection('features')}
             className={`${styles.heroButton} ${styles.heroButtonSecondary}`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             <FiPlay size={18} />
-            Saber Mais
+            Learn More
           </motion.button>
         </motion.div>
 
@@ -125,21 +125,21 @@ const LandingHero: React.FC = () => {
             whileHover={{ scale: 1.05 }}
           >
             <div className="text-2xl font-bold text-amber-400 mb-1">30%</div>
-            <div className="text-white/70 text-sm">Comida desperdiçada</div>
+            <div className="text-white/70 text-sm">Food wasted</div>
           </motion.div>
           <motion.div 
             className="text-center"
             whileHover={{ scale: 1.05 }}
           >
             <div className="text-2xl font-bold text-emerald-400 mb-1">1.3B</div>
-            <div className="text-white/70 text-sm">Toneladas por ano</div>
+            <div className="text-white/70 text-sm">Tons per year</div>
           </motion.div>
           <motion.div 
             className="text-center"
             whileHover={{ scale: 1.05 }}
           >
             <div className="text-2xl font-bold text-blue-400 mb-1">8%</div>
-            <div className="text-white/70 text-sm">Emissões globais</div>
+            <div className="text-white/70 text-sm">Global emissions</div>
           </motion.div>
         </motion.div>
 
@@ -165,7 +165,7 @@ const LandingHero: React.FC = () => {
             ))}
           </div>
           <div className="text-white/70 text-sm">
-            <span className="font-semibold text-white">500+</span> pessoas já aderiram
+            <span className="font-semibold text-white">500+</span> people have already joined
           </div>
         </motion.div>
       </motion.div>

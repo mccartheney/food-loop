@@ -337,7 +337,7 @@ const FriendModal = ({
           >
             {/* Header */}
             <div className="border-b border-white/20 p-6 flex items-center justify-center relative">
-              <h3 className="font-semibold text-lg gradient-text">Amigos ({friends.length})</h3>
+              <h3 className="font-semibold text-lg gradient-text">Friends ({friends.length})</h3>
               <button 
                 className="absolute right-6 text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100" 
                 onClick={onClose}
@@ -354,7 +354,7 @@ const FriendModal = ({
                   <input
                     ref={searchRef}
                     type="text"
-                    placeholder="Procurar amigos..."
+                    placeholder="Search friends..."
                     className="w-full glass-effect pl-12 pr-4 py-3 text-sm rounded-xl border border-white/20 focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder-gray-500"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -372,8 +372,8 @@ const FriendModal = ({
               ) : friends.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
                   <FiUser className="mx-auto mb-4 text-gray-300" size={56} />
-                  <p className="font-semibold text-lg mb-2">Nenhum amigo ainda</p>
-                  <p className="text-sm">Comece a conectar-se com pessoas!</p>
+                  <p className="font-semibold text-lg mb-2">No friends yet</p>
+                  <p className="text-sm">Start connecting with people!</p>
                 </div>
               ) : displayedFriends.length > 0 ? (
                 displayedFriends.map(friend => (
@@ -420,7 +420,7 @@ const FriendModal = ({
                 ))
               ) : (
                 <div className="p-8 text-center text-gray-500">
-                  <p>Nenhum amigo encontrado.</p>
+                  <p>No friends found.</p>
                 </div>
               )}
             </div>
@@ -496,13 +496,13 @@ export default function MyProfilePage() {
       
       if (data.success) {
         setProfile(data.profile);
-        toast.success('Perfil atualizado!', 'Suas alterações foram salvas com sucesso.');
+        toast.success('Profile updated!', 'Your changes have been saved successfully.');
       } else {
         throw new Error('Failed to update profile');
       }
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil', error instanceof Error ? error.message : 'Tente novamente.');
+      toast.error('Error updating profile', error instanceof Error ? error.message : 'Please try again.');
       throw error;
     }
   };
@@ -539,7 +539,7 @@ export default function MyProfilePage() {
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
               <FiLoader className="animate-spin text-white" size={24} />
             </div>
-            <p className="text-gray-600 font-medium">Carregando seu perfil...</p>
+            <p className="text-gray-600 font-medium">Loading your profile...</p>
           </div>
         </div>
       </DashboardLayout>
@@ -553,24 +553,24 @@ export default function MyProfilePage() {
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
           <div className="modern-card p-8 text-center max-w-md">
             <h1 className="text-2xl font-bold mb-4 gradient-text">
-              {!session?.user ? 'Faça login' : 'Erro ao carregar perfil'}
+              {!session?.user ? 'Sign in' : 'Error loading profile'}
             </h1>
             <p className="text-gray-600 mb-6">
               {!session?.user 
-                ? 'Você precisa fazer login para ver seu perfil.' 
-                : error || 'Houve um erro ao carregar os dados do seu perfil.'
+                ? 'You need to sign in to view your profile.' 
+                : error || 'There was an error loading your profile data.'
               }
             </p>
             {!session?.user ? (
               <Link href="/auth/login" className="btn btn-primary">
-                Ir para login
+                Go to login
               </Link>
             ) : (
               <button 
                 onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
                 className="btn btn-primary"
               >
-                Tentar novamente
+                Try again
               </button>
             )}
           </div>
@@ -584,13 +584,13 @@ export default function MyProfilePage() {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
           <div className="modern-card p-8 text-center max-w-md">
-            <h1 className="text-2xl font-bold mb-4 gradient-text">Perfil não encontrado</h1>
-            <p className="text-gray-600 mb-6">Os dados do seu perfil não puderam ser carregados.</p>
+            <h1 className="text-2xl font-bold mb-4 gradient-text">Profile not found</h1>
+            <p className="text-gray-600 mb-6">Your profile data could not be loaded.</p>
             <button 
               onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
               className="btn btn-primary"
             >
-              Tentar novamente
+              Try again
             </button>
           </div>
         </div>
@@ -608,7 +608,7 @@ export default function MyProfilePage() {
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center">
-          <h1 className="text-xl font-bold gradient-text">Meu Perfil</h1>
+          <h1 className="text-xl font-bold gradient-text">My Profile</h1>
           <div className="ml-auto flex gap-2">
             <motion.button 
               className="btn btn-ghost btn-sm btn-circle hover:bg-white/20"
@@ -673,7 +673,7 @@ export default function MyProfilePage() {
                   whileTap={{ scale: 0.98 }}
                 >
                   <FiShare2 className="inline mr-2" size={16} />
-                  Compartilhar
+                  Share
                 </motion.button>
                 <Link href="/app/messages">
                   <motion.button 
@@ -682,7 +682,7 @@ export default function MyProfilePage() {
                     whileTap={{ scale: 0.98 }}
                   >
                     <FiMessageCircle className="inline mr-2" size={16} />
-                    Mensagens
+                    Messages
                   </motion.button>
                 </Link>
               </div>
@@ -700,7 +700,7 @@ export default function MyProfilePage() {
                 {profile.bio ? (
                   <p className="text-gray-600 text-lg leading-relaxed">{profile.bio}</p>
                 ) : (
-                  <p className="text-gray-400 italic text-lg">Adicione uma bio para se apresentar</p>
+                  <p className="text-gray-400 italic text-lg">Add a bio to introduce yourself</p>
                 )}
                 
                 {profile.address && (
@@ -716,7 +716,7 @@ export default function MyProfilePage() {
                   whileHover={{ x: 5 }}
                 >
                   <FiEdit3 size={16} />
-                  Editar Perfil
+                  Edit Profile
                 </motion.button>
               </div>
 
@@ -728,7 +728,7 @@ export default function MyProfilePage() {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="text-3xl font-bold text-gray-800">{profile.counts.recipes}</div>
-                  <div className="text-sm text-gray-500 font-medium">Receitas</div>
+                  <div className="text-sm text-gray-500 font-medium">Recipes</div>
                 </motion.div>
                 <motion.div 
                   className={`text-center p-4 glass-effect rounded-2xl border border-white/20 cursor-pointer ${styles.statsCard}`}
@@ -738,7 +738,7 @@ export default function MyProfilePage() {
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <div className="text-3xl font-bold text-gray-800">{profile.counts.friends}</div>
-                  <div className="text-sm text-gray-500 font-medium">Amigos</div>
+                  <div className="text-sm text-gray-500 font-medium">Friends</div>
                 </motion.div>
                 <motion.div 
                   className={`text-center p-4 glass-effect rounded-2xl border border-white/20 ${styles.statsCard}`}
@@ -764,8 +764,8 @@ export default function MyProfilePage() {
           <div className="flex border-b border-white/20">
             {[
               { id: 'posts', label: 'Posts', icon: FiGrid },
-              { id: 'recipes', label: 'Receitas', icon: FiHeart },
-              { id: 'saved', label: 'Salvos', icon: FiBookmark },
+              { id: 'recipes', label: 'Recipes', icon: FiHeart },
+              { id: 'saved', label: 'Saved', icon: FiBookmark },
             ].map((tab) => (
               <motion.button
                 key={tab.id}
@@ -803,9 +803,9 @@ export default function MyProfilePage() {
                     >
                       <FiCamera className="text-white" size={32} />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Nenhum post ainda</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">No posts yet</h3>
                     <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
-                      Compartilhe sua primeira receita ou item da dispensa com seus amigos!
+                      Share your first recipe or pantry item with your friends!
                     </p>
                     <motion.button 
                       className={`${styles.gradientButton} text-white py-3 px-8 rounded-xl font-semibold`}
@@ -813,15 +813,48 @@ export default function MyProfilePage() {
                       whileTap={{ scale: 0.95 }}
                     >
                       <FiPlus className="inline mr-2" size={18} />
-                      Criar primeiro post
+                      Create first post
                     </motion.button>
                   </div>
                 )}
                 {activeTab === 'recipes' && (
-                  <UserRecipesTab userId={profile.user.id} />
+                  <div className="text-center py-16">
+                    <motion.div
+                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <FiHeart className="text-white" size={32} />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Suas receitas aparecerão aqui</h3>
+                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                      Crie e compartilhe receitas deliciosas com a comunidade.
+                    </p>
+                    <Link href="/app/recipes">
+                      <motion.button 
+                        className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Explorar receitas
+                      </motion.button>
+                    </Link>
+                  </div>
                 )}
                 {activeTab === 'saved' && (
-                  <UserFavoritesTab userEmail={session?.user?.email || ''} />
+                  <div className="text-center py-16">
+                    <motion.div
+                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+                      animate={{ y: [0, -5, 0] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    >
+                      <FiBookmark className="text-white" size={32} />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Itens salvos</h3>
+                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                      Suas receitas e posts favoritos ficarão salvos aqui.
+                    </p>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>

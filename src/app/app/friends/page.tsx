@@ -417,19 +417,19 @@ export default function FriendsPage() {
   const tabs = [
     {
       id: 'friends' as TabType,
-      label: 'Amigos',
+      label: 'Friends',
       icon: FiUsers,
       count: friends.length,
     },
     {
       id: 'requests' as TabType,
-      label: 'Solicitações',
+      label: 'Requests',
       icon: FiUserPlus,
       count: requests.received.length + requests.sent.length,
     },
     {
       id: 'search' as TabType,
-      label: 'Buscar',
+      label: 'Search',
       icon: FiSearch,
     },
   ];
@@ -452,9 +452,9 @@ export default function FriendsPage() {
           transition={{ duration: 0.5 }}
         >
           <FiUsers className={`mx-auto mb-6 ${styles.emptyIcon}`} size={64} />
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Ainda sem amigos</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">No friends yet</h3>
           <p className="text-gray-500 mb-6 max-w-md mx-auto">
-            Comece a se conectar com pessoas incríveis! Use a busca para encontrar amigos e expandir sua rede.
+            Start connecting with amazing people! Use the search to find friends and expand your network.
           </p>
           <motion.button 
             onClick={() => setActiveTab('search')}
@@ -463,7 +463,7 @@ export default function FriendsPage() {
             whileTap={{ scale: 0.95 }}
           >
             <FiSearch size={18} />
-            <span className="font-medium">Encontrar Amigos</span>
+            <span className="font-medium">Find Friends</span>
           </motion.button>
         </motion.div>
       );
@@ -510,9 +510,9 @@ export default function FriendsPage() {
           transition={{ duration: 0.5 }}
         >
           <FiUserPlus className={`mx-auto mb-6 ${styles.emptyIcon}`} size={64} />
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Tudo em dia!</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">All caught up!</h3>
           <p className="text-gray-500">
-            Você não tem solicitações de amizade pendentes no momento.
+            You don't have any pending friend requests at the moment.
           </p>
         </motion.div>
       );
@@ -537,14 +537,14 @@ export default function FriendsPage() {
             whileHover={{ scale: 1.02 }}
           >
             <div className="text-2xl font-bold text-blue-600">{requests.received.length}</div>
-            <div className="text-sm text-gray-600">Recebidas</div>
+            <div className="text-sm text-gray-600">Received</div>
           </motion.div>
           <motion.div 
             className={`${styles.statsCard} rounded-xl p-4 text-center`}
             whileHover={{ scale: 1.02 }}
           >
             <div className="text-2xl font-bold text-yellow-600">{requests.sent.length}</div>
-            <div className="text-sm text-gray-600">Enviadas</div>
+            <div className="text-sm text-gray-600">Sent</div>
           </motion.div>
         </div>
 
@@ -605,12 +605,12 @@ export default function FriendsPage() {
           <div>
             <h1 className="text-3xl font-bold gradient-text mb-2 flex items-center gap-3">
               <FiHeart className="text-pink-500" />
-              Amigos
+              Friends
             </h1>
-            <p className="text-gray-600">Gerencie suas conexões e descubra novos amigos</p>
+            <p className="text-gray-600">Manage your connections and discover new friends</p>
             {currentUser && (
               <p className="text-sm text-gray-500 mt-2">
-                Olá, {currentUser.user.name}! 
+                Hello, {currentUser.user.name}! 
                 {currentUser.bio && ` • ${currentUser.bio}`}
               </p>
             )}
@@ -623,7 +623,7 @@ export default function FriendsPage() {
               whileHover={{ scale: 1.05 }}
             >
               <div className="text-2xl font-bold text-blue-600">{friends.length}</div>
-              <div className="text-xs text-gray-600">Amigos</div>
+              <div className="text-xs text-gray-600">Friends</div>
             </motion.div>
             <motion.div 
               className={`${styles.statsCard} rounded-xl p-4 text-center min-w-[80px]`}
@@ -632,7 +632,7 @@ export default function FriendsPage() {
               <div className="text-2xl font-bold text-purple-600">
                 {requests.received.length + requests.sent.length}
               </div>
-              <div className="text-xs text-gray-600">Pendentes</div>
+              <div className="text-xs text-gray-600">Pending</div>
             </motion.div>
           </div>
         </div>

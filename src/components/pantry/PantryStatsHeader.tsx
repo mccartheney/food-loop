@@ -54,9 +54,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
   const stats = [
     {
       id: 'total',
-      label: 'Total de Itens',
+      label: 'Total Items',
       value: totalItems,
-      subValue: `${totalQuantity} unidades`,
+      subValue: `${totalQuantity} units`,
       icon: FiPackage,
       color: 'text-blue-600',
       bgClass: styles.statsTotal,
@@ -64,9 +64,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
     },
     {
       id: 'fresh',
-      label: 'Itens Frescos',
+      label: 'Fresh Items',
       value: freshItems.length,
-      subValue: `${Math.round((freshItems.length / totalItems) * 100) || 0}% do total`,
+      subValue: `${Math.round((freshItems.length / totalItems) * 100) || 0}% of total`,
       icon: FiTrendingUp,
       color: 'text-green-600',
       bgClass: styles.statsFresh,
@@ -74,9 +74,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
     },
     {
       id: 'warning',
-      label: 'Vencendo Soon',
+      label: 'Expiring Soon',
       value: warningItems.length,
-      subValue: 'Próximos 7 dias',
+      subValue: 'Next 7 days',
       icon: FiAlertTriangle,
       color: 'text-yellow-600',
       bgClass: styles.statsWarning,
@@ -84,9 +84,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
     },
     {
       id: 'expired',
-      label: 'Vencidos',
+      label: 'Expired',
       value: expiredItems.length,
-      subValue: 'Necessitam atenção',
+      subValue: 'Need attention',
       icon: FiX,
       color: 'text-red-600',
       bgClass: styles.statsExpired,
@@ -94,9 +94,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
     },
     {
       id: 'recent',
-      label: 'Adicionados',
+      label: 'Recently Added',
       value: recentItems.length,
-      subValue: 'Últimos 7 dias',
+      subValue: 'Last 7 days',
       icon: FiClock,
       color: 'text-purple-600',
       bgClass: styles.statsTotal,
@@ -120,10 +120,10 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
             >
               <FiPackage className="text-green-500" />
             </motion.div>
-            Sua Despensa Digital
+            Your Digital Pantry
           </h1>
           <p className="text-gray-600">
-            Gerencie seus alimentos de forma inteligente e eficiente
+            Manage your food intelligently and efficiently
           </p>
         </div>
         
@@ -136,11 +136,11 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
         >
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">{totalItems}</div>
-            <div className="text-xs text-gray-600">Tipos</div>
+            <div className="text-xs text-gray-600">Types</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{totalQuantity}</div>
-            <div className="text-xs text-gray-600">Unidades</div>
+            <div className="text-xs text-gray-600">Units</div>
           </div>
           {expiredItems.length > 0 && (
             <motion.div 
@@ -149,7 +149,7 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
               transition={{ repeat: Infinity, duration: 2 }}
             >
               <div className="text-2xl font-bold text-red-600">{expiredItems.length}</div>
-              <div className="text-xs text-red-600">Vencidos</div>
+              <div className="text-xs text-red-600">Expired</div>
             </motion.div>
           )}
         </motion.div>
@@ -223,10 +223,10 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
               <FiX className="text-red-600" size={20} />
               <div>
                 <div className="font-medium">
-                  {expiredItems.length} item{expiredItems.length > 1 ? 'ns' : ''} vencido{expiredItems.length > 1 ? 's' : ''}
+                  {expiredItems.length} expired item{expiredItems.length > 1 ? 's' : ''}
                 </div>
                 <div className="text-sm opacity-80">
-                  Considere remover ou usar estes itens com cuidado
+                  Consider removing or using these items with caution
                 </div>
               </div>
             </motion.div>
@@ -242,10 +242,10 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
               <FiAlertTriangle className="text-yellow-600" size={20} />
               <div>
                 <div className="font-medium">
-                  {warningItems.length} item{warningItems.length > 1 ? 'ns' : ''} vencendo em breve
+                  {warningItems.length} item{warningItems.length > 1 ? 's' : ''} expiring soon
                 </div>
                 <div className="text-sm opacity-80">
-                  Use nos próximos 7 dias para evitar desperdício
+                  Use within the next 7 days to avoid waste
                 </div>
               </div>
             </motion.div>
@@ -263,9 +263,9 @@ const PantryStatsHeader: React.FC<PantryStatsHeaderProps> = ({ items }) => {
         >
           <FiTrendingUp className="text-green-600" size={20} />
           <div>
-            <div className="font-medium">Despensa bem organizada! 🎉</div>
+            <div className="font-medium">Well-organized pantry! 🎉</div>
             <div className="text-sm opacity-80">
-              Todos os seus itens estão frescos e bem conservados
+              All your items are fresh and well preserved
             </div>
           </div>
         </motion.div>

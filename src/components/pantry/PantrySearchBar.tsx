@@ -47,7 +47,7 @@ export default function PantrySearchBar({
             
             <input
               type="text"
-              placeholder="Busque por nome, tipo ou validade..."
+              placeholder="Search by name, type or expiry..."
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
               className={`${styles.searchInput} w-full pl-12 pr-12 py-3 rounded-xl text-gray-700 placeholder-gray-400 focus:outline-none`}
@@ -74,7 +74,7 @@ export default function PantrySearchBar({
             whileTap={{ scale: 0.95 }}
           >
             <FiSearch size={18} />
-            <span className="hidden sm:inline font-medium">Buscar</span>
+            <span className="hidden sm:inline font-medium">Search</span>
           </motion.button>
         </form>
         
@@ -87,7 +87,7 @@ export default function PantrySearchBar({
             transition={{ delay: 0.5, duration: 0.5 }}
           >
             <FiFilter size={16} />
-            <span className="text-sm font-medium whitespace-nowrap">Filtrar por:</span>
+            <span className="text-sm font-medium whitespace-nowrap">Filter by:</span>
           </motion.div>
           
           <motion.select
@@ -97,9 +97,9 @@ export default function PantrySearchBar({
             whileHover={{ scale: 1.02 }}
             whileFocus={{ scale: 1.02 }}
           >
-            <option value="all">Todos os Campos</option>
-            <option value="name">Nome</option>
-            <option value="type">Tipo</option>
+            <option value="all">All Fields</option>
+            <option value="name">Name</option>
+            <option value="type">Type</option>
           </motion.select>
         </div>
       </div>
@@ -114,21 +114,21 @@ export default function PantrySearchBar({
         <div className="text-sm text-gray-600">
           {searchTerm ? (
             <span>
-              Mostrando <span className="font-semibold text-green-600">{filteredCount}</span> de{' '}
-              <span className="font-semibold">{totalItems}</span> itens
+              Showing <span className="font-semibold text-green-600">{filteredCount}</span> of{' '}
+              <span className="font-semibold">{totalItems}</span> items
               <span className="ml-2">
-                para "<span className="font-medium text-gray-800">{searchTerm}</span>"
+                for "<span className="font-medium text-gray-800">{searchTerm}</span>"
                 {searchCategory !== 'all' && (
-                  <span className="text-gray-500"> em {
-                    searchCategory === 'name' ? 'nome' : 
-                    searchCategory === 'type' ? 'tipo' : searchCategory
+                  <span className="text-gray-500"> in {
+                    searchCategory === 'name' ? 'name' : 
+                    searchCategory === 'type' ? 'type' : searchCategory
                   }</span>
                 )}
               </span>
             </span>
           ) : (
             <span>
-              Exibindo todos os <span className="font-semibold text-blue-600">{totalItems}</span> itens da sua despensa
+              Displaying all <span className="font-semibold text-blue-600">{totalItems}</span> items in your pantry
             </span>
           )}
         </div>
@@ -137,20 +137,20 @@ export default function PantrySearchBar({
         {!searchTerm && (
           <div className="flex items-center gap-2">
             <motion.button
-              onClick={() => onSearchTermChange('vencido')}
+              onClick={() => onSearchTermChange('expired')}
               className="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Ver Vencidos
+              View Expired
             </motion.button>
             <motion.button
-              onClick={() => onSearchTermChange('7 dias')}
+              onClick={() => onSearchTermChange('7 days')}
               className="px-3 py-1 rounded-full text-xs bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Vencendo em Breve
+              Expiring Soon
             </motion.button>
           </div>
         )}
@@ -164,7 +164,7 @@ export default function PantrySearchBar({
           animate={{ opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
         >
-          <span>💡 Dica: Use termos como "vencido", "7 dias", "carne" ou nomes específicos</span>
+          <span>💡 Tip: Use terms like "expired", "7 days", "meat" or specific names</span>
         </motion.div>
       )}
     </motion.div>

@@ -181,7 +181,7 @@ export default function EditProfileModal({
           >
             {/* Header */}
             <div className="border-b border-white/20 p-6 flex items-center justify-between">
-              <h3 className="font-semibold text-xl gradient-text">Editar Perfil</h3>
+              <h3 className="font-semibold text-xl gradient-text">Edit Profile</h3>
               <button 
                 className="text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100" 
                 onClick={onClose}
@@ -255,7 +255,7 @@ export default function EditProfileModal({
                     ref={bioTextareaRef}
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
-                    placeholder="Conte um pouco sobre você..."
+                    placeholder="Tell us a bit about yourself..."
                     className="w-full px-4 py-3 glass-effect border border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 resize-none h-28 placeholder-gray-500"
                     maxLength={500}
                     disabled={isLoading}
@@ -270,13 +270,13 @@ export default function EditProfileModal({
                 <div className="space-y-3">
                   <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
                     <FiMapPin size={18} />
-                    Localização
+                    Location
                   </label>
                   <input
                     type="text"
                     value={formData.address}
                     onChange={(e) => handleInputChange('address', e.target.value)}
-                    placeholder="Onde você está localizado?"
+                    placeholder="Where are you located?"
                     className="w-full px-4 py-3 glass-effect border border-white/30 rounded-xl focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500/50 placeholder-gray-500"
                     maxLength={200}
                     disabled={isLoading}
@@ -309,7 +309,7 @@ export default function EditProfileModal({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  Cancelar
+                  Cancel
                 </motion.button>
                 <motion.button
                   type="submit"
@@ -321,12 +321,12 @@ export default function EditProfileModal({
                   {isLoading ? (
                     <>
                       <FiLoader className="animate-spin" size={18} />
-                      Salvando...
+                      Saving...
                     </>
                   ) : (
                     <>
                       <FiSave size={18} />
-                      Salvar Alterações
+                      Save Changes
                     </>
                   )}
                 </motion.button>

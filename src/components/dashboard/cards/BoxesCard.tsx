@@ -7,12 +7,12 @@ import { useRouter } from 'next/navigation';
 import styles from '../../../app/app/styles.module.css';
 
 const boxes = [
-  { id: 1, color: 'bg-red-500', text: 'Telepizza', brand: 'Telepizza', type: 'delivery', date: '2 dias atrás', items: 3 },
-  { id: 2, color: 'bg-red-500', text: 'Telepizza', brand: 'Telepizza', type: 'delivery', date: '2 dias atrás', items: 2 },
-  { id: 3, color: 'bg-slate-800', text: 'Pingo Doce', brand: 'Pingo Doce', type: 'grocery', date: '1 dia atrás', items: 8 },
-  { id: 4, color: 'bg-slate-800', text: 'Pingo Doce', brand: 'Pingo Doce', type: 'grocery', date: '1 dia atrás', items: 5 },
-  { id: 5, color: 'bg-green-600', text: 'Continente', brand: 'Continente', type: 'grocery', date: 'Hoje', items: 12 },
-  { id: 6, color: 'bg-blue-600', text: 'IKEA', brand: 'IKEA', type: 'furniture', date: 'Hoje', items: 1 }
+  { id: 1, color: 'bg-red-500', text: 'Telepizza', brand: 'Telepizza', type: 'delivery', date: '2 days ago', items: 3 },
+  { id: 2, color: 'bg-red-500', text: 'Telepizza', brand: 'Telepizza', type: 'delivery', date: '2 days ago', items: 2 },
+  { id: 3, color: 'bg-slate-800', text: 'Pingo Doce', brand: 'Pingo Doce', type: 'grocery', date: '1 day ago', items: 8 },
+  { id: 4, color: 'bg-slate-800', text: 'Pingo Doce', brand: 'Pingo Doce', type: 'grocery', date: '1 day ago', items: 5 },
+  { id: 5, color: 'bg-green-600', text: 'Continente', brand: 'Continente', type: 'grocery', date: 'Today', items: 12 },
+  { id: 6, color: 'bg-blue-600', text: 'IKEA', brand: 'IKEA', type: 'furniture', date: 'Today', items: 1 }
 ];
 
 const BoxesCard: React.FC = () => {
@@ -54,8 +54,8 @@ const BoxesCard: React.FC = () => {
             <FiBox className="text-green-600" size={20} />
           </motion.div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Últimas Caixas Adicionadas</h2>
-            <p className="text-xs text-gray-600">Suas entregas recentes</p>
+            <h2 className="text-sm font-semibold text-gray-800">Latest Added Boxes</h2>
+            <p className="text-xs text-gray-600">Your recent deliveries</p>
           </div>
         </div>
         
@@ -89,7 +89,7 @@ const BoxesCard: React.FC = () => {
                     {isMobile ? box.brand.slice(0, 8) : box.brand}
                   </div>
                   <div className="text-xs opacity-80 text-center">
-                    {box.items} itens
+                    {box.items} items
                   </div>
                 </div>
 
@@ -97,7 +97,7 @@ const BoxesCard: React.FC = () => {
                 <div className="absolute top-1 right-1">
                   <div className="bg-white/20 backdrop-blur-sm rounded-full px-2 py-1">
                     <span className="text-[0.5rem] text-white font-medium">
-                      {box.date === 'Hoje' ? '🔥' : '📅'}
+                      {box.date === 'Today' ? '🔥' : '📅'}
                     </span>
                   </div>
                 </div>
@@ -108,7 +108,7 @@ const BoxesCard: React.FC = () => {
                   whileHover={{ opacity: 1 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <span className="text-white text-xs font-medium">Ver Detalhes</span>
+                  <span className="text-white text-xs font-medium">View Details</span>
                 </motion.div>
               </div>
             </motion.div>
@@ -124,13 +124,13 @@ const BoxesCard: React.FC = () => {
         >
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <div className="text-sm font-semibold text-green-700">{boxes.length}</div>
-            <div className="text-xs text-green-600">Total de Caixas</div>
+            <div className="text-xs text-green-600">Total Boxes</div>
           </div>
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <div className="text-sm font-semibold text-blue-700">
               {boxes.reduce((sum, box) => sum + box.items, 0)}
             </div>
-            <div className="text-xs text-blue-600">Itens Totais</div>
+            <div className="text-xs text-blue-600">Total Items</div>
           </div>
         </motion.div>
 
@@ -147,7 +147,7 @@ const BoxesCard: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             onClick={() => console.log('Navigate to all boxes')}
           >
-            Ver Todas as Caixas
+            View All Boxes
             <FiArrowRight className="ml-2" size={14} />
           </motion.button>
         </motion.div>

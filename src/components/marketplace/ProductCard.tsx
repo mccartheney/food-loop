@@ -16,8 +16,8 @@ interface ProductCardProps {
 const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isFeatured = false }) => {
   const priceValue = parseFloat(product.price);
   const getPriceCategory = () => {
-    if (priceValue <= 2) return { color: 'badge-success', label: 'Económico' };
-    if (priceValue <= 4) return { color: 'badge-warning', label: 'Médio' };
+    if (priceValue <= 2) return { color: 'badge-success', label: 'Economy' };
+    if (priceValue <= 4) return { color: 'badge-warning', label: 'Medium' };
     return { color: 'badge-error', label: 'Premium' };
   };
 
@@ -74,7 +74,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isFeatured 
             transition={{ delay: 0.3, duration: 0.3 }}
           >
             <span className="badge badge-warning font-bold text-white shadow-lg">
-              ⭐ Destaque
+              ⭐ Featured
             </span>
           </motion.div>
         )}
@@ -147,7 +147,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isFeatured 
           </span>
           
           <div className="text-right">
-            <div className="text-sm text-gray-500">Preço</div>
+            <div className="text-sm text-gray-500">Price</div>
             <div className="text-xl font-bold text-primary">€{product.price}</div>
           </div>
         </motion.div>
@@ -171,7 +171,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onClick, isFeatured 
               onClick?.();
             }}
           >
-            Ver Detalhes
+            View Details
           </motion.button>
         </motion.div>
       </div>

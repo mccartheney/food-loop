@@ -53,10 +53,10 @@ export default function PantryRecentItemsList({
     const diffMs = now.getTime() - addedDate.getTime();
     const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Hoje';
-    if (diffDays === 1) return 'Ontem';
-    if (diffDays <= 7) return `${diffDays} dias atrás`;
-    return addedDate.toLocaleDateString('pt-BR');
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays <= 7) return `${diffDays} days ago`;
+    return addedDate.toLocaleDateString('en-US');
   };
 
   return (
@@ -80,7 +80,7 @@ export default function PantryRecentItemsList({
           >
             <FiClock size={20} />
           </motion.div>
-          Adicionados Recentemente
+          Recently Added
         </motion.h2>
 
         <motion.div 
@@ -92,12 +92,12 @@ export default function PantryRecentItemsList({
           {todayItems.length > 0 && (
             <div className="flex items-center gap-1 text-green-600">
               <FiTrendingUp size={14} />
-              <span className="font-medium">{todayItems.length} hoje</span>
+              <span className="font-medium">{todayItems.length} today</span>
             </div>
           )}
           <div className="flex items-center gap-1 text-blue-600">
             <FiPackage size={14} />
-            <span className="font-medium">{thisWeekItems.length} esta semana</span>
+            <span className="font-medium">{thisWeekItems.length} this week</span>
           </div>
         </motion.div>
       </div>
@@ -135,7 +135,7 @@ export default function PantryRecentItemsList({
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-gray-800">{item.name}</h3>
                 <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700 font-medium">
-                  {item.quantity} {item.quantity === 1 ? 'unidade' : 'unidades'}
+                  {item.quantity} {item.quantity === 1 ? 'unit' : 'units'}
                 </span>
               </div>
               <p className="text-sm text-gray-500 flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function PantryRecentItemsList({
                   animate={{ opacity: 1 }}
                   transition={{ delay: index * 0.1 + 0.5 }}
                 >
-                  Vence: {new Date(item.expire_date).toLocaleDateString('pt-BR')}
+                  Expires: {new Date(item.expire_date).toLocaleDateString('en-US')}
                 </motion.div>
               )}
             </div>
@@ -174,7 +174,7 @@ export default function PantryRecentItemsList({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Ver todos os {items.length} itens
+            See all {items.length} items
           </motion.button>
         </motion.div>
       )}

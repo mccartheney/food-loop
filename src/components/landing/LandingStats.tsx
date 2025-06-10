@@ -17,29 +17,29 @@ const stats: Stat[] = [
   {
     icon: <FaBreadSlice size={32} />,
     value: "30%",
-    label: "Comida Desperdiçada",
-    description: "de toda a comida produzida mundialmente acaba no lixo",
+    label: "Food Wasted",
+    description: "of all food produced globally ends up in the trash",
     color: "text-amber-400"
   },
   {
     icon: <FaCarrot size={32} />,
     value: "8%",
-    label: "Emissões Globais",
-    description: "das emissões de gases de efeito estufa vêm do desperdício alimentar",
+    label: "Global Emissions",
+    description: "of greenhouse gas emissions come from food waste",
     color: "text-orange-400"
   },
   {
     icon: <FaAppleAlt size={32} />,
     value: "1.3B",
-    label: "Toneladas por Ano",
-    description: "de alimentos são desperdiçados anualmente em todo o mundo",
+    label: "Tons per Year",
+    description: "of food is wasted annually worldwide",
     color: "text-red-400"
   }
 ];
 
 const LandingStats: React.FC = () => {
   return (
-    <section className={`${styles.section} ${styles.ctaSection}`} id="sobre">
+    <section className={`${styles.section} ${styles.ctaSection}`} id="about">
       <div className={styles.sectionContainer}>
         {/* Header */}
         <motion.div
@@ -58,21 +58,21 @@ const LandingStats: React.FC = () => {
           >
             <FiBarChart size={16} className="text-red-400" />
             <span className="text-white/90 text-sm font-medium">
-              📊 O Impacto do Desperdício
+              📊 The Impact of Waste
             </span>
           </motion.div>
 
           <h2 className={styles.sectionTitle}>
-            Porque é que o{' '}
+            Why is{' '}
             <span className="bg-gradient-to-r from-red-400 to-orange-400 bg-clip-text text-transparent">
               Food Loop
             </span>{' '}
-            é essencial?
+            essential?
           </h2>
           
           <p className={styles.sectionSubtitle}>
-            O desperdício alimentar é um dos maiores problemas ambientais e sociais do nosso tempo. 
-            Cada ação conta para construir um futuro mais sustentável.
+            Food waste is one of the biggest environmental and social problems of our time. 
+            Every action counts to build a more sustainable future.
           </p>
         </motion.div>
 
@@ -178,10 +178,10 @@ const LandingStats: React.FC = () => {
                 <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiTrendingUp size={24} className="text-red-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">O Problema</h3>
+                <h3 className="text-xl font-bold text-white mb-2">The Problem</h3>
                 <p className="text-white/70 text-sm">
-                  Milhões de toneladas de comida são desperdiçadas enquanto 
-                  milhões de pessoas passam fome.
+                  Millions of tons of food are wasted while 
+                  millions of people go hungry.
                 </p>
               </div>
 
@@ -190,10 +190,10 @@ const LandingStats: React.FC = () => {
                 <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <span className="text-2xl">🍃</span>
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">A Solução</h3>
+                <h3 className="text-xl font-bold text-white mb-2">The Solution</h3>
                 <p className="text-white/70 text-sm">
-                  O Food Loop conecta excesso alimentar com quem precisa, 
-                  criando um ciclo sustentável.
+                  Food Loop connects excess food with those who need it, 
+                  creating a sustainable cycle.
                 </p>
               </div>
 
@@ -202,10 +202,10 @@ const LandingStats: React.FC = () => {
                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                   <FiGlobe size={24} className="text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-2">O Impacto</h3>
+                <h3 className="text-xl font-bold text-white mb-2">The Impact</h3>
                 <p className="text-white/70 text-sm">
-                  Cada refeição salva reduz emissões, poupa recursos 
-                  e alimenta comunidades.
+                  Each saved meal reduces emissions, saves resources 
+                  and feeds communities.
                 </p>
               </div>
             </div>
@@ -219,25 +219,25 @@ const LandingStats: React.FC = () => {
               transition={{ duration: 0.6, delay: 0.8 }}
             >
               <h3 className="text-2xl font-bold text-white mb-4">
-                Faz parte da mudança que o mundo precisa
+                Be part of the change the world needs
               </h3>
               <p className="text-white/80 mb-6 max-w-2xl mx-auto">
-                Junta-te a uma comunidade crescente de pessoas e empresas comprometidas 
-                com a sustentabilidade e a responsabilidade social.
+                Join a growing community of people and businesses committed 
+                to sustainability and social responsibility.
               </p>
               
               <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto text-sm">
                 <div className="bg-white/5 rounded-lg p-4">
-                  <div className="font-semibold text-emerald-400 mb-1">🌱 Ambiental</div>
-                  <div className="text-white/70">Reduz pegada carbono</div>
+                  <div className="font-semibold text-emerald-400 mb-1">🌱 Environmental</div>
+                  <div className="text-white/70">Reduces carbon footprint</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4">
                   <div className="font-semibold text-blue-400 mb-1">🤝 Social</div>
-                  <div className="text-white/70">Combate a fome</div>
+                  <div className="text-white/70">Fights hunger</div>
                 </div>
                 <div className="bg-white/5 rounded-lg p-4">
-                  <div className="font-semibold text-purple-400 mb-1">💰 Económico</div>
-                  <div className="text-white/70">Poupa dinheiro</div>
+                  <div className="font-semibold text-purple-400 mb-1">💰 Economic</div>
+                  <div className="text-white/70">Saves money</div>
                 </div>
               </div>
             </motion.div>

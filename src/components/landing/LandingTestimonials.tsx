@@ -17,63 +17,63 @@ interface Testimonial {
 const testimonials: Testimonial[] = [
   {
     name: "Ana Silva",
-    role: "Mãe de família",
-    company: "Lisboa",
+    role: "Family Mom",
+    company: "Lisbon",
     avatar: "AS",
     rating: 5,
-    quote: "O Food Loop mudou completamente a forma como giro a minha despensa. Já poupei mais de 200€ este mês e ainda ajudei 3 famílias da minha zona!",
-    impact: "200€ poupados • 15kg salvos"
+    quote: "Food Loop completely changed how I manage my pantry. I've already saved over €200 this month and helped 3 families in my area!",
+    impact: "€200 saved • 15kg rescued"
   },
   {
     name: "João Santos",
-    role: "Chef Proprietário",
-    company: "Restaurante Sabores",
+    role: "Chef Owner",
+    company: "Flavors Restaurant",
     avatar: "JS",
     rating: 5,
-    quote: "Antes desperdiçávamos 30% da nossa produção. Com o Food Loop conseguimos reduzir para 5% e ainda criámos uma nova fonte de receita com as caixas de desconto.",
-    impact: "25% menos desperdício • +500€/mês"
+    quote: "Before, we wasted 30% of our production. With Food Loop we've reduced this to 5% and even created a new revenue stream with discount boxes.",
+    impact: "25% less waste • +€500/month"
   },
   {
     name: "Maria Costa",
-    role: "Coordenadora",
-    company: "ONG Alimentar Mais",
+    role: "Coordinator",
+    company: "Feed More NGO",
     avatar: "MC",
     rating: 5,
-    quote: "A plataforma facilitou imenso o nosso trabalho. Recebemos doações regulares de 12 empresas locais e conseguimos alimentar mais 200 pessoas por semana.",
-    impact: "200 pessoas/semana • 12 parcerias"
+    quote: "The platform has made our work so much easier. We receive regular donations from 12 local businesses and can feed an additional 200 people each week.",
+    impact: "200 people/week • 12 partnerships"
   },
   {
     name: "Pedro Oliveira",
-    role: "Gestor de Sustentabilidade",
-    company: "SuperMercado Verde",
+    role: "Sustainability Manager",
+    company: "Green Supermarket",
     avatar: "PO",
     rating: 5,
-    quote: "Os relatórios do Food Loop ajudaram-nos a identificar padrões de desperdício. Reduzimos custos em 15% e melhorámos a nossa imagem junto dos clientes.",
-    impact: "15% redução custos • +40% satisfação"
+    quote: "Food Loop reports helped us identify waste patterns. We reduced costs by 15% and improved our image with customers.",
+    impact: "15% cost reduction • +40% satisfaction"
   },
   {
     name: "Carla Ferreira",
-    role: "Estudante Universitária",
+    role: "University Student",
     company: "Porto",
     avatar: "CF",
     rating: 5,
-    quote: "Como estudante, cada euro conta. Conseguir comida de qualidade a preços acessíveis através das caixas de desconto tem sido uma bênção!",
-    impact: "150€ poupados • 20 refeições/mês"
+    quote: "As a student, every euro counts. Getting quality food at affordable prices through discount boxes has been a blessing!",
+    impact: "€150 saved • 20 meals/month"
   },
   {
     name: "Rui Marques",
-    role: "Proprietário",
-    company: "Padaria Central",
+    role: "Owner",
+    company: "Central Bakery",
     avatar: "RM",
     rating: 4,
-    quote: "Excelente forma de dar uma segunda vida aos nossos produtos do dia anterior. Os clientes adoram e nós reduzimos o desperdício a zero!",
-    impact: "Zero desperdício • +50 clientes/dia"
+    quote: "Excellent way to give our day-old products a second life. Customers love it and we've reduced waste to zero!",
+    impact: "Zero waste • +50 customers/day"
   }
 ];
 
 const LandingTestimonials: React.FC = () => {
   return (
-    <section className={styles.section} id="testemunhos">
+    <section className={styles.section} id="testimonials">
       <div className={styles.sectionContainer}>
         {/* Header */}
         <motion.div
@@ -92,20 +92,20 @@ const LandingTestimonials: React.FC = () => {
           >
             <FiUsers size={16} className="text-green-400" />
             <span className="text-white/90 text-sm font-medium">
-              💬 Testemunhos Reais
+              💬 Real Testimonials
             </span>
           </motion.div>
 
           <h2 className={styles.sectionTitle}>
-            O que a nossa{' '}
+            What our{' '}
             <span className="bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">
-              comunidade diz
+              community says
             </span>
           </h2>
           
           <p className={styles.sectionSubtitle}>
-            Histórias reais de pessoas e empresas que estão a fazer a diferença 
-            através do Food Loop. Junta-te a mais de 500 utilizadores satisfeitos.
+            Real stories from people and businesses making a difference 
+            through Food Loop. Join over 500 satisfied users.
           </p>
         </motion.div>
 
@@ -200,7 +200,7 @@ const LandingTestimonials: React.FC = () => {
                 transition={{ delay: index * 0.1 + 0.8 }}
               >
                 <div className="text-center">
-                  <div className="text-xs text-white/50 mb-1">Impacto Real:</div>
+                  <div className="text-xs text-white/50 mb-1">Real Impact:</div>
                   <div className="text-sm font-medium text-emerald-400">
                     {testimonial.impact}
                   </div>
@@ -233,7 +233,7 @@ const LandingTestimonials: React.FC = () => {
         >
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 max-w-4xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-6">
-              Junta-te a uma comunidade em crescimento
+              Join a growing community
             </h3>
             
             {/* Stats */}
@@ -247,7 +247,7 @@ const LandingTestimonials: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl font-bold text-emerald-400 mb-1">500+</div>
-                <div className="text-white/70 text-sm">Utilizadores Activos</div>
+                <div className="text-white/70 text-sm">Active Users</div>
               </motion.div>
               
               <motion.div 
@@ -259,7 +259,7 @@ const LandingTestimonials: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl font-bold text-blue-400 mb-1">50+</div>
-                <div className="text-white/70 text-sm">Empresas Parceiras</div>
+                <div className="text-white/70 text-sm">Partner Businesses</div>
               </motion.div>
               
               <motion.div 
@@ -271,7 +271,7 @@ const LandingTestimonials: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl font-bold text-purple-400 mb-1">2.5T</div>
-                <div className="text-white/70 text-sm">Comida Salva</div>
+                <div className="text-white/70 text-sm">Food Saved</div>
               </motion.div>
               
               <motion.div 
@@ -283,7 +283,7 @@ const LandingTestimonials: React.FC = () => {
                 whileHover={{ scale: 1.05 }}
               >
                 <div className="text-3xl font-bold text-amber-400 mb-1">4.8★</div>
-                <div className="text-white/70 text-sm">Avaliação Média</div>
+                <div className="text-white/70 text-sm">Average Rating</div>
               </motion.div>
             </div>
 
@@ -291,15 +291,15 @@ const LandingTestimonials: React.FC = () => {
             <div className="flex flex-wrap justify-center items-center gap-8 text-white/60 text-sm">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                <span>Verificado por utilizadores reais</span>
+                <span>Verified by real users</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                <span>Dados atualizados em tempo real</span>
+                <span>Data updated in real-time</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                <span>Comunidade activa e crescente</span>
+                <span>Active and growing community</span>
               </div>
             </div>
           </div>

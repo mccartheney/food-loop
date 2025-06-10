@@ -9,46 +9,46 @@ import styles from '../../../app/app/styles.module.css';
 const historyItems = [
   { 
     id: 1, 
-    name: 'Compra no Pingo Doce', 
+    name: 'Purchase at Pingo Doce', 
     value: '26',
     type: 'grocery',
-    date: '2 dias atrás',
+    date: '2 days ago',
     status: 'completed',
     icon: '🛒'
   },
   { 
     id: 2, 
-    name: 'Receita Pasta Primavera', 
+    name: 'Pasta Primavera Recipe', 
     value: '14',
     type: 'recipe',
-    date: '3 dias atrás',
+    date: '3 days ago',
     status: 'completed',
     icon: '👨‍🍳'
   },
   { 
     id: 3, 
-    name: 'Adição à Despensa', 
+    name: 'Addition to Pantry', 
     value: '18',
     type: 'pantry',
-    date: '4 dias atrás',
+    date: '4 days ago',
     status: 'completed',
     icon: '📦'
   },
   { 
     id: 4, 
-    name: 'Marketplace - Arroz', 
+    name: 'Marketplace - Rice', 
     value: '20',
     type: 'marketplace',
-    date: '5 dias atrás',
+    date: '5 days ago',
     status: 'pending',
     icon: '🛍️'
   },
   { 
     id: 5, 
-    name: 'Caixa Continente', 
+    name: 'Continente Box', 
     value: '15',
     type: 'box',
-    date: '1 semana atrás',
+    date: '1 week ago',
     status: 'completed',
     icon: '📋'
   },
@@ -104,8 +104,8 @@ const HistoricCard: React.FC = () => {
             <FiClock className="text-orange-600" size={20} />
           </motion.div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Histórico de Atividades</h2>
-            <p className="text-xs text-gray-600">Suas ações recentes</p>
+            <h2 className="text-sm font-semibold text-gray-800">Activity History</h2>
+            <p className="text-xs text-gray-600">Your recent actions</p>
           </div>
         </div>
         
@@ -158,7 +158,7 @@ const HistoricCard: React.FC = () => {
                   {item.value}
                 </div>
                 <div className="text-xs text-gray-500">
-                  itens
+                  items
                 </div>
               </div>
             </motion.li>
@@ -177,13 +177,13 @@ const HistoricCard: React.FC = () => {
               <div className="text-lg font-bold text-orange-600">
                 {historyItems.filter(item => item.status === 'completed').length}
               </div>
-              <div className="text-xs text-gray-600">Concluídas</div>
+              <div className="text-xs text-gray-600">Completed</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-yellow-600">
                 {historyItems.filter(item => item.status === 'pending').length}
               </div>
-              <div className="text-xs text-gray-600">Pendentes</div>
+              <div className="text-xs text-gray-600">Pending</div>
             </div>
           </div>
           
@@ -193,7 +193,7 @@ const HistoricCard: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             onClick={() => console.log('Navigate to full history')}
           >
-            Ver Histórico Completo
+            View Full History
             <FiArrowRight className="ml-2" size={14} />
           </motion.button>
         </motion.div>

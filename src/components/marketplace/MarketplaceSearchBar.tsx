@@ -48,15 +48,15 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
             <FiSearch className="text-blue-500" size={24} />
           </motion.div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Encontre Produtos</h2>
+            <h2 className="text-xl font-bold text-gray-800">Find Products</h2>
             <p className="text-sm text-gray-600">
               {searchTerm ? (
                 <>
-                  Mostrando <span className="font-semibold text-blue-600">{filteredCount}</span> de {totalProducts} produtos
+                  Showing <span className="font-semibold text-blue-600">{filteredCount}</span> of {totalProducts} products
                 </>
               ) : (
                 <>
-                  Explore <span className="font-semibold text-blue-600">{totalProducts}</span> produtos disponíveis
+                  Explore <span className="font-semibold text-blue-600">{totalProducts}</span> available products
                 </>
               )}
             </p>
@@ -72,7 +72,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
         >
           <div className="flex items-center gap-2 bg-blue-50 px-3 py-1 rounded-full">
             <FiShoppingBag size={16} className="text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">{totalProducts} produtos</span>
+            <span className="text-sm font-medium text-blue-700">{totalProducts} products</span>
           </div>
           {searchTerm && (
             <motion.div 
@@ -82,7 +82,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
               transition={{ delay: 0.9 }}
             >
               <FiFilter size={16} className="text-green-600" />
-              <span className="text-sm font-medium text-green-700">{filteredCount} filtrados</span>
+              <span className="text-sm font-medium text-green-700">{filteredCount} filtered</span>
             </motion.div>
           )}
         </motion.div>
@@ -101,7 +101,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
           <div className="flex-1 relative">
             <motion.input
               type="text"
-              placeholder="Pesquisar por produto, localização..."
+              placeholder="Search by product, location..."
               value={searchTerm}
               onChange={(e) => onSearchTermChange(e.target.value)}
               className={`${styles.searchEnhanced} w-full pl-12 pr-12 py-3 rounded-xl text-gray-800 placeholder-gray-500`}
@@ -145,9 +145,9 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
               onChange={(e) => onSearchCategoryChange(e.target.value as 'all' | 'name' | 'location')}
               className="select select-bordered w-full bg-white border-2 border-blue-200 focus:border-blue-500 rounded-xl"
             >
-              <option value="all">Buscar em tudo</option>
-              <option value="name">Apenas produtos</option>
-              <option value="location">Apenas localizações</option>
+              <option value="all">Search everything</option>
+              <option value="name">Products only</option>
+              <option value="location">Locations only</option>
             </select>
           </motion.div>
 
@@ -162,7 +162,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
             whileTap={{ scale: 0.95 }}
           >
             <FiSearch className="mr-2" />
-            Buscar
+            Search
           </motion.button>
         </div>
 
@@ -174,7 +174,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <span className="text-sm text-gray-600 mr-2">Populares:</span>
+            <span className="text-sm text-gray-600 mr-2">Popular:</span>
             {['Rice', 'Beans', 'Pasta', 'Tomatoes', 'Cheese'].map((suggestion, index) => (
               <motion.button
                 key={suggestion}
@@ -205,9 +205,9 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
             <div className="flex items-center gap-2">
               <FiFilter className="text-blue-600" size={16} />
               <span className="text-sm text-blue-700">
-                Buscando por "<span className="font-semibold">{searchTerm}</span>" 
+                Searching for "<span className="font-semibold">{searchTerm}</span>" 
                 {searchCategory !== 'all' && (
-                  <> em {searchCategory === 'name' ? 'produtos' : 'localizações'}</>
+                  <> in {searchCategory === 'name' ? 'products' : 'locations'}</>
                 )}
               </span>
             </div>
@@ -219,7 +219,7 @@ const MarketplaceSearchBar: React.FC<MarketplaceSearchBarProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Limpar filtro
+              Clear filter
             </motion.button>
           </motion.div>
         )}

@@ -30,7 +30,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
   onViewProfile, 
   onMessage,
   index,
-  isOnline = Math.random() > 0.3 // Simulação de status online
+  isOnline = Math.random() > 0.3 // Simulation of online status
 }) => {
   return (
     <motion.div
@@ -105,7 +105,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
               <span className={`text-xs font-medium ${
                 isOnline ? 'text-green-600' : 'text-gray-500'
               }`}>
-                {isOnline ? '🟢 Online agora' : '⚫ Offline'}
+                {isOnline ? '🟢 Online now' : '⚫ Offline'}
               </span>
             </div>
           </div>
@@ -119,10 +119,10 @@ const FriendCard: React.FC<FriendCardProps> = ({
               className={`p-3 rounded-xl ${styles.primaryButton} flex items-center gap-2`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              title="Enviar mensagem"
+              title="Send message"
             >
               <FiMessageCircle size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Mensagem</span>
+              <span className="hidden sm:inline text-sm font-medium">Message</span>
             </motion.button>
           )}
           
@@ -131,10 +131,10 @@ const FriendCard: React.FC<FriendCardProps> = ({
             className={`p-3 rounded-xl ${styles.secondaryButton} flex items-center gap-2`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Ver perfil"
+            title="View profile"
           >
             <FiEye size={16} />
-            <span className="hidden sm:inline text-sm font-medium">Perfil</span>
+            <span className="hidden sm:inline text-sm font-medium">Profile</span>
           </motion.button>
           
           <motion.button
@@ -142,10 +142,10 @@ const FriendCard: React.FC<FriendCardProps> = ({
             className={`p-3 rounded-xl ${styles.dangerButton} flex items-center gap-2`}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Remover amigo"
+            title="Remove friend"
           >
             <FiUserMinus size={16} />
-            <span className="hidden sm:inline text-sm font-medium">Remover</span>
+            <span className="hidden sm:inline text-sm font-medium">Remove</span>
           </motion.button>
         </div>
       </div>

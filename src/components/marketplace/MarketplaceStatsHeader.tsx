@@ -40,9 +40,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
   const stats = [
     {
       id: 'total',
-      label: 'Total de Produtos',
+      label: 'Total Products',
       value: totalProducts,
-      subValue: `Disponíveis agora`,
+      subValue: `Available now`,
       icon: FiShoppingBag,
       color: 'text-blue-600',
       bgClass: styles.statsTotal,
@@ -50,7 +50,7 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
     },
     {
       id: 'locations',
-      label: 'Localizações',
+      label: 'Locations',
       value: uniqueLocations.length,
       subValue: `${mostCommonLocation.location} (${mostCommonLocation.count})`,
       icon: FiMapPin,
@@ -60,9 +60,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
     },
     {
       id: 'economic',
-      label: 'Económicos',
+      label: 'Economy',
       value: economicProducts.length,
-      subValue: 'Até €2.00',
+      subValue: 'Up to €2.00',
       icon: FiDollarSign,
       color: 'text-green-600',
       bgClass: styles.statsEconomic,
@@ -72,7 +72,7 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
       id: 'premium',
       label: 'Premium',
       value: premiumProducts.length,
-      subValue: 'Acima de €4.00',
+      subValue: 'Above €4.00',
       icon: FiStar,
       color: 'text-purple-600',
       bgClass: styles.statsPremium,
@@ -80,9 +80,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
     },
     {
       id: 'average',
-      label: 'Preço Médio',
+      label: 'Average Price',
       value: `€${averagePrice}`,
-      subValue: 'Valor médio',
+      subValue: 'Average value',
       icon: FiTrendingUp,
       color: 'text-indigo-600',
       bgClass: styles.statsCategories,
@@ -109,7 +109,7 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
             Marketplace FoodLoop
           </h1>
           <p className="text-gray-600">
-            Descubra produtos frescos e ingredientes da sua comunidade
+            Discover fresh products and ingredients from your community
           </p>
         </div>
         
@@ -122,15 +122,15 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
         >
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600">{totalProducts}</div>
-            <div className="text-xs text-gray-600">Produtos</div>
+            <div className="text-xs text-gray-600">Products</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-orange-600">{uniqueLocations.length}</div>
-            <div className="text-xs text-gray-600">Locais</div>
+            <div className="text-xs text-gray-600">Locations</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600">€{averagePrice}</div>
-            <div className="text-xs text-gray-600">Médio</div>
+            <div className="text-xs text-gray-600">Average</div>
           </div>
         </motion.div>
       </div>
@@ -202,9 +202,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
           <div className="flex items-center gap-3">
             <FiDollarSign className="text-green-600" size={20} />
             <div>
-              <div className="font-medium">Distribuição de Preços</div>
+              <div className="font-medium">Price Distribution</div>
               <div className="text-sm opacity-80">
-                {Math.round((economicProducts.length / totalProducts) * 100)}% económicos, {Math.round((premiumProducts.length / totalProducts) * 100)}% premium
+                {Math.round((economicProducts.length / totalProducts) * 100)}% economy, {Math.round((premiumProducts.length / totalProducts) * 100)}% premium
               </div>
             </div>
           </div>
@@ -220,9 +220,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
           <div className="flex items-center gap-3">
             <FiMapPin className="text-orange-600" size={20} />
             <div>
-              <div className="font-medium">Disponibilidade Local</div>
+              <div className="font-medium">Local Availability</div>
               <div className="text-sm opacity-80">
-                {uniqueLocations.length} localizações ativas
+                {uniqueLocations.length} active locations
               </div>
             </div>
           </div>
@@ -238,9 +238,9 @@ const MarketplaceStatsHeader: React.FC<MarketplaceStatsHeaderProps> = ({ product
           <div className="flex items-center gap-3">
             <FiTrendingUp className="text-green-600" size={20} />
             <div>
-              <div className="font-medium">Marketplace Ativo 🎉</div>
+              <div className="font-medium">Active Marketplace 🎉</div>
               <div className="text-sm opacity-80">
-                {totalProducts} produtos disponíveis para compra
+                {totalProducts} products available for purchase
               </div>
             </div>
           </div>

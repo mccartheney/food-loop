@@ -2,8 +2,8 @@ import AuthBackground from '@/components/auth/AuthBackground';
 import ModernLoginForm from '@/components/auth/ModernLoginForm';
 
 export const metadata = {
-  title: 'Entrar - Food Loop',
-  description: 'Entre na sua conta Food Loop',
+  title: 'Login - Food Loop',
+  description: 'Sign in to your Food Loop account',
 };
 
 export default function LoginPage() {
