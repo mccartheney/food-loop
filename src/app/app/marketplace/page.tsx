@@ -4,7 +4,7 @@ import { useState, useMemo, FormEvent, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiShoppingBag, FiFilter, FiGrid, FiList, FiSearch, FiX, FiMapPin, FiDollarSign, FiRefreshCw } from 'react-icons/fi';
+import { FiShoppingBag, FiFilter, FiGrid, FiList, FiSearch, FiX, FiMapPin, FiDollarSign, FiRefreshCw, FiPlus } from 'react-icons/fi';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import ProductGrid from '@/components/marketplace/ProductGrid';
 import MarketplaceListView from '@/components/marketplace/MarketplaceListView';
@@ -184,24 +184,42 @@ export default function MarketplacePage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Stats Header with Create Trade Button */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex-1">
-            <MarketplaceStatsHeader products={MOCK_PRODUCTS} />
+        {/* Stats Header */}
+        <MarketplaceStatsHeader products={MOCK_PRODUCTS} />
+
+        {/* Enhanced Create Trade Section */}
+        <motion.div 
+          className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-2xl p-6 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                🤝 Start Trading Today
+              </h3>
+              <p className="text-gray-600 text-sm">
+                Turn your pantry items into valuable exchanges with your community
+              </p>
+            </div>
+            <motion.button
+              onClick={() => router.push('/app/marketplace/create')}
+              className="btn btn-primary btn-lg shadow-lg"
+              whileHover={{ 
+                scale: 1.05,
+                boxShadow: "0 10px 25px rgba(99, 102, 241, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <FiPlus className="mr-2" />
+              Create Trade
+            </motion.button>
           </div>
-          <motion.button
-            onClick={() => router.push('/app/marketplace/create')}
-            className="btn btn-primary btn-lg"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <FiShoppingBag className="mr-2" />
-            Create Trade
-          </motion.button>
-        </div>
+        </motion.div>
 
         {/* Search Bar */}
         <MarketplaceSearchBar
