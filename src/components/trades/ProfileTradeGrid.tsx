@@ -26,6 +26,9 @@ interface Trade {
   wantedItems?: string;
   participants?: any[];
   isOwner: boolean;
+  ownerId?: string;
+  ownerName?: string;
+  participationType?: 'creator' | 'participant' | 'none';
 }
 
 interface ProfileTradeGridProps {

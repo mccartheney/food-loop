@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -213,6 +213,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [friendsList, setFriendsList] = useState<Friend[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
   const handleFriendClick = (friendId: string) => {
     router.push(`/app/profile/${friendId}`);
@@ -228,6 +229,25 @@ export default function ProfilePage() {
       setFriendsList(convertProfilesToFriends());
     }
   }, [isFriendsModalOpen]);
+
+  // Fetch current user profile data
+  useEffect(() => {
+    const fetchCurrentUserProfile = async () => {
+      if (session?.user?.email) {
+        try {
+          const response = await fetch('/api/me');
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUserProfile(userData);
+          }
+        } catch (error) {
+          console.error('Error fetching current user profile:', error);
+        }
+      }
+    };
+
+    fetchCurrentUserProfile();
+  }, [session]);
 
   useEffect(() => {
     setLoading(true);
@@ -335,7 +355,7 @@ export default function ProfilePage() {
       <ProfileTradeGrid
         userId={id || ''}
         userEmail={session?.user?.email || undefined}
-        isOwnProfile={id === 'current-user'} // This will be updated when we have proper user matching
+        isOwnProfile={currentUserProfile?.id === id}
       />
 
       {/* Using the imported FriendModal component */}
