@@ -62,11 +62,10 @@ export async function GET(
       title: recipe.name,
       subtitle: recipe.description,
       imageUrl: recipe.img || '/images/placeholder-recipe.jpg',
-      cookTime: extractCookTime(steps),
-      rating: 85, // Default rating for now
+      cookTime: extractCookTime(recipe.description),
       difficulty: extractDifficulty(recipe.description) as 'easy' | 'medium' | 'hard',
       servings: extractServings(recipe.description),
-      isPopular: recipe.favorites.length > 2,
+      isPopular: recipe.favorites.length >= 2,
       isFavorited,
       category: extractCategory(recipe.description),
       author: recipe.profile?.user.name || 'Unknown',
@@ -228,16 +227,11 @@ export async function DELETE(
   }
 }
 
-// Helper functions (same as in main route)
-function extractCookTime(steps: any): number {
-  if (Array.isArray(steps)) {
-    const timePattern = /(\d+)\s*(min|minutos?|minutes?)/i;
-    for (const step of steps) {
-      const match = step.match?.(timePattern);
-      if (match) return parseInt(match[1]);
-    }
-  }
-  return 30; // Default
+// Helper functions
+function extractCookTime(description: string): number {
+  const timePattern = /Tempo:\s*(\d+)\s*min/i;
+  const match = description.match(timePattern);
+  return match ? parseInt(match[1]) : 30; // Default
 }
 
 function extractDifficulty(description: string): string {
@@ -247,15 +241,23 @@ function extractDifficulty(description: string): string {
 }
 
 function extractServings(description: string): number {
-  const servingsPattern = /(\d+)\s*(porções?|servings?)/i;
+  const servingsPattern = /Porções:\s*(\d+)/i;
   const match = description.match(servingsPattern);
   return match ? parseInt(match[1]) : 2;
 }
 
 function extractCategory(description: string): string {
+  const categoryPattern = /Categoria:\s*([^|]+)/i;
+  const match = description.match(categoryPattern);
+  if (match) {
+    return match[1].trim();
+  }
+  
+  // Fallback to old method for existing recipes
   if (description.toLowerCase().includes('sobremesa') || description.toLowerCase().includes('dessert')) return 'Sobremesa';
   if (description.toLowerCase().includes('sopa') || description.toLowerCase().includes('soup')) return 'Sopa';
   if (description.toLowerCase().includes('lanche') || description.toLowerCase().includes('snack')) return 'Lanche';
   if (description.toLowerCase().includes('acompanhamento') || description.toLowerCase().includes('side')) return 'Acompanhamento';
+  if (description.toLowerCase().includes('entrada')) return 'Entrada';
   return 'Prato Principal';
 }

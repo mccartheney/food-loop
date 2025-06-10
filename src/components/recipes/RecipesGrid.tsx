@@ -10,7 +10,6 @@ interface Recipe {
   subtitle: string;
   imageUrl: string;
   cookTime: number;
-  rating: number;
   difficulty: 'easy' | 'medium' | 'hard';
   servings: number;
   isPopular?: boolean;

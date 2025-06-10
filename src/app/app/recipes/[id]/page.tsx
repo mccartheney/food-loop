@@ -14,7 +14,6 @@ interface Recipe {
   subtitle: string;
   imageUrl: string;
   cookTime: number;
-  rating: number;
   difficulty: 'easy' | 'medium' | 'hard';
   servings: number;
   ingredients: string[];
@@ -288,7 +287,7 @@ export default function RecipeDetailPage() {
             <div className="p-8">
               {/* Meta info */}
               <motion.div 
-                className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 p-6 bg-gray-50 rounded-2xl"
+                className="grid grid-cols-3 gap-6 mb-8 p-6 bg-gray-50 rounded-2xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
@@ -313,13 +312,6 @@ export default function RecipeDetailPage() {
                   </div>
                   <div className="text-2xl font-bold text-gray-800">{difficultyMap[recipe.difficulty].label}</div>
                   <div className="text-sm text-gray-500">dificuldade</div>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full mx-auto mb-2">
-                    <FiStar className="text-yellow-600 fill-current" size={24} />
-                  </div>
-                  <div className="text-2xl font-bold text-gray-800">{(recipe.rating / 20).toFixed(1)}</div>
-                  <div className="text-sm text-gray-500">avaliação</div>
                 </div>
               </motion.div>
 

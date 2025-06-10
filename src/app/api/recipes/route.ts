@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category');
     const difficulty = searchParams.get('difficulty');
     const search = searchParams.get('search');
+    const cookTime = searchParams.get('cookTime');
+    const servings = searchParams.get('servings');
+    const quickFilter = searchParams.get('quickFilter'); // popular, quick, easy, top-rated
     const userId = searchParams.get('userId'); // For getting user's recipes
     const userEmail = searchParams.get('email'); // For favorite checking
 
@@ -27,6 +30,14 @@ export async function GET(request: NextRequest) {
         { name: { contains: search, mode: 'insensitive' } },
         { description: { contains: search, mode: 'insensitive' } }
       ];
+    }
+
+    if (difficulty) {
+      where.description = {
+        ...where.description,
+        contains: difficulty === 'easy' ? 'fácil' : difficulty === 'hard' ? 'difícil' : 'médio',
+        mode: 'insensitive'
+      };
     }
 
     if (userId) {
@@ -82,7 +93,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform recipes to match frontend interface
-    const transformedRecipes = recipes.map(recipe => {
+    let transformedRecipes = recipes.map(recipe => {
       const steps = typeof recipe.steps === 'string' ? JSON.parse(recipe.steps) : recipe.steps;
       const isFavorited = currentUser?.profile 
         ? recipe.favorites.some(fav => fav.id === currentUser.profile?.id)
@@ -93,11 +104,10 @@ export async function GET(request: NextRequest) {
         title: recipe.name,
         subtitle: recipe.description,
         imageUrl: recipe.img || '/images/placeholder-recipe.jpg',
-        cookTime: extractCookTime(steps),
-        rating: 85, // Default rating for now
+        cookTime: extractCookTime(recipe.description),
         difficulty: extractDifficulty(recipe.description) as 'easy' | 'medium' | 'hard',
         servings: extractServings(recipe.description),
-        isPopular: recipe.favorites.length > 2,
+        isPopular: recipe.favorites.length >= 2,
         isFavorited,
         category: extractCategory(recipe.description),
         author: recipe.profile?.user.name || 'Unknown',
@@ -107,6 +117,38 @@ export async function GET(request: NextRequest) {
         favoritesCount: recipe.favorites.length
       };
     });
+
+    // Apply frontend filters
+    if (cookTime) {
+      const [min, max] = cookTime.split('-').map(Number);
+      transformedRecipes = transformedRecipes.filter(recipe => 
+        max ? recipe.cookTime >= min && recipe.cookTime <= max : recipe.cookTime >= min
+      );
+    }
+
+    if (servings) {
+      const [min, max] = servings.split('-').map(Number);
+      transformedRecipes = transformedRecipes.filter(recipe => 
+        max ? recipe.servings >= min && recipe.servings <= max : recipe.servings >= min
+      );
+    }
+
+    if (quickFilter) {
+      switch (quickFilter) {
+        case 'popular':
+          transformedRecipes = transformedRecipes.filter(recipe => recipe.isPopular);
+          break;
+        case 'quick':
+          transformedRecipes = transformedRecipes.filter(recipe => recipe.cookTime <= 20);
+          break;
+        case 'easy':
+          transformedRecipes = transformedRecipes.filter(recipe => recipe.difficulty === 'easy');
+          break;
+        case 'top-rated':
+          transformedRecipes = transformedRecipes.filter(recipe => recipe.favoritesCount > 0);
+          break;
+      }
+    }
 
     return NextResponse.json({
       success: true,
@@ -125,7 +167,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, name, description, steps, ingredients, img, cookTime, difficulty, servings } = body;
+    const { email, name, description, steps, ingredients, img, cookTime, difficulty, servings, category } = body;
 
     // Validate required fields
     if (!email) {
@@ -159,7 +201,7 @@ export async function POST(request: NextRequest) {
     const recipe = await prisma.recipe.create({
       data: {
         name,
-        description: `${description} | Tempo: ${cookTime || 30}min | Dificuldade: ${difficulty || 'medium'} | Porções: ${servings || 2}`,
+        description: `${description} | Categoria: ${category || 'Prato Principal'} | Tempo: ${cookTime || 30}min | Dificuldade: ${difficulty || 'medium'} | Porções: ${servings || 2}`,
         steps: JSON.stringify(Array.isArray(steps) ? steps : [steps]),
         img: img || null,
         profileId: user.profile.id
@@ -219,15 +261,10 @@ export async function POST(request: NextRequest) {
 }
 
 // Helper functions
-function extractCookTime(steps: any): number {
-  if (Array.isArray(steps)) {
-    const timePattern = /(\d+)\s*(min|minutos?|minutes?)/i;
-    for (const step of steps) {
-      const match = step.match?.(timePattern);
-      if (match) return parseInt(match[1]);
-    }
-  }
-  return 30; // Default
+function extractCookTime(description: string): number {
+  const timePattern = /Tempo:\s*(\d+)\s*min/i;
+  const match = description.match(timePattern);
+  return match ? parseInt(match[1]) : 30; // Default
 }
 
 function extractDifficulty(description: string): string {
@@ -243,9 +280,17 @@ function extractServings(description: string): number {
 }
 
 function extractCategory(description: string): string {
+  const categoryPattern = /Categoria:\s*([^|]+)/i;
+  const match = description.match(categoryPattern);
+  if (match) {
+    return match[1].trim();
+  }
+  
+  // Fallback to old method for existing recipes
   if (description.toLowerCase().includes('sobremesa') || description.toLowerCase().includes('dessert')) return 'Sobremesa';
   if (description.toLowerCase().includes('sopa') || description.toLowerCase().includes('soup')) return 'Sopa';
   if (description.toLowerCase().includes('lanche') || description.toLowerCase().includes('snack')) return 'Lanche';
   if (description.toLowerCase().includes('acompanhamento') || description.toLowerCase().includes('side')) return 'Acompanhamento';
+  if (description.toLowerCase().includes('entrada')) return 'Entrada';
   return 'Prato Principal';
 }

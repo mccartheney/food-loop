@@ -12,7 +12,6 @@ interface RecipeCardProps {
     subtitle: string;
     imageUrl: string;
     cookTime: number;
-    rating: number;
     difficulty: 'easy' | 'medium' | 'hard';
     servings: number;
     isPopular?: boolean;
@@ -142,25 +141,14 @@ const RecipeCard: React.FC<RecipeCardProps> = ({
         <p className={styles.recipeSubtitle}>{recipe.category}</p>
         
         <div className={styles.recipeFooter}>
-          <div className={styles.recipeRating}>
-            <div className="flex items-center gap-1">
-              {[...Array(5)].map((_, i) => (
-                <FiStar
-                  key={i}
-                  size={14}
-                  className={i < Math.floor(recipe.rating / 20) ? 'text-yellow-400 fill-current' : 'text-gray-300'}
-                />
-              ))}
-            </div>
-            <span className={styles.ratingNumber}>
-              {(recipe.rating / 20).toFixed(1)}
-            </span>
-          </div>
-          
           <div className="flex items-center gap-4 text-sm text-gray-500">
             <div className="flex items-center gap-1">
               <FiUser size={14} />
-              <span>{recipe.servings}</span>
+              <span>{recipe.servings} porções</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <FiClock size={14} />
+              <span>{recipe.cookTime}min</span>
             </div>
           </div>
         </div>

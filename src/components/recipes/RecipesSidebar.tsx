@@ -7,18 +7,37 @@ interface RecipeSidebarProps {
   favorites: string[];
   onCategorySelect?: (category: string) => void;
   onDifficultySelect?: (difficulty: string) => void;
+  onQuickFilterSelect?: (filter: string) => void;
+  onCookTimeSelect?: (cookTime: string) => void;
+  onServingsSelect?: (servings: string) => void;
+  onSearchChange?: (search: string) => void;
   selectedCategories?: string[];
   selectedDifficulties?: string[];
+  selectedQuickFilters?: string[];
+  selectedCookTime?: string[];
+  selectedServings?: string[];
 }
 
 const RecipeSidebar: React.FC<RecipeSidebarProps> = ({ 
   favorites,
   onCategorySelect,
   onDifficultySelect,
+  onQuickFilterSelect,
+  onCookTimeSelect,
+  onServingsSelect,
+  onSearchChange,
   selectedCategories = [],
-  selectedDifficulties = []
+  selectedDifficulties = [],
+  selectedQuickFilters = [],
+  selectedCookTime = [],
+  selectedServings = []
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    onSearchChange?.(value);
+  };
   
   const quickFilters = [
     { icon: FiTrendingUp, label: 'Populares', value: 'popular', color: '#10b981' },
@@ -28,14 +47,27 @@ const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
   ];
 
   const categories = [
-    'Pequeno-almoço', 'Almoço', 'Jantar', 'Sobremesa', 
-    'Lanche', 'Entrada', 'Prato Principal', 'Sopa'
+    'Prato Principal', 'Sobremesa', 'Lanche', 'Sopa',
+    'Entrada', 'Acompanhamento'
   ];
 
   const difficulties = [
     { label: 'Fácil', value: 'easy', color: '#10b981' },
     { label: 'Médio', value: 'medium', color: '#f59e0b' },
     { label: 'Difícil', value: 'hard', color: '#ef4444' }
+  ];
+
+  const cookTimeRanges = [
+    { label: '0-15 min', value: '0-15' },
+    { label: '15-30 min', value: '15-30' },
+    { label: '30-60 min', value: '30-60' },
+    { label: '60+ min', value: '60-999' }
+  ];
+
+  const servingRanges = [
+    { label: '1-2 porções', value: '1-2' },
+    { label: '3-4 porções', value: '3-4' },
+    { label: '5+ porções', value: '5-99' }
   ];
 
   return (
@@ -58,7 +90,7 @@ const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
             placeholder="Buscar receitas..."
             className="w-full pl-10 pr-4 py-2 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg text-sm focus:outline-none focus:border-purple-400 transition-colors"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
       </div>
@@ -73,7 +105,12 @@ const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
           {quickFilters.map((filter, index) => (
             <motion.button
               key={filter.value}
-              className="w-full flex items-center gap-3 p-2 rounded-lg bg-white/30 hover:bg-white/50 transition-all duration-200 text-left"
+              className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-200 text-left ${
+                selectedQuickFilters.includes(filter.value)
+                  ? 'bg-white/60 border border-white/50'
+                  : 'bg-white/30 hover:bg-white/50'
+              }`}
+              onClick={() => onQuickFilterSelect?.(filter.value)}
               whileHover={{ scale: 1.02, x: 5 }}
               whileTap={{ scale: 0.98 }}
               initial={{ opacity: 0, y: 10 }}
@@ -139,6 +176,58 @@ const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
                 style={{ backgroundColor: difficulty.color }}
               />
               <span className="text-sm font-medium text-gray-700">{difficulty.label}</span>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Cook Time */}
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarTitle}>
+          <FiClock size={18} />
+          Tempo de Cozinha
+        </h3>
+        <div className="space-y-2">
+          {cookTimeRanges.map((timeRange) => (
+            <motion.button
+              key={timeRange.value}
+              className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-200 text-left ${
+                selectedCookTime.includes(timeRange.value)
+                  ? 'bg-white/50 border border-white/40'
+                  : 'bg-white/20 hover:bg-white/30'
+              }`}
+              onClick={() => onCookTimeSelect?.(timeRange.value)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <FiClock size={12} className="text-orange-500" />
+              <span className="text-sm font-medium text-gray-700">{timeRange.label}</span>
+            </motion.button>
+          ))}
+        </div>
+      </div>
+
+      {/* Servings */}
+      <div className={styles.sidebarSection}>
+        <h3 className={styles.sidebarTitle}>
+          <FiUser size={18} />
+          Porções
+        </h3>
+        <div className="space-y-2">
+          {servingRanges.map((servingRange) => (
+            <motion.button
+              key={servingRange.value}
+              className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-200 text-left ${
+                selectedServings.includes(servingRange.value)
+                  ? 'bg-white/50 border border-white/40'
+                  : 'bg-white/20 hover:bg-white/30'
+              }`}
+              onClick={() => onServingsSelect?.(servingRange.value)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <FiUser size={12} className="text-blue-500" />
+              <span className="text-sm font-medium text-gray-700">{servingRange.label}</span>
             </motion.button>
           ))}
         </div>

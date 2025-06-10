@@ -166,7 +166,8 @@ export default function RecipeCreateForm({ userEmail, onSuccess, onCancel }: Rec
         img: imageUrl,
         cookTime: formData.cookTime,
         difficulty: formData.difficulty,
-        servings: formData.servings
+        servings: formData.servings,
+        category: formData.category
       };
 
       // Submit recipe
@@ -295,6 +296,25 @@ export default function RecipeCreateForm({ userEmail, onSuccess, onCancel }: Rec
                 <option value="easy">Fácil</option>
                 <option value="medium">Médio</option>
                 <option value="hard">Difícil</option>
+              </select>
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Categoria
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="Prato Principal">Prato Principal</option>
+                <option value="Sobremesa">Sobremesa</option>
+                <option value="Lanche">Lanche</option>
+                <option value="Sopa">Sopa</option>
+                <option value="Entrada">Entrada</option>
+                <option value="Acompanhamento">Acompanhamento</option>
               </select>
             </div>
           </div>

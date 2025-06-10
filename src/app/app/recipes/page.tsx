@@ -17,7 +17,6 @@ interface Recipe {
   subtitle: string;
   imageUrl: string;
   cookTime: number;
-  rating: number;
   difficulty: 'easy' | 'medium' | 'hard';
   servings: number;
   isPopular?: boolean;
@@ -41,14 +40,18 @@ export default function RecipesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
+  const [selectedQuickFilters, setSelectedQuickFilters] = useState<string[]>([]);
+  const [selectedCookTime, setSelectedCookTime] = useState<string[]>([]);
+  const [selectedServings, setSelectedServings] = useState<string[]>([]);
+  const [sidebarSearch, setSidebarSearch] = useState('');
 
-  // Fetch recipes from API
+  // Fetch all recipes once (without filters)
   const fetchRecipes = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Add user email to get favorite status
+      // Only get user email for favorite status
       const url = session?.user?.email 
         ? `/api/recipes?email=${encodeURIComponent(session.user.email)}`
         : '/api/recipes';
@@ -61,7 +64,7 @@ export default function RecipesPage() {
       const data = await response.json();
       if (data.success) {
         setAllRecipes(data.recipes);
-        setFilteredRecipes(data.recipes);
+        // Don't set filteredRecipes here - let the filter effect handle it
       } else {
         throw new Error('Failed to load recipes');
       }
@@ -104,16 +107,28 @@ export default function RecipesPage() {
     }
   }, [session, status]);
 
-  // Filter recipes based on search and filters
+  // Apply all filters client-side (no API calls)
   useEffect(() => {
     let filtered = allRecipes;
 
-    // Filter by search query
+    // Filter by main search query (from header)
     if (searchQuery) {
       filtered = filtered.filter(recipe =>
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by sidebar search
+    if (sidebarSearch) {
+      filtered = filtered.filter(recipe =>
+        recipe.title.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.category.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.subtitle.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.ingredients?.some(ing => 
+          ing.toLowerCase().includes(sidebarSearch.toLowerCase())
+        )
       );
     }
 
@@ -131,8 +146,54 @@ export default function RecipesPage() {
       );
     }
 
+    // Filter by quick filters
+    if (selectedQuickFilters.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedQuickFilters.some(filter => {
+          switch (filter) {
+            case 'popular':
+              return recipe.isPopular;
+            case 'quick':
+              return recipe.cookTime <= 20;
+            case 'easy':
+              return recipe.difficulty === 'easy';
+            case 'top-rated':
+              return (recipe.favoritesCount || 0) > 0;
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    // Filter by cook time
+    if (selectedCookTime.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedCookTime.some(timeRange => {
+          const [min, max] = timeRange.split('-').map(Number);
+          if (max === 999) { // 60+ min
+            return recipe.cookTime >= min;
+          }
+          return recipe.cookTime >= min && recipe.cookTime <= max;
+        });
+      });
+    }
+
+    // Filter by servings
+    if (selectedServings.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedServings.some(servingRange => {
+          const [min, max] = servingRange.split('-').map(Number);
+          if (max === 99) { // 5+ servings
+            return recipe.servings >= min;
+          }
+          return recipe.servings >= min && recipe.servings <= max;
+        });
+      });
+    }
+
     setFilteredRecipes(filtered);
-  }, [allRecipes, searchQuery, selectedCategories, selectedDifficulties]);
+  }, [allRecipes, searchQuery, sidebarSearch, selectedCategories, selectedDifficulties, selectedQuickFilters, selectedCookTime, selectedServings]);
 
   const handleRecipeClick = (recipeId: string) => {
     router.push(`/app/recipes/${recipeId}`);
@@ -184,6 +245,34 @@ export default function RecipesPage() {
         ? prev.filter(d => d !== difficulty)
         : [...prev, difficulty]
     );
+  };
+
+  const handleQuickFilterSelect = (filter: string) => {
+    setSelectedQuickFilters(prev =>
+      prev.includes(filter)
+        ? prev.filter(f => f !== filter)
+        : [...prev, filter]
+    );
+  };
+
+  const handleCookTimeSelect = (cookTime: string) => {
+    setSelectedCookTime(prev =>
+      prev.includes(cookTime)
+        ? prev.filter(t => t !== cookTime)
+        : [...prev, cookTime]
+    );
+  };
+
+  const handleServingsSelect = (servings: string) => {
+    setSelectedServings(prev =>
+      prev.includes(servings)
+        ? prev.filter(s => s !== servings)
+        : [...prev, servings]
+    );
+  };
+
+  const handleSidebarSearch = (search: string) => {
+    setSidebarSearch(search);
   };
 
   const popularRecipes = filteredRecipes.filter(recipe => recipe.isPopular);
@@ -259,8 +348,15 @@ export default function RecipesPage() {
               favorites={favoriteRecipes.map(recipe => recipe.title)}
               onCategorySelect={handleCategorySelect}
               onDifficultySelect={handleDifficultySelect}
+              onQuickFilterSelect={handleQuickFilterSelect}
+              onCookTimeSelect={handleCookTimeSelect}
+              onServingsSelect={handleServingsSelect}
+              onSearchChange={handleSidebarSearch}
               selectedCategories={selectedCategories}
               selectedDifficulties={selectedDifficulties}
+              selectedQuickFilters={selectedQuickFilters}
+              selectedCookTime={selectedCookTime}
+              selectedServings={selectedServings}
             />
           </div>
 
@@ -272,20 +368,23 @@ export default function RecipesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              {/* Add Recipe Button */}
-              <motion.div 
-                className="mb-8 text-center"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              >
-                <button
-                  onClick={() => router.push('/app/recipes/create')}
-                  className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+              {/* All Filtered Recipes - FIRST */}
+              {(searchQuery || sidebarSearch || selectedCategories.length > 0 || selectedDifficulties.length > 0 || selectedQuickFilters.length > 0 || selectedCookTime.length > 0 || selectedServings.length > 0) && (
+                <motion.div
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                  ➕ Criar Nova Receita
-                </button>
-              </motion.div>
+                  <RecipeGrid 
+                    title={`🔍 Resultados dos Filtros (${filteredRecipes.length})`}
+                    recipes={filteredRecipes} 
+                    onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    loading={loading}
+                  />
+                </motion.div>
+              )}
 
               {/* Popular Recipes */}
               {popularRecipes.length > 0 && (
@@ -341,23 +440,6 @@ export default function RecipesPage() {
                 </motion.div>
               )}
 
-              {/* All Filtered Recipes */}
-              {(searchQuery || selectedCategories.length > 0 || selectedDifficulties.length > 0) && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                >
-                  <RecipeGrid 
-                    title={`🔍 Resultados da Busca (${filteredRecipes.length})`}
-                    recipes={filteredRecipes} 
-                    onRecipeClick={handleRecipeClick}
-                    onFavoriteToggle={handleFavoriteToggle}
-                    loading={loading}
-                  />
-                </motion.div>
-              )}
-
               {/* Empty State */}
               {!loading && allRecipes.length === 0 && (
                 <motion.div 
@@ -384,6 +466,19 @@ export default function RecipesPage() {
             </motion.div>
           </div>
         </div>
+
+        {/* Floating Add Recipe Button */}
+        <motion.button
+          onClick={() => router.push('/app/recipes/create')}
+          className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-green-500 to-blue-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center z-50"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1, duration: 0.3 }}
+        >
+          <span className="text-2xl font-bold">+</span>
+        </motion.button>
       </div>
     </DashboardLayout>
   );
