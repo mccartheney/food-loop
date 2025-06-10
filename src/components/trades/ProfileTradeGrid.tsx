@@ -87,8 +87,8 @@ export default function ProfileTradeGrid({
   }, [userId, filter, userEmail]);
 
   const handleViewDetails = (tradeId: string) => {
-    // Navigate to trade details
-    window.open(`/app/trades/${tradeId}`, '_blank');
+    // Navigate to trade details in marketplace
+    window.open(`/app/marketplace/${tradeId}`, '_blank');
   };
 
   const handleEdit = (tradeId: string) => {
@@ -122,8 +122,8 @@ export default function ProfileTradeGrid({
   };
 
   const handleCreateTrade = () => {
-    // Navigate to create trade page
-    window.location.href = '/app/trades/create';
+    // Navigate to create trade page in marketplace
+    window.location.href = '/app/marketplace/create';
   };
 
   // Filter trades based on current filter

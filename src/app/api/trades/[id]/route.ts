@@ -51,18 +51,22 @@ export async function GET(
       return NextResponse.json({ error: 'Trade not found' }, { status: 404 });
     }
 
-    // Get creator profile info
-    const creatorProfile = await prisma.profile.findUnique({
-      where: { id: trade.ngoId || '' },
+    // Extract creator ID from description and get creator profile info
+    const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+    const creatorId = creatorMatch ? creatorMatch[1] : null;
+    const cleanDescription = trade.description.replace(/TRADE_CREATOR:[^\n]+\n/, '');
+    
+    const creatorProfile = creatorId ? await prisma.profile.findUnique({
+      where: { id: creatorId },
       include: {
         user: true
       }
-    });
+    }) : null;
 
     const formattedTrade = {
       id: trade.id,
       title: trade.name,
-      description: trade.description,
+      description: cleanDescription,
       offeredItems: trade.items,
       status: trade.hasSoldOrDonated ? 'completed' : 'active',
       createdAt: trade.date,
@@ -84,10 +88,10 @@ export async function GET(
           item.pantryId === order.profile.pantry?.id
         ) || []
       })),
-      location: trade.description.includes('📍') ? 
-        trade.description.split('📍')[1]?.split('\n')[0] : null,
-      wantedItems: trade.description.includes('🔄 Wants:') ? 
-        trade.description.split('🔄 Wants:')[1]?.split('\n')[0]?.trim() : null,
+      location: cleanDescription.includes('📍') ? 
+        cleanDescription.split('📍')[1]?.split('\n')[0] : null,
+      wantedItems: cleanDescription.includes('🔄 Wants:') ? 
+        cleanDescription.split('🔄 Wants:')[1]?.split('\n')[0]?.trim() : null,
     };
 
     return NextResponse.json({ trade: formattedTrade });
@@ -146,8 +150,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Trade not found' }, { status: 404 });
     }
 
-    // Verify the user is the trade creator
-    if (trade.ngoId !== user.profile.id) {
+    // Extract creator ID from description and verify ownership
+    const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+    const creatorId = creatorMatch ? creatorMatch[1] : null;
+    
+    if (creatorId !== user.profile.id) {
       return NextResponse.json({ 
         error: 'Only the trade creator can accept participants' 
       }, { status: 403 });
@@ -230,8 +237,11 @@ export async function POST(
       return NextResponse.json({ error: 'Trade not found' }, { status: 404 });
     }
 
-    // Verify the user is the trade creator
-    if (trade.ngoId !== user.profile.id) {
+    // Extract creator ID from description and verify ownership
+    const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+    const creatorId = creatorMatch ? creatorMatch[1] : null;
+    
+    if (creatorId !== user.profile.id) {
       return NextResponse.json({ 
         error: 'Only the trade creator can complete trades' 
       }, { status: 403 });
@@ -344,8 +354,11 @@ export async function DELETE(
       return NextResponse.json({ error: 'Trade not found' }, { status: 404 });
     }
 
-    // Verify the user is the trade creator
-    if (trade.ngoId !== user.profile.id) {
+    // Extract creator ID from description and verify ownership
+    const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+    const creatorId = creatorMatch ? creatorMatch[1] : null;
+    
+    if (creatorId !== user.profile.id) {
       return NextResponse.json({ 
         error: 'Only the trade creator can delete trades' 
       }, { status: 403 });

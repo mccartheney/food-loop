@@ -44,8 +44,13 @@ export async function GET(request: NextRequest) {
       const userTrades = await prisma.box.findMany({
         where: {
           OR: [
-            // Trades created by this user (using ngoId to store profile ID)
-            { ngoId: userProfile.id, price: 0 },
+            // Trades created by this user (check description for creator info)
+            { 
+              price: 0,
+              description: {
+                contains: `TRADE_CREATOR:${userProfile.id}`
+              }
+            },
             // Trades they participated in (through orders)
             {
               price: 0,
@@ -67,30 +72,47 @@ export async function GET(request: NextRequest) {
                 }
               }
             }
-          },
-          ngo: true // This will actually be the profile who created the trade
+          }
         },
         orderBy: { date: 'desc' }
       });
 
-      const formattedTrades = userTrades.map(trade => ({
-        id: trade.id,
-        title: trade.name,
-        description: trade.description,
-        offeredItems: trade.items,
-        status: trade.hasSoldOrDonated ? 'completed' : 'active',
-        createdAt: trade.date,
-        endDate: trade.endDate,
-        ownerId: trade.ngoId,
-        isOwner: trade.ngoId === userProfile.id,
-        participants: trade.orders,
-        location: trade.description.includes('📍') ? trade.description.split('📍')[1]?.split('\n')[0] : null,
-      }));
+      const formattedTrades = userTrades.map(trade => {
+        // Extract creator ID from description
+        const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+        const creatorId = creatorMatch ? creatorMatch[1] : null;
+        const cleanDescription = trade.description.replace(/TRADE_CREATOR:[^\n]+\n/, '');
+        
+        return {
+          id: trade.id,
+          title: trade.name,
+          description: cleanDescription,
+          offeredItems: trade.items,
+          status: trade.hasSoldOrDonated ? 'completed' : 'active',
+          createdAt: trade.date,
+          endDate: trade.endDate,
+          ownerId: creatorId,
+          isOwner: creatorId === userProfile.id,
+          participants: trade.orders,
+          location: cleanDescription.includes('📍') ? cleanDescription.split('📍')[1]?.split('\n')[0] : null,
+          wantedItems: cleanDescription.includes('🔄 Wants:') ? cleanDescription.split('🔄 Wants:')[1]?.split('\n')[0]?.trim() : null,
+        };
+      });
 
       return NextResponse.json({ trades: formattedTrades });
     }
 
     // Regular marketplace view - get all active trades
+    // Get current user's profile ID if email is provided
+    let currentUserProfileId = null;
+    if (email) {
+      const currentUser = await prisma.user.findUnique({
+        where: { email },
+        include: { profile: true }
+      });
+      currentUserProfileId = currentUser?.profile?.id || null;
+    }
+
     const trades = await prisma.box.findMany({
       where: whereClause,
       include: {
@@ -108,18 +130,27 @@ export async function GET(request: NextRequest) {
       orderBy: { date: 'desc' }
     });
 
-    const formattedTrades = trades.map(trade => ({
-      id: trade.id,
-      title: trade.name,
-      description: trade.description,
-      offeredItems: trade.items,
-      status: trade.hasSoldOrDonated ? 'completed' : 'active',
-      createdAt: trade.date,
-      endDate: trade.endDate,
-      ownerId: trade.ngoId,
-      participants: trade.orders,
-      location: trade.description.includes('📍') ? trade.description.split('📍')[1]?.split('\n')[0] : null,
-    }));
+    const formattedTrades = trades.map(trade => {
+      // Extract creator ID from description
+      const creatorMatch = trade.description.match(/TRADE_CREATOR:([^\n]+)/);
+      const creatorId = creatorMatch ? creatorMatch[1] : null;
+      const cleanDescription = trade.description.replace(/TRADE_CREATOR:[^\n]+\n/, '');
+      
+      return {
+        id: trade.id,
+        title: trade.name,
+        description: cleanDescription,
+        offeredItems: trade.items,
+        status: trade.hasSoldOrDonated ? 'completed' : 'active',
+        createdAt: trade.date,
+        endDate: trade.endDate,
+        ownerId: creatorId,
+        isOwner: currentUserProfileId ? creatorId === currentUserProfileId : false,
+        participants: trade.orders,
+        location: cleanDescription.includes('📍') ? cleanDescription.split('📍')[1]?.split('\n')[0] : null,
+        wantedItems: cleanDescription.includes('🔄 Wants:') ? cleanDescription.split('🔄 Wants:')[1]?.split('\n')[0]?.trim() : null,
+      };
+    });
 
     return NextResponse.json({ trades: formattedTrades });
   } catch (error) {
@@ -178,16 +209,19 @@ export async function POST(request: NextRequest) {
     const fullDescription = `${description}\n\n🔄 Wants: ${wantedItemsText}${location ? `\n📍 ${location}` : ''}`;
 
     // Create the trade using Box model
+    // Store creator info in description and leave ngoId as null since it must reference actual NGO
+    const tradeDescription = `TRADE_CREATOR:${user.profile.id}\n${fullDescription}`;
+    
     const trade = await prisma.box.create({
       data: {
         name: title,
-        description: fullDescription,
+        description: tradeDescription,
         quantity: offeredItemIds.length,
         date: new Date(),
         endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
         price: 0, // Distinguish from marketplace items
         hasSoldOrDonated: false,
-        ngoId: user.profile.id, // Use ngoId to store the profile ID of trade creator
+        ngoId: null, // Must be null since it requires actual NGO reference
       },
     });
 

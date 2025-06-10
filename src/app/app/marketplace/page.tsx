@@ -184,8 +184,24 @@ export default function MarketplacePage() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Stats Header */}
-        <MarketplaceStatsHeader products={MOCK_PRODUCTS} />
+        {/* Stats Header with Create Trade Button */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex-1">
+            <MarketplaceStatsHeader products={MOCK_PRODUCTS} />
+          </div>
+          <motion.button
+            onClick={() => router.push('/app/marketplace/create')}
+            className="btn btn-primary btn-lg"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <FiShoppingBag className="mr-2" />
+            Create Trade
+          </motion.button>
+        </div>
 
         {/* Search Bar */}
         <MarketplaceSearchBar
@@ -365,7 +381,7 @@ export default function MarketplacePage() {
                         <TradePostCard
                           key={trade.id}
                           trade={trade}
-                          onViewDetails={(tradeId) => router.push(`/app/trades/${tradeId}`)}
+                          onViewDetails={(tradeId) => router.push(`/app/marketplace/${tradeId}`)}
                         />
                       ))}
                     </div>
@@ -375,7 +391,7 @@ export default function MarketplacePage() {
                         <TradePostCard
                           key={trade.id}
                           trade={trade}
-                          onViewDetails={(tradeId) => router.push(`/app/trades/${tradeId}`)}
+                          onViewDetails={(tradeId) => router.push(`/app/marketplace/${tradeId}`)}
                           className="w-full"
                         />
                       ))}
