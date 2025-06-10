@@ -91,11 +91,11 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
                     <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
                     <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
                   </div>
-                  <span>digitando...</span>
+                  <span>typing...</span>
                 </motion.div>
               ) : (
                 <p className={`text-sm font-medium ${isOnline ? 'text-green-600' : 'text-gray-500'}`}>
-                  {isOnline ? 'Online agora' : 'Visto por último há 5min'}
+                  {isOnline ? 'Online now' : 'Last seen 5min ago'}
                 </p>
               )}
               {conversation.user.location && (
@@ -112,7 +112,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Ligar"
+            title="Call"
           >
             <FiPhone className="text-gray-600" size={18} />
           </motion.button>
@@ -120,7 +120,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Videochamada"
+            title="Video call"
           >
             <FiVideo className="text-gray-600" size={18} />
           </motion.button>
@@ -128,7 +128,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Informações"
+            title="Information"
           >
             <FiInfo className="text-gray-600" size={18} />
           </motion.button>
@@ -136,7 +136,7 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Mais opções"
+            title="More options"
           >
             <FiMoreVertical className="text-gray-600" size={18} />
           </motion.button>

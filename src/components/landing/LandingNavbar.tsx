@@ -53,10 +53,10 @@ const LandingNavbar: React.FC = () => {
             transition={{ duration: 0.2 }}
           >
             <button 
-              onClick={() => scrollToSection('sobre')}
+              onClick={() => scrollToSection('about')}
               className={styles.navLink}
             >
-              Sobre
+              About
             </button>
           </motion.li>
           <motion.li
@@ -64,10 +64,10 @@ const LandingNavbar: React.FC = () => {
             transition={{ duration: 0.2 }}
           >
             <button 
-              onClick={() => scrollToSection('como-funciona')}
+              onClick={() => scrollToSection('how-it-works')}
               className={styles.navLink}
             >
-              Como Funciona
+              How It Works
             </button>
           </motion.li>
           <motion.li
@@ -75,10 +75,10 @@ const LandingNavbar: React.FC = () => {
             transition={{ duration: 0.2 }}
           >
             <button 
-              onClick={() => scrollToSection('funcionalidades')}
+              onClick={() => scrollToSection('features')}
               className={styles.navLink}
             >
-              Funcionalidades
+              Features
             </button>
           </motion.li>
           <motion.li
@@ -86,10 +86,10 @@ const LandingNavbar: React.FC = () => {
             transition={{ duration: 0.2 }}
           >
             <button 
-              onClick={() => scrollToSection('testemunhos')}
+              onClick={() => scrollToSection('testimonials')}
               className={styles.navLink}
             >
-              Testemunhos
+              Testimonials
             </button>
           </motion.li>
         </ul>
@@ -104,7 +104,7 @@ const LandingNavbar: React.FC = () => {
               href="/auth/login" 
               className={`${styles.navButton} ${styles.navButtonOutline}`}
             >
-              Entrar
+              Login
             </Link>
           </motion.div>
          
@@ -132,36 +132,36 @@ const LandingNavbar: React.FC = () => {
         transition={{ duration: 0.3 }}
       >
         <motion.button 
-          onClick={() => scrollToSection('sobre')}
+          onClick={() => scrollToSection('about')}
           className={styles.navLink}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          Sobre
+          About
         </motion.button>
         <motion.button 
-          onClick={() => scrollToSection('como-funciona')}
+          onClick={() => scrollToSection('how-it-works')}
           className={styles.navLink}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          Como Funciona
+          How It Works
         </motion.button>
         <motion.button 
-          onClick={() => scrollToSection('funcionalidades')}
+          onClick={() => scrollToSection('features')}
           className={styles.navLink}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          Funcionalidades
+          Features
         </motion.button>
         <motion.button 
-          onClick={() => scrollToSection('testemunhos')}
+          onClick={() => scrollToSection('testimonials')}
           className={styles.navLink}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
-          Testemunhos
+          Testimonials
         </motion.button>
         
         {/* Mobile Auth Buttons */}
@@ -175,7 +175,7 @@ const LandingNavbar: React.FC = () => {
               className={`${styles.navButton} ${styles.navButtonOutline} w-full text-center`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Entrar
+              Login
             </Link>
           </motion.div>
           

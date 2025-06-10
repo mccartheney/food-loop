@@ -89,7 +89,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
       >
         <h3 className="font-bold text-lg flex items-center">
           <FiFilter className="mr-2 text-primary" />
-          Filtros
+          Filters
         </h3>
         {(selectedCategories.length > 0 || selectedLocations.length > 0) && (
           <motion.button
@@ -98,7 +98,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
-            Limpar Tudo
+            Clear All
           </motion.button>
         )}
       </motion.div>
@@ -113,12 +113,12 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
         <label className="label">
           <span className="label-text font-medium flex items-center">
             <FiSearch className="mr-2 text-blue-500" />
-            Busca Rápida
+            Quick Search
           </span>
         </label>
         <input
           type="text"
-          placeholder="Pesquisar produtos..."
+          placeholder="Search products..."
           className={`input input-bordered w-full ${styles.searchEnhanced}`}
           value={searchQuery}
           onChange={(e) => onSearch(e.target.value)}
@@ -135,7 +135,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
         <label className="label">
           <span className="label-text font-medium flex items-center">
             <FiDollarSign className="mr-2 text-green-500" />
-            Faixa de Preço
+            Price Range
           </span>
         </label>
         <div className="space-y-3">
@@ -172,7 +172,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
         <label className="label">
           <span className="label-text font-medium flex items-center">
             <FiTag className="mr-2 text-purple-500" />
-            Categorias
+            Categories
           </span>
         </label>
         <div className={`space-y-2 max-h-64 overflow-y-auto ${styles.customScrollbar}`}>
@@ -213,7 +213,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
         <label className="label">
           <span className="label-text font-medium flex items-center">
             <FiMapPin className="mr-2 text-red-500" />
-            Localizações
+            Locations
           </span>
         </label>
         <div className="space-y-2">
@@ -250,7 +250,7 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
         <label className="label">
           <span className="label-text font-medium flex items-center">
             <FiTrendingUp className="mr-2 text-orange-500" />
-            Populares
+            Popular
           </span>
         </label>
         <div className="flex flex-wrap gap-2">
@@ -274,4 +274,4 @@ const MarketplaceSidebar: React.FC<MarketplaceSidebarProps> = ({
   );
 };
 
-export default MarketplaceSidebar;
+export default MarketplaceSidebar;  

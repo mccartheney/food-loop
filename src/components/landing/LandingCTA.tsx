@@ -31,7 +31,7 @@ const LandingCTA: React.FC = () => {
               <FiHeart size={16} className="text-red-400" />
             </motion.div>
             <span className="text-white/90 text-sm font-medium">
-              🌟 Juntar-se é Gratuito
+              🌟 Joining is Free
             </span>
           </motion.div>
 
@@ -42,9 +42,9 @@ const LandingCTA: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.8, delay: 0.3 }}
           >
-            Pronto para fazer parte da{' '}
+            Ready to be part of the{' '}
             <span className="bg-gradient-to-r from-emerald-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-              revolução sustentável?
+              sustainable revolution?
             </span>
           </motion.h2>
 
@@ -55,8 +55,8 @@ const LandingCTA: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
-            Junta-te a milhares de pessoas e empresas que estão a transformar 
-            o desperdício alimentar em oportunidades. Cada ação conta para um futuro mais sustentável.
+            Join thousands of people and businesses transforming 
+            food waste into opportunities. Every action counts towards a more sustainable future.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -75,7 +75,7 @@ const LandingCTA: React.FC = () => {
                 href="/auth/register"
                 className={`${styles.heroButton} ${styles.heroButtonPrimary} text-lg px-8 py-4`}
               >
-                Começar Gratuitamente
+                Start For Free
                 <motion.div
                   animate={{ x: [0, 5, 0] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
@@ -94,7 +94,7 @@ const LandingCTA: React.FC = () => {
                 className={`${styles.heroButton} ${styles.heroButtonSecondary} text-lg px-8 py-4`}
               >
                 <FiUsers size={20} />
-                Já sou membro
+                I'm Already a Member
               </Link>
             </motion.div>
           </motion.div>
@@ -115,8 +115,8 @@ const LandingCTA: React.FC = () => {
               <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiTrendingUp size={24} className="text-emerald-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">Crescimento Constante</h4>
-              <p className="text-white/70 text-sm">+50% novos utilizadores mensais</p>
+              <h4 className="font-semibold text-white mb-2">Constant Growth</h4>
+              <p className="text-white/70 text-sm">+50% new users monthly</p>
             </motion.div>
 
             <motion.div 
@@ -127,8 +127,8 @@ const LandingCTA: React.FC = () => {
               <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiUsers size={24} className="text-blue-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">Comunidade Ativa</h4>
-              <p className="text-white/70 text-sm">500+ utilizadores satisfeitos</p>
+              <h4 className="font-semibold text-white mb-2">Active Community</h4>
+              <p className="text-white/70 text-sm">500+ satisfied users</p>
             </motion.div>
 
             <motion.div 
@@ -139,8 +139,8 @@ const LandingCTA: React.FC = () => {
               <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <FiHeart size={24} className="text-purple-400" />
               </div>
-              <h4 className="font-semibold text-white mb-2">Impacto Real</h4>
-              <p className="text-white/70 text-sm">2.5 toneladas de comida salvas</p>
+              <h4 className="font-semibold text-white mb-2">Real Impact</h4>
+              <p className="text-white/70 text-sm">2.5 tons of food saved</p>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -164,22 +164,22 @@ const LandingCTA: React.FC = () => {
             <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">🏠</span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">Para Pessoas</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">For Individuals</h3>
             <p className="text-white/80 mb-6">
-              Gere a sua despensa, poupe dinheiro e faça parte da solução.
+              Manage your pantry, save money and be part of the solution.
             </p>
             <div className="space-y-2 mb-8 text-sm text-white/70">
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                <span>Grátis para sempre</span>
+                <span>Free forever</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                <span>Alertas de validade</span>
+                <span>Expiration alerts</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                <span>Comunidade local</span>
+                <span>Local community</span>
               </div>
             </div>
             <motion.div
@@ -190,7 +190,7 @@ const LandingCTA: React.FC = () => {
                 href="/auth/register"
                 className={`${styles.heroButton} ${styles.heroButtonPrimary} w-full justify-center`}
               >
-                Registar como Pessoa
+                Register as Individual
                 <FiArrowRight size={18} />
               </Link>
             </motion.div>
@@ -207,22 +207,22 @@ const LandingCTA: React.FC = () => {
             <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-cyan-500 rounded-full flex items-center justify-center mx-auto mb-6">
               <span className="text-3xl">🏢</span>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">Para Empresas</h3>
+            <h3 className="text-2xl font-bold text-white mb-4">For Businesses</h3>
             <p className="text-white/80 mb-6">
-              Reduza custos, melhore a sustentabilidade e ganhe novos clientes.
+              Reduce costs, improve sustainability and gain new customers.
             </p>
             <div className="space-y-2 mb-8 text-sm text-white/70">
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                <span>30 dias grátis</span>
+                <span>30-day free trial</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-blue-400 rounded-full"></span>
-                <span>Relatórios avançados</span>
+                <span>Advanced reports</span>
               </div>
               <div className="flex items-center justify-center gap-2">
                 <span className="w-2 h-2 bg-purple-400 rounded-full"></span>
-                <span>Suporte dedicado</span>
+                <span>Dedicated support</span>
               </div>
             </div>
             <motion.div
@@ -233,7 +233,7 @@ const LandingCTA: React.FC = () => {
                 href="/auth/register"
                 className={`${styles.heroButton} ${styles.heroButtonSecondary} w-full justify-center border-2 border-emerald-400/50 hover:border-emerald-400`}
               >
-                Registar Empresa
+                Register Business
                 <FiArrowRight size={18} />
               </Link>
             </motion.div>
@@ -249,10 +249,10 @@ const LandingCTA: React.FC = () => {
           transition={{ duration: 0.8, delay: 1 }}
         >
           <p className="text-white/70 text-lg mb-4">
-            💚 Cada registo conta. Cada ação faz a diferença.
+            💚 Every registration counts. Every action makes a difference.
           </p>
           <p className="text-white/50 text-sm">
-            Junta-te à revolução sustentável hoje mesmo e faz parte da solução global.
+            Join the sustainable revolution today and be part of the global solution.
           </p>
         </motion.div>
       </div>

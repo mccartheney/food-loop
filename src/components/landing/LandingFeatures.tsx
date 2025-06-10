@@ -19,57 +19,57 @@ interface Feature {
 const features: Feature[] = [
   {
     icon: <FiShoppingBag size={32} />,
-    title: "Despensa Digital",
-    description: "Gira o teu inventário alimentar com alertas de validade inteligentes e sugestões de receitas.",
+    title: "Digital Pantry",
+    description: "Manage your food inventory with smart expiration alerts and recipe suggestions.",
     color: "text-blue-400",
     delay: 0.1
   },
   {
     icon: <FiShare2 size={32} />,
-    title: "Partilha Comunitária", 
-    description: "Conecta-te com vizinhos para trocar ou doar alimentos que não vais usar.",
+    title: "Community Sharing", 
+    description: "Connect with neighbors to exchange or donate food you won't use.",
     color: "text-emerald-400",
     delay: 0.2
   },
   {
     icon: <FiCalendar size={32} />,
-    title: "Caixas com Desconto",
-    description: "Compra produtos próximos do prazo de validade com descontos até 70%.",
+    title: "Discount Boxes",
+    description: "Buy products near their expiration date with discounts up to 70%.",
     color: "text-amber-400",
     delay: 0.3
   },
   {
     icon: <FiUsers size={32} />,
-    title: "Rede Sustentável",
-    description: "Junta-te a uma comunidade activa que luta contra o desperdício alimentar.",
+    title: "Sustainable Network",
+    description: "Join an active community fighting against food waste.",
     color: "text-purple-400",
     delay: 0.4
   },
   {
     icon: <FiHeart size={32} />,
-    title: "Doações Simples",
-    description: "Faz doações fáceis para ONGs locais e acompanha o teu impacto social.",
+    title: "Simple Donations",
+    description: "Make easy donations to local NGOs and track your social impact.",
     color: "text-rose-400",
     delay: 0.5
   },
   {
     icon: <FiDatabase size={32} />,
-    title: "Ferramentas Empresariais",
-    description: "Analíticas avançadas para empresas reduzirem desperdício e custos operacionais.",
+    title: "Business Tools",
+    description: "Advanced analytics for businesses to reduce waste and operational costs.",
     color: "text-cyan-400",
     delay: 0.6
   },
   {
     icon: <FiShield size={32} />,
-    title: "Segurança Alimentar",
-    description: "Verificações de qualidade e rastreabilidade completa dos alimentos partilhados.",
+    title: "Food Safety",
+    description: "Quality checks and complete traceability of shared foods.",
     color: "text-indigo-400",
     delay: 0.7
   },
   {
     icon: <FiTrendingUp size={32} />,
-    title: "Impacto Mensurável",
-    description: "Visualiza o teu contributo ambiental com relatórios detalhados de sustentabilidade.",
+    title: "Measurable Impact",
+    description: "Visualize your environmental contribution with detailed sustainability reports.",
     color: "text-green-400",
     delay: 0.8
   }
@@ -99,7 +99,7 @@ const LandingFeatures: React.FC = () => {
   };
 
   return (
-    <section className={styles.section} id="funcionalidades">
+    <section className={styles.section} id="features">
       <div className={styles.sectionContainer}>
         {/* Header */}
         <motion.div
@@ -118,20 +118,20 @@ const LandingFeatures: React.FC = () => {
           >
             <FiShoppingBag size={16} className="text-emerald-400" />
             <span className="text-white/90 text-sm font-medium">
-              🚀 Funcionalidades Principais
+              🚀 Key Features
             </span>
           </motion.div>
 
           <h2 className={styles.sectionTitle}>
-            Tudo o que precisas para{' '}
+            Everything you need to{' '}
             <span className="bg-gradient-to-r from-emerald-400 to-blue-400 bg-clip-text text-transparent">
-              eliminar desperdícios
+              eliminate waste
             </span>
           </h2>
           
           <p className={styles.sectionSubtitle}>
-            Ferramentas poderosas e intuitivas para indivíduos, empresas e organizações 
-            transformarem a forma como gerem os seus recursos alimentares.
+            Powerful and intuitive tools for individuals, businesses, and organizations 
+            to transform how they manage their food resources.
           </p>
         </motion.div>
 
@@ -190,11 +190,11 @@ const LandingFeatures: React.FC = () => {
         >
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 max-w-2xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-4">
-              Pronto para começar a fazer a diferença?
+              Ready to start making a difference?
             </h3>
             <p className="text-white/80 mb-6">
-              Junta-te a centenas de pessoas e empresas que já estão a transformar 
-              o desperdício alimentar em oportunidades.
+              Join hundreds of people and businesses already transforming 
+              food waste into opportunities.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -206,7 +206,7 @@ const LandingFeatures: React.FC = () => {
                   href="/auth/register"
                   className={`${styles.heroButton} ${styles.heroButtonPrimary}`}
                 >
-                  Experimentar Grátis
+                  Try for Free
                   <FiArrowRight size={18} />
                 </Link>
               </motion.div>
@@ -219,7 +219,7 @@ const LandingFeatures: React.FC = () => {
                   href="/auth/login"
                   className={`${styles.heroButton} ${styles.heroButtonSecondary}`}
                 >
-                  Já tenho conta
+                  I already have an account
                 </Link>
               </motion.div>
             </div>
@@ -228,15 +228,15 @@ const LandingFeatures: React.FC = () => {
             <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-white/10">
               <div className="flex items-center gap-2 text-white/70">
                 <FiShield size={16} />
-                <span className="text-sm">100% Seguro</span>
+                <span className="text-sm">100% Secure</span>
               </div>
               <div className="flex items-center gap-2 text-white/70">
                 <FiUsers size={16} />
-                <span className="text-sm">500+ Utilizadores</span>
+                <span className="text-sm">500+ Users</span>
               </div>
               <div className="flex items-center gap-2 text-white/70">
                 <FiHeart size={16} />
-                <span className="text-sm">Impacto Real</span>
+                <span className="text-sm">Real Impact</span>
               </div>
             </div>
           </div>

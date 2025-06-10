@@ -17,42 +17,42 @@ interface Step {
 const individualSteps: Step[] = [
   {
     icon: <FiCamera size={24} />,
-    title: "Digitaliza a tua despensa",
-    description: "Digitaliza recibos ou adiciona produtos manualmente. Recebe alertas antes dos prazos de validade."
+    title: "Digitize your pantry",
+    description: "Scan receipts or add products manually. Receive alerts before expiration dates."
   },
   {
     icon: <FiShare size={24} />,
-    title: "Partilha o excesso",
-    description: "Conecta-te com vizinhos para trocar ou doar alimentos que não vais conseguir usar."
+    title: "Share the excess",
+    description: "Connect with neighbors to exchange or donate food you won't be able to use."
   },
   {
     icon: <FiDollarSign size={24} />,
-    title: "Poupa dinheiro",
-    description: "Compra caixas com desconto de produtos próximos do prazo em lojas locais."
+    title: "Save money",
+    description: "Buy discounted boxes of products nearing expiration date from local stores."
   }
 ];
 
 const businessSteps: Step[] = [
   {
     icon: <FiPackage size={24} />,
-    title: "Lista produtos excedentes",
-    description: "Cria caixas de produtos próximos do prazo para vender com desconto à comunidade."
+    title: "List surplus products",
+    description: "Create boxes of products nearing expiration to sell at a discount to the community."
   },
   {
     icon: <FiHeart size={24} />,
-    title: "Faz doações facilmente",
-    description: "Conecta-te com ONGs locais para doar alimentos que iam ser desperdiçados."
+    title: "Make donations easily",
+    description: "Connect with local NGOs to donate food that would be wasted."
   },
   {
     icon: <FiBarChart size={24} />,
-    title: "Analisa e otimiza",
-    description: "Acompanha padrões de desperdício e melhora a sustentabilidade do teu negócio."
+    title: "Analyze and optimize",
+    description: "Track waste patterns and improve your business sustainability."
   }
 ];
 
 const LandingHowItWorks: React.FC = () => {
   return (
-    <section className={styles.section} id="como-funciona">
+    <section className={styles.section} id="how-it-works">
       <div className={styles.sectionContainer}>
         {/* Header */}
         <motion.div
@@ -71,20 +71,20 @@ const LandingHowItWorks: React.FC = () => {
           >
             <FiArrowRight size={16} className="text-purple-400" />
             <span className="text-white/90 text-sm font-medium">
-              📋 Como Funciona
+              📋 How It Works
             </span>
           </motion.div>
 
           <h2 className={styles.sectionTitle}>
-            Simples para{' '}
+            Simple for{' '}
             <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-              todos utilizarem
+              everyone to use
             </span>
           </h2>
           
           <p className={styles.sectionSubtitle}>
-            Quer sejas uma pessoa individual ou uma empresa, temos a solução perfeita 
-            para reduzires o desperdício alimentar de forma eficaz.
+            Whether you're an individual or a business, we have the perfect solution 
+            to effectively reduce food waste.
           </p>
         </motion.div>
 
@@ -105,8 +105,8 @@ const LandingHowItWorks: React.FC = () => {
                 <FiHome size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white">Para Pessoas</h3>
-                <p className="text-white/70 text-sm">Indivíduos e famílias</p>
+                <h3 className="text-2xl font-bold text-white">For Individuals</h3>
+                <p className="text-white/70 text-sm">People and families</p>
               </div>
             </div>
 
@@ -151,14 +151,14 @@ const LandingHowItWorks: React.FC = () => {
                   className={`${styles.heroButton} ${styles.heroButtonPrimary} w-full justify-center`}
                 >
                   <FiUser size={18} />
-                  Registar como Pessoa
+                  Register as Individual
                   <FiArrowRight size={18} />
                 </Link>
               </motion.div>
               
               <div className="flex items-center justify-center gap-4 mt-4 text-white/60 text-sm">
-                <span>✓ Grátis para sempre</span>
-                <span>✓ Sem cartão necessário</span>
+                <span>✓ Free forever</span>
+                <span>✓ No credit card needed</span>
               </div>
             </motion.div>
           </motion.div>
@@ -178,8 +178,8 @@ const LandingHowItWorks: React.FC = () => {
                 <FiShoppingBag size={24} className="text-white" />
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white">Para Empresas</h3>
-                <p className="text-white/70 text-sm">Restaurantes e lojas</p>
+                <h3 className="text-2xl font-bold text-white">For Businesses</h3>
+                <p className="text-white/70 text-sm">Restaurants and stores</p>
               </div>
             </div>
 
@@ -224,14 +224,14 @@ const LandingHowItWorks: React.FC = () => {
                   className={`${styles.heroButton} ${styles.heroButtonSecondary} w-full justify-center border-2 border-emerald-400/50 hover:border-emerald-400`}
                 >
                   <FiShoppingBag size={18} />
-                  Registar Empresa
+                  Register Business
                   <FiArrowRight size={18} />
                 </Link>
               </motion.div>
               
               <div className="flex items-center justify-center gap-4 mt-4 text-white/60 text-sm">
-                <span>✓ Teste grátis 30 dias</span>
-                <span>✓ Suporte dedicado</span>
+                <span>✓ 30-day free trial</span>
+                <span>✓ Dedicated support</span>
               </div>
             </motion.div>
           </motion.div>
@@ -247,11 +247,11 @@ const LandingHowItWorks: React.FC = () => {
         >
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl p-8 max-w-3xl mx-auto">
             <h3 className="text-2xl font-bold text-white mb-4">
-              Ainda não tens a certeza qual é a melhor opção?
+              Still not sure which option is best for you?
             </h3>
             <p className="text-white/80 mb-8">
-              Não te preocupes! Podes começar como pessoa individual e mais tarde 
-              fazer upgrade para empresa. O importante é começares a fazer a diferença hoje.
+              Don't worry! You can start as an individual and later upgrade to a business account. 
+              The important thing is to start making a difference today.
             </p>
             
             <div className="grid md:grid-cols-3 gap-6">
@@ -259,24 +259,24 @@ const LandingHowItWorks: React.FC = () => {
                 <div className="w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <FiUser size={24} className="text-blue-400" />
                 </div>
-                <h4 className="font-semibold text-white mb-2">Pessoa Individual</h4>
-                <p className="text-white/70 text-sm">Perfeito para casas e famílias</p>
+                <h4 className="font-semibold text-white mb-2">Individual</h4>
+                <p className="text-white/70 text-sm">Perfect for homes and families</p>
               </div>
               
               <div className="text-center">
                 <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <FiShoppingBag size={24} className="text-emerald-400" />
                 </div>
-                <h4 className="font-semibold text-white mb-2">Pequena Empresa</h4>
-                <p className="text-white/70 text-sm">Ideal para restaurantes locais</p>
+                <h4 className="font-semibold text-white mb-2">Small Business</h4>
+                <p className="text-white/70 text-sm">Ideal for local restaurants</p>
               </div>
               
               <div className="text-center">
                 <div className="w-16 h-16 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
                   <FiPackage size={24} className="text-purple-400" />
                 </div>
-                <h4 className="font-semibold text-white mb-2">Grande Empresa</h4>
-                <p className="text-white/70 text-sm">Soluções enterprise completas</p>
+                <h4 className="font-semibold text-white mb-2">Enterprise</h4>
+                <p className="text-white/70 text-sm">Complete enterprise solutions</p>
               </div>
             </div>
 
@@ -289,7 +289,7 @@ const LandingHowItWorks: React.FC = () => {
                 href="/auth/register"
                 className={`${styles.heroButton} ${styles.heroButtonPrimary}`}
               >
-                Começar Gratuitamente
+                Start For Free
                 <FiArrowRight size={18} />
               </Link>
             </motion.div>

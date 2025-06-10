@@ -43,7 +43,7 @@ const ModernLoginForm: React.FC = () => {
           <FiHeart size={40} className="text-white" />
         </motion.div>
         <h1 className={styles.logoText}>Food Loop</h1>
-        <p className={styles.logoSubtext}>Conectando sabores, evitando desperdícios</p>
+        <p className={styles.logoSubtext}>Connecting flavors, preventing waste</p>
       </motion.div>
 
       {/* Form Title */}
@@ -53,7 +53,7 @@ const ModernLoginForm: React.FC = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        Bem-vindo de volta!
+        Welcome back!
       </motion.h2>
 
       {/* Google Login Button */}
@@ -74,7 +74,7 @@ const ModernLoginForm: React.FC = () => {
           {isGoogleLoading ? (
             <>
               <div className={styles.loadingSpinner} />
-              Entrando...
+              Signing in...
             </>
           ) : (
             <>
@@ -84,7 +84,7 @@ const ModernLoginForm: React.FC = () => {
                 width={20} 
                 height={20} 
               />
-              Entrar com Google
+              Sign in with Google
             </>
           )}
         </motion.button>
@@ -99,7 +99,7 @@ const ModernLoginForm: React.FC = () => {
       >
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
           <p className="text-white/80 text-sm">
-            💡 <span className="font-semibold">Dica:</span> Junte-se à revolução contra o desperdício alimentar!
+            💡 <span className="font-semibold">Tip:</span> Join the revolution against food waste!
           </p>
         </div>
       </motion.div>

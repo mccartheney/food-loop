@@ -69,7 +69,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               animate={{ y: 0, opacity: 0.7 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              Nenhum produto encontrado
+              No products found
             </motion.p>
             <motion.p 
               className="text-sm text-neutral-content opacity-60 mb-4"
@@ -77,7 +77,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               animate={{ y: 0, opacity: 0.6 }}
               transition={{ delay: 0.7, duration: 0.5 }}
             >
-              Tente ajustar sua pesquisa ou navegue por categorias
+              Try adjusting your search or browse by categories
             </motion.p>
             {onClearSearch && (
               <motion.button 
@@ -89,7 +89,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
               >
-                <FiX className="mr-2" /> Limpar Pesquisa
+                <FiX className="mr-2" /> Clear Search
               </motion.button>
             )}
           </div>
@@ -109,7 +109,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               animate={{ y: 0, opacity: 0.7 }}
               transition={{ delay: 0.5, duration: 0.5 }}
             >
-              Nenhum produto disponível
+              No products available
             </motion.p>
             <motion.p 
               className="text-sm text-neutral-content opacity-60"
@@ -117,7 +117,7 @@ const ProductGrid: React.FC<ProductGridProps> = ({
               animate={{ y: 0, opacity: 0.6 }}
               transition={{ delay: 0.7, duration: 0.5 }}
             >
-              Produtos serão exibidos aqui quando estiverem disponíveis
+              Products will be displayed here when available
             </motion.p>
           </div>
         )}

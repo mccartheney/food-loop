@@ -34,7 +34,7 @@ const MessageList: React.FC<MessageListProps> = ({ conversations, activeConversa
       {/* Header */}
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold gradient-text">Mensagens</h2>
+          <h2 className="text-lg font-bold gradient-text">Messages</h2>
           <motion.button
             className="p-2 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
@@ -53,7 +53,7 @@ const MessageList: React.FC<MessageListProps> = ({ conversations, activeConversa
           </div>
           <input
             type="text"
-            placeholder="Procurar conversas..."
+            placeholder="Search conversations..."
             className={`block w-full pl-12 pr-4 py-3 ${styles.searchInput} rounded-xl text-sm placeholder-gray-500 focus:outline-none`}
           />
         </div>

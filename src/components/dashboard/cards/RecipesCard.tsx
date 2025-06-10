@@ -13,45 +13,45 @@ const recipes = [
     name: 'Vegetable Curry',
     image: '/images/curry.jpg',
     cookTime: '30 min',
-    difficulty: 'Fácil',
+    difficulty: 'Easy',
     servings: 4,
-    ingredients: ['Vegetais', 'Curry', 'Arroz']
+    ingredients: ['Vegetables', 'Curry', 'Rice']
   },
   {
     id: 2,
     name: 'Pasta Primavera',
     image: '/images/pasta.jpg',
     cookTime: '25 min',
-    difficulty: 'Fácil',
+    difficulty: 'Easy',
     servings: 2,
-    ingredients: ['Massa', 'Vegetais', 'Azeite']
+    ingredients: ['Pasta', 'Vegetables', 'Olive Oil']
   },
   {
     id: 3,
     name: 'Vegetable Stir Fry',
     image: '/images/stirfry.jpg',
     cookTime: '15 min',
-    difficulty: 'Rápido',
+    difficulty: 'Quick',
     servings: 3,
-    ingredients: ['Vegetais', 'Molho', 'Alho']
+    ingredients: ['Vegetables', 'Sauce', 'Garlic']
   },
   {
     id: 4,
     name: 'Healthy Bowl',
     image: '/images/bowl.jpg',
     cookTime: '20 min',
-    difficulty: 'Fácil',
+    difficulty: 'Easy',
     servings: 1,
-    ingredients: ['Quinoa', 'Vegetais', 'Molho']
+    ingredients: ['Quinoa', 'Vegetables', 'Sauce']
   },
   {
     id: 5,
     name: 'Roasted Vegetables',
     image: '/images/roasted.jpg',
     cookTime: '45 min',
-    difficulty: 'Médio',
+    difficulty: 'Medium',
     servings: 6,
-    ingredients: ['Vegetais', 'Especiarias', 'Azeite']
+    ingredients: ['Vegetables', 'Spices', 'Olive Oil']
   }
 ];
 
@@ -71,9 +71,9 @@ const RecipesCard: React.FC = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'Rápido': return 'bg-green-100 text-green-700';
-      case 'Fácil': return 'bg-blue-100 text-blue-700';
-      case 'Médio': return 'bg-yellow-100 text-yellow-700';
+      case 'Quick': return 'bg-green-100 text-green-700';
+      case 'Easy': return 'bg-blue-100 text-blue-700';
+      case 'Medium': return 'bg-yellow-100 text-yellow-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -94,8 +94,8 @@ const RecipesCard: React.FC = () => {
             <FiBookOpen className="text-purple-600" size={20} />
           </motion.div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Receitas do Dia</h2>
-            <p className="text-xs text-gray-600">Com seus ingredientes</p>
+            <h2 className="text-sm font-semibold text-gray-800">Recipes of the Day</h2>
+            <p className="text-xs text-gray-600">With your ingredients</p>
           </div>
         </div>
         
@@ -145,7 +145,7 @@ const RecipesCard: React.FC = () => {
                       
                       <div className="flex items-center justify-center gap-1 text-gray-600">
                         <FiUsers size={12} />
-                        <span className="text-xs">{recipe.servings} pessoas</span>
+                        <span className="text-xs">{recipe.servings} people</span>
                       </div>
                       
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(recipe.difficulty)}`}>
@@ -156,7 +156,7 @@ const RecipesCard: React.FC = () => {
                   
                   {/* Ingredients Preview */}
                   <div className="w-full">
-                    <div className="text-xs text-gray-500 text-center mb-1">Ingredientes:</div>
+                    <div className="text-xs text-gray-500 text-center mb-1">Ingredients:</div>
                     <div className="flex flex-wrap justify-center gap-1">
                       {recipe.ingredients.slice(0, 2).map((ingredient, idx) => (
                         <span key={idx} className="px-2 py-1 bg-white/80 text-xs rounded-full text-gray-600">
@@ -189,7 +189,7 @@ const RecipesCard: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             onClick={() => router.push('/app/recipes')}
           >
-            Explorar Todas as Receitas
+            Explore All Recipes
             <FiArrowRight className="ml-2" size={14} />
           </motion.button>
         </motion.div>
@@ -198,4 +198,4 @@ const RecipesCard: React.FC = () => {
   );
 };
 
-export default RecipesCard;
+export default RecipesCard; 

@@ -59,7 +59,7 @@ export default function PantryItemsGrid({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Nenhum item encontrado
+          No items found
         </motion.h3>
         <motion.p
           className="text-gray-500 mb-6"
@@ -67,7 +67,7 @@ export default function PantryItemsGrid({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
         >
-          Tente buscar com um termo diferente ou verifique a ortografia.
+          Try searching with a different term or check your spelling.
         </motion.p>
         <motion.button
           onClick={onClearSearch}
@@ -76,7 +76,7 @@ export default function PantryItemsGrid({
           whileTap={{ scale: 0.95 }}
         >
           <FiX size={18} />
-          <span className="font-medium">Limpar Busca</span>
+          <span className="font-medium">Clear Search</span>
         </motion.button>
       </motion.div>
     );
@@ -103,7 +103,7 @@ export default function PantryItemsGrid({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, duration: 0.5 }}
         >
-          Sua despensa está vazia
+          Your pantry is empty
         </motion.h3>
         <motion.p
           className="text-gray-500"
@@ -111,7 +111,7 @@ export default function PantryItemsGrid({
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.7, duration: 0.5 }}
         >
-          Use o botão + para adicionar seus primeiros itens!
+          Use the + button to add your first items!
         </motion.p>
       </motion.div>
     );

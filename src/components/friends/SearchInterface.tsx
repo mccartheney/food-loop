@@ -54,19 +54,19 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
       case 'friend':
         return (
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles.friendBadge} ${styles.statusBadge}`}>
-            ✓ Amigo
+            ✓ Friend
           </span>
         );
       case 'pending_sent':
         return (
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles.pendingBadge} ${styles.statusBadge}`}>
-            ⏳ Enviado
+            ⏳ Sent
           </span>
         );
       case 'pending_received':
         return (
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles.requestBadge} ${styles.statusBadge}`}>
-            📩 Recebido
+            📩 Received
           </span>
         );
       default:
@@ -85,7 +85,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
             whileTap={{ scale: 0.95 }}
           >
             <FiEye size={16} />
-            <span className="hidden sm:inline text-sm font-medium">Ver Perfil</span>
+            <span className="hidden sm:inline text-sm font-medium">View Profile</span>
           </motion.button>
         );
       
@@ -100,7 +100,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
                 whileTap={{ scale: 0.95 }}
               >
                 <FiX size={16} />
-                <span className="hidden sm:inline text-sm font-medium">Cancelar</span>
+                <span className="hidden sm:inline text-sm font-medium">Cancel</span>
               </motion.button>
             )}
           </div>
@@ -118,7 +118,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   <FiCheck size={16} />
-                  <span className="hidden sm:inline text-sm font-medium">Aceitar</span>
+                  <span className="hidden sm:inline text-sm font-medium">Accept</span>
                 </motion.button>
                 <motion.button
                   onClick={() => onRejectRequest(user.requestId!)}
@@ -127,7 +127,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
                   whileTap={{ scale: 0.95 }}
                 >
                   <FiX size={16} />
-                  <span className="hidden sm:inline text-sm font-medium">Recusar</span>
+                  <span className="hidden sm:inline text-sm font-medium">Decline</span>
                 </motion.button>
               </>
             )}
@@ -144,7 +144,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
               whileTap={{ scale: 0.95 }}
             >
               <FiEye size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Ver Perfil</span>
+              <span className="hidden sm:inline text-sm font-medium">View Profile</span>
             </motion.button>
             <motion.button
               onClick={() => onSendRequest(user.userId)}
@@ -153,7 +153,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
               whileTap={{ scale: 0.95 }}
             >
               <FiUserPlus size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Adicionar</span>
+              <span className="hidden sm:inline text-sm font-medium">Add</span>
             </motion.button>
           </div>
         );
@@ -171,14 +171,14 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
       >
         <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
           <FiSearch className="text-blue-500" />
-          Encontrar Amigos
+          Find Friends
         </h3>
         
         <div className="flex gap-4">
           <div className="flex-1 relative">
             <input
               type="text"
-              placeholder="Digite nome, email ou ID do usuário..."
+              placeholder="Enter name, email or user ID..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -200,13 +200,13 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
               <FiSearch size={18} />
             )}
             <span className="font-medium">
-              {isLoading ? 'Buscando...' : 'Buscar'}
+              {isLoading ? 'Searching...' : 'Search'}
             </span>
           </motion.button>
         </div>
         
         <p className="text-sm text-gray-500 mt-3">
-          💡 Deixe vazio para ver todos os usuários disponíveis
+          💡 Leave empty to see all available users
         </p>
       </motion.div>
 
@@ -224,7 +224,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
         >
           <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
             <FiUser className="text-purple-500" />
-            Resultados da Busca ({searchResults.length})
+            Search Results ({searchResults.length})
           </h3>
           
           {searchResults.map((user, index) => (
@@ -301,7 +301,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
                       <span className={`text-xs font-medium ${
                         user.isActive ? 'text-green-600' : 'text-gray-500'
                       }`}>
-                        {user.isActive ? '🟢 Ativo' : '⚫ Inativo'}
+                        {user.isActive ? '🟢 Active' : '⚫ Inactive'}
                       </span>
                     </div>
                   </div>
@@ -323,9 +323,9 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
           transition={{ duration: 0.5 }}
         >
           <FiSearch className={`mx-auto mb-4 ${styles.emptyIcon}`} size={48} />
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Nenhum usuário encontrado</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">No users found</h3>
           <p className="text-gray-500">
-            Tente buscar com um termo diferente ou verifique a ortografia.
+            Try searching with a different term or check your spelling.
           </p>
         </motion.div>
       ) : !searchQuery.trim() && searchResults.length === 0 && !isLoading ? (
@@ -336,12 +336,12 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
           transition={{ duration: 0.5 }}
         >
           <FiUser className={`mx-auto mb-4 ${styles.emptyIcon}`} size={48} />
-          <h3 className="text-xl font-bold text-gray-800 mb-2">Descubra Novos Amigos</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">Discover New Friends</h3>
           <p className="text-gray-500 mb-4">
-            Use a busca acima para encontrar pessoas por nome, email ou ID.
+            Use the search above to find people by name, email or ID.
           </p>
           <p className="text-sm text-gray-400">
-            💡 Dica: Deixe o campo vazio e clique em "Buscar" para ver todos os usuários!
+            💡 Tip: Leave the field empty and click "Search" to see all users!
           </p>
         </motion.div>
       ) : null}

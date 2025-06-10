@@ -192,7 +192,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
             className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            title="Anexar arquivo"
+            title="Attach file"
           >
             <FiPaperclip className="text-gray-600" size={18} />
           </motion.button>
@@ -203,7 +203,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
                 value={newMessage}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Digite sua mensagem..."
+                placeholder="Type your message..."
                 className="w-full bg-transparent focus:outline-none resize-none text-gray-800 placeholder-gray-500 max-h-32"
                 rows={1}
                 style={{
@@ -253,7 +253,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
               <span className="w-1 h-1 bg-gray-400 rounded-full"></span>
             </div>
-            <span>Você está digitando...</span>
+            <span>You are typing...</span>
           </motion.div>
         )}
       </div>

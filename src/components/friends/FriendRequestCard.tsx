@@ -57,10 +57,10 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) return 'Agora mesmo';
-    if (diffInHours < 24) return `${diffInHours}h atrás`;
-    if (diffInHours < 48) return 'Ontem';
-    return `${Math.floor(diffInHours / 24)}d atrás`;
+    if (diffInHours < 1) return 'Just now';
+    if (diffInHours < 24) return `${diffInHours}h ago`;
+    if (diffInHours < 48) return 'Yesterday';
+    return `${Math.floor(diffInHours / 24)}d ago`;
   };
 
   return (
@@ -81,7 +81,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
           ? `${styles.requestBadge} ${styles.statusBadge}` 
           : `${styles.pendingBadge} ${styles.statusBadge}`
       }`}>
-        {isReceived ? 'Solicitação recebida' : 'Solicitação enviada'}
+        {isReceived ? 'Request received' : 'Request sent'}
       </div>
 
       <div className="flex items-center justify-between">
@@ -93,7 +93,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
                 {user.profileImg ? (
                   <Image
                     src={user.profileImg}
-                    alt={user.name || 'Usuário'}
+                    alt={user.name || 'User'}
                     width={64}
                     height={64}
                     className="rounded-full object-cover"
@@ -116,7 +116,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
           {/* User info */}
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-gray-800 truncate mb-1">
-              {user.name || 'Usuário desconhecido'}
+              {user.name || 'Unknown user'}
             </h3>
             
             {user.bio && (
@@ -137,7 +137,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
               {!isReceived && (
                 <span className="text-xs text-yellow-600 flex items-center gap-1">
                   <FiClock size={12} />
-                  Aguardando resposta...
+                  Awaiting response...
                 </span>
               )}
             </div>
@@ -154,10 +154,10 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
                 className={`p-3 rounded-xl ${styles.primaryButton} flex items-center gap-2`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                title="Aceitar solicitação"
+                title="Accept request"
               >
                 <FiCheck size={16} />
-                <span className="hidden sm:inline text-sm font-medium">Aceitar</span>
+                <span className="hidden sm:inline text-sm font-medium">Accept</span>
               </motion.button>
               
               <motion.button
@@ -165,10 +165,10 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
                 className={`p-3 rounded-xl ${styles.secondaryButton} flex items-center gap-2`}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                title="Recusar solicitação"
+                title="Decline request"
               >
                 <FiX size={16} />
-                <span className="hidden sm:inline text-sm font-medium">Recusar</span>
+                <span className="hidden sm:inline text-sm font-medium">Decline</span>
               </motion.button>
             </>
           ) : (
@@ -178,10 +178,10 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
               className={`p-3 rounded-xl ${styles.dangerButton} flex items-center gap-2`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              title="Cancelar solicitação"
+              title="Cancel request"
             >
               <FiUserX size={16} />
-              <span className="hidden sm:inline text-sm font-medium">Cancelar</span>
+              <span className="hidden sm:inline text-sm font-medium">Cancel</span>
             </motion.button>
           )}
         </div>

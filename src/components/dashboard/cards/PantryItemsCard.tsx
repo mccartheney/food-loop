@@ -46,11 +46,11 @@ const getDaysAgo = (dateStr: string) => {
   }
 };
 
-// Format date from YYYY-MM-DD to DD/MM/YYYY
+// Format date from YYYY-MM-DD to MM/DD/YYYY
 const formatDate = (dateStr: string) => {
   try {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('pt-PT', {
+    return date.toLocaleDateString('en-US', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
@@ -132,8 +132,8 @@ const PantryItemsCard: React.FC = () => {
             <FiPackage className="text-blue-600" size={20} />
           </motion.div>
           <div>
-            <h2 className="text-sm font-semibold text-gray-800">Últimos Itens Adicionados</h2>
-            <p className="text-xs text-gray-600">Na sua despensa</p>
+            <h2 className="text-sm font-semibold text-gray-800">Latest Added Items</h2>
+            <p className="text-xs text-gray-600">In your pantry</p>
           </div>
         </div>
         
@@ -156,13 +156,13 @@ const PantryItemsCard: React.FC = () => {
             >
               <FiLoader className="text-blue-600 mr-2" size={20} />
             </motion.div>
-            <span className="text-sm text-gray-600">Carregando itens...</span>
+            <span className="text-sm text-gray-600">Loading items...</span>
           </div>
         ) : error ? (
           <div className="p-4 text-center text-sm text-gray-500">{error}</div>
         ) : pantryItems.length === 0 ? (
           <div className="p-4 text-center text-sm text-gray-500">
-            Ainda não há itens na sua despensa
+            No items in your pantry yet
           </div>
         ) : (
           <ul className="divide-y divide-gray-50">
@@ -188,7 +188,7 @@ const PantryItemsCard: React.FC = () => {
                     <span className="text-sm font-medium text-gray-800">{item.name}</span>
                     <div className="flex items-center gap-1 mt-1">
                       <FiClock size={12} className="text-gray-400" />
-                      <span className="text-xs text-gray-500">há {getDaysAgo(item.dateBought)} dias</span>
+                      <span className="text-xs text-gray-500">{getDaysAgo(item.dateBought)} days ago</span>
                     </div>
                   </div>
                 </div>
@@ -197,7 +197,7 @@ const PantryItemsCard: React.FC = () => {
                   <span className="text-xs text-gray-400">{formatDate(item.dateBought)}</span>
                   <div className="flex justify-end mt-1">
                     <span className="px-2 py-1 bg-blue-50 text-blue-600 text-xs rounded-full">
-                      Recente
+                      Recent
                     </span>
                   </div>
                 </div>
@@ -220,7 +220,7 @@ const PantryItemsCard: React.FC = () => {
               whileTap={{ scale: 0.98 }}
               onClick={() => router.push('/app/pantry')}
             >
-              Ver Toda a Despensa
+              View All Pantry Items
               <FiArrowRight className="ml-2" size={14} />
             </motion.button>
           </motion.div>

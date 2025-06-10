@@ -43,21 +43,21 @@ const DashboardSearchBar: React.FC = () => {
 
   const quickActions = [
     {
-      label: 'Adicionar Item',
+      label: 'Add Item',
       icon: FiPlus,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
       action: () => router.push('/app/add')
     },
     {
-      label: 'Ver Despensa',
+      label: 'View Pantry',
       icon: FiPackage,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
       action: () => router.push('/app/pantry')
     },
     {
-      label: 'Explorar Receitas',
+      label: 'Explore Recipes',
       icon: FiBookOpen,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
@@ -72,7 +72,7 @@ const DashboardSearchBar: React.FC = () => {
     }
   ];
 
-  const searchSuggestions = ['Arroz', 'Feijão', 'Massa', 'Tomate', 'Receita de Pasta'];
+  const searchSuggestions = ['Rice', 'Beans', 'Pasta', 'Tomato', 'Pasta Recipe'];
 
   return (
     <motion.div 
@@ -96,9 +96,9 @@ const DashboardSearchBar: React.FC = () => {
             <FiSearch className="text-blue-500" size={24} />
           </motion.div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Busca Rápida</h2>
+            <h2 className="text-xl font-bold text-gray-800">Quick Search</h2>
             <p className="text-sm text-gray-600">
-              Encontre itens, receitas e muito mais
+              Find items, recipes and much more
             </p>
           </div>
         </div>
@@ -138,7 +138,7 @@ const DashboardSearchBar: React.FC = () => {
           <div className="flex-1 relative">
             <motion.input
               type="text"
-              placeholder="Pesquisar na sua conta..."
+              placeholder="Search in your account..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`${styles.searchEnhanced} w-full pl-12 pr-12 py-3 rounded-xl text-gray-800 placeholder-gray-500`}
@@ -182,11 +182,11 @@ const DashboardSearchBar: React.FC = () => {
               onChange={(e) => setSearchCategory(e.target.value as any)}
               className="select select-bordered w-full bg-white border-2 border-blue-200 focus:border-blue-500 rounded-xl"
             >
-              <option value="all">Buscar em tudo</option>
-              <option value="pantry">Apenas despensa</option>
-              <option value="recipes">Apenas receitas</option>
-              <option value="boxes">Apenas caixas</option>
-              <option value="history">Apenas histórico</option>
+              <option value="all">Search everything</option>
+              <option value="pantry">Pantry only</option>
+              <option value="recipes">Recipes only</option>
+              <option value="boxes">Boxes only</option>
+              <option value="history">History only</option>
             </select>
           </motion.div>
 
@@ -201,7 +201,7 @@ const DashboardSearchBar: React.FC = () => {
             whileTap={{ scale: 0.95 }}
           >
             <FiSearch className="mr-2" />
-            Buscar
+            Search
           </motion.button>
         </div>
 
@@ -213,7 +213,7 @@ const DashboardSearchBar: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            <span className="text-sm text-gray-600 mr-2">Populares:</span>
+            <span className="text-sm text-gray-600 mr-2">Popular:</span>
             {searchSuggestions.map((suggestion, index) => (
               <motion.button
                 key={suggestion}
@@ -244,9 +244,9 @@ const DashboardSearchBar: React.FC = () => {
             <div className="flex items-center gap-2">
               <FiSearch className="text-blue-600" size={16} />
               <span className="text-sm text-blue-700">
-                Buscando por "<span className="font-semibold">{searchTerm}</span>" 
+                Searching for "<span className="font-semibold">{searchTerm}</span>" 
                 {searchCategory !== 'all' && (
-                  <> em {searchCategory}</>
+                  <> in {searchCategory}</>
                 )}
               </span>
             </div>
@@ -258,7 +258,7 @@ const DashboardSearchBar: React.FC = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Limpar
+              Clear
             </motion.button>
           </motion.div>
         )}
