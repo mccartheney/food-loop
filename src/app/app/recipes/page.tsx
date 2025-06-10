@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import RecipesStatsHeader from '@/components/recipes/RecipesStatsHeader';
 import RecipesSearchBar from '@/components/recipes/RecipesSearchBar';
@@ -16,209 +17,118 @@ interface Recipe {
   subtitle: string;
   imageUrl: string;
   cookTime: number;
-  rating: number;
   difficulty: 'easy' | 'medium' | 'hard';
   servings: number;
   isPopular?: boolean;
   isFavorited?: boolean;
   category: string;
+  author?: string;
+  authorId?: string;
+  ingredients?: string[];
+  steps?: string[];
+  favoritesCount?: number;
 }
-
-// Dados mock mais realistas com receitas portuguesas
-const MOCK_RECIPES: Recipe[] = [
-  {
-    id: 'recipe-1',
-    title: 'Bacalhau à Brás',
-    subtitle: 'Prato tradicional português',
-    imageUrl: '/images/recipes/bacalhau-bras.jpg',
-    cookTime: 45,
-    rating: 92,
-    difficulty: 'medium',
-    servings: 4,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-2',
-    title: 'Pastéis de Nata',
-    subtitle: 'Doce português icônico',
-    imageUrl: '/images/recipes/pasteis-nata.jpg',
-    cookTime: 60,
-    rating: 95,
-    difficulty: 'hard',
-    servings: 12,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-3',
-    title: 'Caldo Verde',
-    subtitle: 'Sopa tradicional do Minho',
-    imageUrl: '/images/recipes/caldo-verde.jpg',
-    cookTime: 30,
-    rating: 88,
-    difficulty: 'easy',
-    servings: 6,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Sopa'
-  },
-  {
-    id: 'recipe-4',
-    title: 'Francesinha',
-    subtitle: 'Especialidade do Porto',
-    imageUrl: '/images/recipes/francesinha.jpg',
-    cookTime: 40,
-    rating: 90,
-    difficulty: 'medium',
-    servings: 2,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-5',
-    title: 'Arroz de Pato',
-    subtitle: 'Receita tradicional familiar',
-    imageUrl: '/images/recipes/arroz-pato.jpg',
-    cookTime: 90,
-    rating: 94,
-    difficulty: 'hard',
-    servings: 8,
-    isPopular: false,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-6',
-    title: 'Bifana',
-    subtitle: 'Sanduíche português clássico',
-    imageUrl: '/images/recipes/bifana.jpg',
-    cookTime: 15,
-    rating: 85,
-    difficulty: 'easy',
-    servings: 1,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Lanche'
-  },
-  {
-    id: 'recipe-7',
-    title: 'Cataplana de Marisco',
-    subtitle: 'Sabores do mar algarvio',
-    imageUrl: '/images/recipes/cataplana.jpg',
-    cookTime: 50,
-    rating: 96,
-    difficulty: 'hard',
-    servings: 4,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-8',
-    title: 'Queijadas de Sintra',
-    subtitle: 'Doçura tradicional',
-    imageUrl: '/images/recipes/queijadas.jpg',
-    cookTime: 35,
-    rating: 89,
-    difficulty: 'medium',
-    servings: 6,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-9',
-    title: 'Migas à Alentejana',
-    subtitle: 'Sabor rústico do Alentejo',
-    imageUrl: '/images/recipes/migas.jpg',
-    cookTime: 25,
-    rating: 87,
-    difficulty: 'easy',
-    servings: 4,
-    isPopular: false,
-    isFavorited: false,
-    category: 'Acompanhamento'
-  },
-  {
-    id: 'recipe-10',
-    title: 'Açorda de Camarão',
-    subtitle: 'Tradição alentejana moderna',
-    imageUrl: '/images/recipes/acorda.jpg',
-    cookTime: 35,
-    rating: 91,
-    difficulty: 'medium',
-    servings: 4,
-    isPopular: false,
-    isFavorited: true,
-    category: 'Prato Principal'
-  },
-  {
-    id: 'recipe-11',
-    title: 'Bolo de Bolacha',
-    subtitle: 'Sobremesa sem forno',
-    imageUrl: '/images/recipes/bolo-bolacha.jpg',
-    cookTime: 20,
-    rating: 93,
-    difficulty: 'easy',
-    servings: 8,
-    isPopular: true,
-    isFavorited: false,
-    category: 'Sobremesa'
-  },
-  {
-    id: 'recipe-12',
-    title: 'Polvo à Lagareiro',
-    subtitle: 'Clássico da cozinha portuguesa',
-    imageUrl: '/images/recipes/polvo-lagareiro.jpg',
-    cookTime: 75,
-    rating: 94,
-    difficulty: 'hard',
-    servings: 6,
-    isPopular: true,
-    isFavorited: true,
-    category: 'Prato Principal'
-  }
-];
-
-const MOCK_FAVORITES = [
-  'Bacalhau à Brás', 'Pastéis de Nata', 'Caldo Verde', 'Francesinha',
-  'Arroz de Pato', 'Cataplana', 'Bolo de Bolacha', 'Polvo à Lagareiro'
-];
 
 export default function RecipesPage() {
   const router = useRouter();
+  const { data: session, status } = useSession();
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
   const [filteredRecipes, setFilteredRecipes] = useState<Recipe[]>([]);
+  const [favoriteRecipes, setFavoriteRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedDifficulties, setSelectedDifficulties] = useState<string[]>([]);
+  const [selectedQuickFilters, setSelectedQuickFilters] = useState<string[]>([]);
+  const [selectedCookTime, setSelectedCookTime] = useState<string[]>([]);
+  const [selectedServings, setSelectedServings] = useState<string[]>([]);
+  const [sidebarSearch, setSidebarSearch] = useState('');
+
+  // Fetch all recipes once (without filters)
+  const fetchRecipes = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Only get user email for favorite status
+      const url = session?.user?.email 
+        ? `/api/recipes?email=${encodeURIComponent(session.user.email)}`
+        : '/api/recipes';
+        
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Failed to fetch recipes');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        setAllRecipes(data.recipes);
+        // Don't set filteredRecipes here - let the filter effect handle it
+      } else {
+        throw new Error('Failed to load recipes');
+      }
+    } catch (err) {
+      console.error('Error fetching recipes:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load recipes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch favorite recipes
+  const fetchFavorites = async () => {
+    if (!session?.user?.email) return;
+    
+    try {
+      const response = await fetch(`/api/recipes/favorites?email=${encodeURIComponent(session.user.email)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setFavoriteRecipes(data.recipes);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching favorites:', err);
+    }
+  };
 
   useEffect(() => {
-    // Simulate API call
-    setLoading(true);
+    if (status === "loading") return;
     
-    setTimeout(() => {
-      setAllRecipes(MOCK_RECIPES);
-      setFilteredRecipes(MOCK_RECIPES);
+    if (session?.user) {
+      fetchRecipes();
+      if (session.user.email) {
+        fetchFavorites();
+      }
+    } else {
       setLoading(false);
-    }, 800);
-  }, []);
+      setError('Please sign in to view recipes');
+    }
+  }, [session, status]);
 
-  // Filter recipes based on search and filters
+  // Apply all filters client-side (no API calls)
   useEffect(() => {
     let filtered = allRecipes;
 
-    // Filter by search query
+    // Filter by main search query (from header)
     if (searchQuery) {
       filtered = filtered.filter(recipe =>
         recipe.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         recipe.subtitle.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Filter by sidebar search
+    if (sidebarSearch) {
+      filtered = filtered.filter(recipe =>
+        recipe.title.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.category.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.subtitle.toLowerCase().includes(sidebarSearch.toLowerCase()) ||
+        recipe.ingredients?.some(ing => 
+          ing.toLowerCase().includes(sidebarSearch.toLowerCase())
+        )
       );
     }
 
@@ -236,11 +146,85 @@ export default function RecipesPage() {
       );
     }
 
+    // Filter by quick filters
+    if (selectedQuickFilters.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedQuickFilters.some(filter => {
+          switch (filter) {
+            case 'popular':
+              return recipe.isPopular;
+            case 'quick':
+              return recipe.cookTime <= 20;
+            case 'easy':
+              return recipe.difficulty === 'easy';
+            case 'top-rated':
+              return (recipe.favoritesCount || 0) > 0;
+            default:
+              return true;
+          }
+        });
+      });
+    }
+
+    // Filter by cook time
+    if (selectedCookTime.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedCookTime.some(timeRange => {
+          const [min, max] = timeRange.split('-').map(Number);
+          if (max === 999) { // 60+ min
+            return recipe.cookTime >= min;
+          }
+          return recipe.cookTime >= min && recipe.cookTime <= max;
+        });
+      });
+    }
+
+    // Filter by servings
+    if (selectedServings.length > 0) {
+      filtered = filtered.filter(recipe => {
+        return selectedServings.some(servingRange => {
+          const [min, max] = servingRange.split('-').map(Number);
+          if (max === 99) { // 5+ servings
+            return recipe.servings >= min;
+          }
+          return recipe.servings >= min && recipe.servings <= max;
+        });
+      });
+    }
+
     setFilteredRecipes(filtered);
-  }, [allRecipes, searchQuery, selectedCategories, selectedDifficulties]);
+  }, [allRecipes, searchQuery, sidebarSearch, selectedCategories, selectedDifficulties, selectedQuickFilters, selectedCookTime, selectedServings]);
 
   const handleRecipeClick = (recipeId: string) => {
     router.push(`/app/recipes/${recipeId}`);
+  };
+
+  const handleFavoriteToggle = (recipeId: string, isFavorited: boolean) => {
+    // Update the recipe in all recipes list
+    setAllRecipes(prev => prev.map(recipe => 
+      recipe.id === recipeId 
+        ? { ...recipe, isFavorited } 
+        : recipe
+    ));
+    
+    // Update filtered recipes
+    setFilteredRecipes(prev => prev.map(recipe => 
+      recipe.id === recipeId 
+        ? { ...recipe, isFavorited } 
+        : recipe
+    ));
+    
+    // Update favorites list
+    if (isFavorited) {
+      // Recipe was favorited, add to favorites if not already there
+      const recipeToAdd = allRecipes.find(r => r.id === recipeId);
+      if (recipeToAdd && !favoriteRecipes.find(r => r.id === recipeId)) {
+        setFavoriteRecipes(prev => [...prev, { ...recipeToAdd, isFavorited: true }]);
+      }
+    } else {
+      // Recipe was unfavorited, remove from favorites
+      setFavoriteRecipes(prev => prev.filter(r => r.id !== recipeId));
+    }
   };
 
   const handleSearch = (query: string) => {
@@ -263,15 +247,111 @@ export default function RecipesPage() {
     );
   };
 
+  const handleQuickFilterSelect = (filter: string) => {
+    setSelectedQuickFilters(prev =>
+      prev.includes(filter)
+        ? prev.filter(f => f !== filter)
+        : [...prev, filter]
+    );
+  };
+
+  const handleCookTimeSelect = (cookTime: string) => {
+    setSelectedCookTime(prev =>
+      prev.includes(cookTime)
+        ? prev.filter(t => t !== cookTime)
+        : [...prev, cookTime]
+    );
+  };
+
+  const handleServingsSelect = (servings: string) => {
+    setSelectedServings(prev =>
+      prev.includes(servings)
+        ? prev.filter(s => s !== servings)
+        : [...prev, servings]
+    );
+  };
+
+  const handleSidebarSearch = (search: string) => {
+    setSidebarSearch(search);
+  };
+
   const popularRecipes = filteredRecipes.filter(recipe => recipe.isPopular);
   const recentRecipes = filteredRecipes.slice(0, 8);
-  const favoriteRecipes = filteredRecipes.filter(recipe => recipe.isFavorited);
+
+  // Loading state
+  if (status === "loading" || loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            </div>
+            <p className="text-gray-600 font-medium">Carregando receitas...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  // Error state
+  if (error || !session?.user) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
+          <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md">
+            <h1 className="text-2xl font-bold mb-4 text-gray-800">
+              {!session?.user ? 'Faça login' : 'Erro ao carregar receitas'}
+            </h1>
+            <p className="text-gray-600 mb-6">
+              {!session?.user 
+                ? 'Você precisa fazer login para ver as receitas.' 
+                : error || 'Houve um erro ao carregar as receitas.'
+              }
+            </p>
+            {!session?.user ? (
+              <button 
+                onClick={() => router.push('/auth/login')}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Ir para login
+              </button>
+            ) : (
+              <button 
+                onClick={fetchRecipes}
+                className="bg-blue-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+              >
+                Tentar novamente
+              </button>
+            )}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout>
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
         {/* Stats Header */}
-        <RecipesStatsHeader />
+        <RecipesStatsHeader 
+          totalRecipes={allRecipes.length}
+          favoriteRecipes={favoriteRecipes.length}
+          averageCookTime={allRecipes.length > 0 ? Math.round(allRecipes.reduce((sum, recipe) => sum + recipe.cookTime, 0) / allRecipes.length) : 0}
+          popularRecipes={allRecipes.filter(recipe => recipe.isPopular).length}
+          onShowPopular={() => setSelectedQuickFilters(['popular'])}
+          onShowFavorites={() => {
+            // Clear all other filters and show only favorites
+            setSelectedCategories([]);
+            setSelectedDifficulties([]);
+            setSelectedQuickFilters([]);
+            setSelectedCookTime([]);
+            setSelectedServings([]);
+            setSearchQuery('');
+            setSidebarSearch('');
+            setFilteredRecipes(favoriteRecipes);
+          }}
+        />
 
         {/* Search Bar */}
         <RecipesSearchBar 
@@ -282,11 +362,18 @@ export default function RecipesPage() {
           {/* Sidebar */}
           <div className="hidden lg:block w-80 flex-shrink-0">
             <RecipeSidebar 
-              favorites={MOCK_FAVORITES}
+              favorites={favoriteRecipes.map(recipe => recipe.title)}
               onCategorySelect={handleCategorySelect}
               onDifficultySelect={handleDifficultySelect}
+              onQuickFilterSelect={handleQuickFilterSelect}
+              onCookTimeSelect={handleCookTimeSelect}
+              onServingsSelect={handleServingsSelect}
+              onSearchChange={handleSidebarSearch}
               selectedCategories={selectedCategories}
               selectedDifficulties={selectedDifficulties}
+              selectedQuickFilters={selectedQuickFilters}
+              selectedCookTime={selectedCookTime}
+              selectedServings={selectedServings}
             />
           </div>
 
@@ -298,6 +385,24 @@ export default function RecipesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
+              {/* All Filtered Recipes - FIRST */}
+              {(searchQuery || sidebarSearch || selectedCategories.length > 0 || selectedDifficulties.length > 0 || selectedQuickFilters.length > 0 || selectedCookTime.length > 0 || selectedServings.length > 0) && (
+                <motion.div
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                  <RecipeGrid 
+                    title={`🔍 Resultados dos Filtros (${filteredRecipes.length})`}
+                    recipes={filteredRecipes} 
+                    onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    loading={loading}
+                  />
+                </motion.div>
+              )}
+
               {/* Popular Recipes */}
               {popularRecipes.length > 0 && (
                 <motion.div 
@@ -310,25 +415,29 @@ export default function RecipesPage() {
                     title="🌟 Receitas Populares"
                     recipes={popularRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
               )}
 
               {/* Recent Recipes */}
-              <motion.div 
-                className="mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
-              >
-                <RecipeGrid 
-                  title="🍽️ Receitas Recentes"
-                  recipes={recentRecipes} 
-                  onRecipeClick={handleRecipeClick}
-                  loading={loading}
-                />
-              </motion.div>
+              {recentRecipes.length > 0 && (
+                <motion.div 
+                  className="mb-8"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
+                  <RecipeGrid 
+                    title="🍽️ Receitas Recentes"
+                    recipes={recentRecipes} 
+                    onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
+                    loading={loading}
+                  />
+                </motion.div>
+              )}
 
               {/* Favorite Recipes */}
               {favoriteRecipes.length > 0 && (
@@ -342,29 +451,39 @@ export default function RecipesPage() {
                     title="❤️ Suas Favoritas"
                     recipes={favoriteRecipes} 
                     onRecipeClick={handleRecipeClick}
+                    onFavoriteToggle={handleFavoriteToggle}
                     loading={loading}
                   />
                 </motion.div>
               )}
 
-              {/* All Filtered Recipes */}
-              {(searchQuery || selectedCategories.length > 0 || selectedDifficulties.length > 0) && (
-                <motion.div
+              {/* Empty State */}
+              {!loading && allRecipes.length === 0 && (
+                <motion.div 
+                  className="text-center py-16"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
                 >
-                  <RecipeGrid 
-                    title={`🔍 Resultados da Busca (${filteredRecipes.length})`}
-                    recipes={filteredRecipes} 
-                    onRecipeClick={handleRecipeClick}
-                    loading={loading}
-                  />
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-4xl">🍽️</span>
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4">Nenhuma receita ainda</h3>
+                  <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+                    Seja o primeiro a compartilhar uma receita deliciosa com a comunidade!
+                  </p>
+                  <button
+                    onClick={() => router.push('/app/recipes/create')}
+                    className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+                  >
+                    ➕ Criar Primeira Receita
+                  </button>
                 </motion.div>
               )}
             </motion.div>
           </div>
         </div>
+
       </div>
     </DashboardLayout>
   );

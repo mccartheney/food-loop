@@ -7,7 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "generate": "prisma validate"
+    "generate": "npm run db:generate && npm run mongo:generate",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "mongo:generate": "prisma generate --schema=prisma/mongodb.schema.prisma",
+    "mongo:push": "prisma db push --schema=prisma/mongodb.schema.prisma",
+    "mongo:studio": "prisma studio --schema=prisma/mongodb.schema.prisma",
+    "setup": "npm run db:generate && npm run mongo:generate"
   },
   "dependencies": {
     "@prisma/client": "^6.8.2",

@@ -11,6 +11,207 @@ import EditProfileModal from '@/components/profile/EditProfileModal';
 import { ToastContainer, useToast } from '@/components/ui/Toast';
 import styles from './styles.module.css';
 
+// User Recipes Tab Component
+const UserRecipesTab = ({ userId }: { userId: string }) => {
+  const [recipes, setRecipes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserRecipes = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/recipes?userId=${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setRecipes(data.recipes);
+          }
+        }
+      } catch (err) {
+        setError('Failed to load recipes');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserRecipes();
+  }, [userId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (recipes.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <motion.div
+          className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-red-400 to-pink-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <FiHeart className="text-white" size={32} />
+        </motion.div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Suas receitas aparecerão aqui</h3>
+        <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+          Crie e compartilhe receitas deliciosas com a comunidade.
+        </p>
+        <Link href="/app/recipes/create">
+          <motion.button 
+            className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Criar primeira receita
+          </motion.button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {recipes.map((recipe) => (
+        <motion.div
+          key={recipe.id}
+          className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
+          whileHover={{ y: -5 }}
+          onClick={() => router.push(`/app/recipes/${recipe.id}`)}
+        >
+          <div className="aspect-video bg-gray-200 relative">
+            {recipe.imageUrl && (
+              <img
+                src={recipe.imageUrl}
+                alt={recipe.title}
+                className="w-full h-full object-cover"
+              />
+            )}
+            <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+              {recipe.cookTime}min
+            </div>
+          </div>
+          <div className="p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">{recipe.title}</h4>
+            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{recipe.category}</p>
+            <div className="flex items-center justify-between text-sm text-gray-500">
+              <span>{recipe.difficulty}</span>
+              <span>{recipe.servings} porções</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
+// User Favorites Tab Component
+const UserFavoritesTab = ({ userEmail }: { userEmail: string }) => {
+  const [favorites, setFavorites] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(`/api/recipes/favorites?email=${encodeURIComponent(userEmail)}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setFavorites(data.recipes);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load favorites');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (userEmail) {
+      fetchFavorites();
+    }
+  }, [userEmail]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (favorites.length === 0) {
+    return (
+      <div className="text-center py-16">
+        <motion.div
+          className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-green-400 to-teal-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
+          animate={{ y: [0, -5, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <FiBookmark className="text-white" size={32} />
+        </motion.div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Receitas favoritas</h3>
+        <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
+          Suas receitas favoritas aparecerão aqui quando você curtir alguma.
+        </p>
+        <Link href="/app/recipes">
+          <motion.button 
+            className="bg-gradient-to-r from-green-500 to-teal-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Explorar receitas
+          </motion.button>
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {favorites.map((recipe) => (
+        <motion.div
+          key={recipe.id}
+          className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow cursor-pointer"
+          whileHover={{ y: -5 }}
+          onClick={() => router.push(`/app/recipes/${recipe.id}`)}
+        >
+          <div className="aspect-video bg-gray-200 relative">
+            {recipe.imageUrl && (
+              <img
+                src={recipe.imageUrl}
+                alt={recipe.title}
+                className="w-full h-full object-cover"
+              />
+            )}
+            <div className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-sm">
+              {recipe.cookTime}min
+            </div>
+            <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded text-sm flex items-center gap-1">
+              <FiHeart size={12} />
+              Favorita
+            </div>
+          </div>
+          <div className="p-4">
+            <h4 className="font-semibold text-gray-800 mb-2">{recipe.title}</h4>
+            <p className="text-gray-600 text-sm mb-3 line-clamp-2">{recipe.category}</p>
+            <div className="flex items-center justify-between text-sm text-gray-500">
+              <span>Por {recipe.author}</span>
+              <span>{recipe.servings} porções</span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+};
+
 // Types for real data
 interface RealFriend {
   id: string;
@@ -625,9 +826,9 @@ export default function MyProfilePage() {
                     >
                       <FiHeart className="text-white" size={32} />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Your recipes will appear here</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Suas receitas aparecerão aqui</h3>
                     <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
-                      Create and share delicious recipes with the community.
+                      Crie e compartilhe receitas deliciosas com a comunidade.
                     </p>
                     <Link href="/app/recipes">
                       <motion.button 
@@ -635,7 +836,7 @@ export default function MyProfilePage() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
-                        Explore recipes
+                        Explorar receitas
                       </motion.button>
                     </Link>
                   </div>
@@ -649,9 +850,9 @@ export default function MyProfilePage() {
                     >
                       <FiBookmark className="text-white" size={32} />
                     </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Saved items</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Itens salvos</h3>
                     <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
-                      Your favorite recipes and posts will be saved here.
+                      Suas receitas e posts favoritos ficarão salvos aqui.
                     </p>
                   </div>
                 )}
