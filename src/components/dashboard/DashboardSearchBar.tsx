@@ -1,21 +1,54 @@
 'use client';
 
-import { motion } from 'framer-motion';
-import { useState, FormEvent } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState, FormEvent, useRef, useEffect } from 'react';
 import { FiSearch, FiX, FiPackage, FiBookOpen, FiBox, FiClock, FiPlus } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
+import { useSearch, SearchResult } from '@/lib/hooks/useSearch';
+import SearchResults from './SearchResults';
 import styles from '../../app/app/styles.module.css';
 
 const DashboardSearchBar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCategory, setSearchCategory] = useState<'all' | 'pantry' | 'recipes' | 'boxes' | 'history'>('all');
+  const [showResults, setShowResults] = useState(false);
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Use the search hook
+  const { results, loading, error, hasResults } = useSearch(searchTerm, {
+    category: searchCategory,
+    minLength: 2,
+    debounceMs: 300
+  });
+
+  // Show results when we have a search term and either results or are loading
+  useEffect(() => {
+    setShowResults(searchTerm.length >= 2 && isInputFocused && (hasResults || loading || error !== null));
+  }, [searchTerm, hasResults, loading, error, isInputFocused]);
+
+  // Handle click outside to close results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+        setIsInputFocused(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (!searchTerm.trim()) return;
 
-    // Navigate based on category
+    // Hide results and navigate based on category
+    setShowResults(false);
+    setIsInputFocused(false);
+
     switch (searchCategory) {
       case 'pantry':
         router.push(`/app/pantry?search=${encodeURIComponent(searchTerm)}`);
@@ -32,8 +65,46 @@ const DashboardSearchBar: React.FC = () => {
         console.log('Search history:', searchTerm);
         break;
       default:
-        // Global search - could search across all sections
-        console.log('Global search:', searchTerm);
+        // If we have results, navigate to the first one or show all results
+        if (results.length > 0) {
+          const firstResult = results[0];
+          if (firstResult.type === 'recipe') {
+            router.push(`/app/recipes?search=${encodeURIComponent(searchTerm)}`);
+          } else {
+            router.push(`/app/pantry?search=${encodeURIComponent(searchTerm)}`);
+          }
+        }
+    }
+  };
+
+  const handleResultClick = (result: SearchResult) => {
+    setShowResults(false);
+    setIsInputFocused(false);
+    setSearchTerm(''); // Clear search after clicking result
+  };
+
+  const handleSeeMore = (type: 'recipe' | 'pantry_item') => {
+    setShowResults(false);
+    setIsInputFocused(false);
+    
+    if (type === 'recipe') {
+      router.push(`/app/recipes?search=${encodeURIComponent(searchTerm)}`);
+    } else {
+      router.push(`/app/pantry?search=${encodeURIComponent(searchTerm)}`);
+    }
+  };
+
+  const handleInputFocus = () => {
+    setIsInputFocused(true);
+    if (searchTerm.length >= 2) {
+      setShowResults(true);
+    }
+  };
+
+  const handleSearchTermChange = (value: string) => {
+    setSearchTerm(value);
+    if (value.length >= 2) {
+      setIsInputFocused(true);
     }
   };
 
@@ -135,13 +206,14 @@ const DashboardSearchBar: React.FC = () => {
       >
         <div className="flex flex-col md:flex-row gap-4">
           {/* Search Input */}
-          <div className="flex-1 relative">
+          <div className="flex-1 relative" ref={searchContainerRef}>
             <motion.input
               type="text"
-              placeholder="Pesquisar na sua conta..."
+              placeholder="Pesquisar receitas e ingredientes..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={`${styles.searchEnhanced} w-full pl-12 pr-12 py-3 rounded-xl text-gray-800 placeholder-gray-500`}
+              onChange={(e) => handleSearchTermChange(e.target.value)}
+              onFocus={handleInputFocus}
+              className={`${styles.searchEnhanced} w-full pl-12 pr-12 py-3 rounded-xl text-gray-800 placeholder-gray-500 ${showResults ? 'rounded-b-none border-b-0' : ''}`}
               whileFocus={{ scale: 1.02 }}
               transition={{ duration: 0.2 }}
             />
@@ -159,7 +231,7 @@ const DashboardSearchBar: React.FC = () => {
               <motion.button
                 type="button"
                 onClick={clearSearch}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 initial={{ scale: 0, opacity: 0 }}
@@ -169,6 +241,20 @@ const DashboardSearchBar: React.FC = () => {
                 <FiX size={20} />
               </motion.button>
             )}
+
+            {/* Search Results */}
+            <AnimatePresence>
+              {showResults && (
+                <SearchResults
+                  results={results}
+                  loading={loading}
+                  error={error}
+                  query={searchTerm}
+                  onResultClick={handleResultClick}
+                  onSeeMore={handleSeeMore}
+                />
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Category Filter */}
@@ -185,7 +271,6 @@ const DashboardSearchBar: React.FC = () => {
               <option value="all">Buscar em tudo</option>
               <option value="pantry">Apenas despensa</option>
               <option value="recipes">Apenas receitas</option>
-              <option value="boxes">Apenas caixas</option>
               <option value="history">Apenas histórico</option>
             </select>
           </motion.div>
@@ -206,7 +291,7 @@ const DashboardSearchBar: React.FC = () => {
         </div>
 
         {/* Search Suggestions */}
-        {!searchTerm && (
+        {!searchTerm && !showResults && (
           <motion.div 
             className="flex flex-wrap gap-2 pt-2"
             initial={{ opacity: 0 }}
@@ -218,7 +303,7 @@ const DashboardSearchBar: React.FC = () => {
               <motion.button
                 key={suggestion}
                 type="button"
-                onClick={() => setSearchTerm(suggestion)}
+                onClick={() => handleSearchTermChange(suggestion)}
                 className={`px-3 py-1 ${styles.actionChip} rounded-full text-sm transition-colors`}
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}

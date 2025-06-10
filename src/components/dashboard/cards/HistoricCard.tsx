@@ -43,15 +43,6 @@ const historyItems = [
     status: 'pending',
     icon: '🛍️'
   },
-  { 
-    id: 5, 
-    name: 'Caixa Continente', 
-    value: '15',
-    type: 'box',
-    date: '1 semana atrás',
-    status: 'completed',
-    icon: '📋'
-  },
 ];
 
 const HistoricCard: React.FC = () => {
@@ -83,7 +74,6 @@ const HistoricCard: React.FC = () => {
       case 'recipe': return 'bg-purple-500';
       case 'pantry': return 'bg-green-500';
       case 'marketplace': return 'bg-orange-500';
-      case 'box': return 'bg-gray-500';
       default: return 'bg-gray-400';
     }
   };
