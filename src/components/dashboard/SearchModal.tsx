@@ -136,8 +136,8 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
   }, [isOpen]);
 
   const handleProfileClick = (friend: FriendProfile) => {
-    // Navigate to profile page using the profile id
-    router.push(`/app/profile/${friend.id}`);
+    // Navigate to profile page using the user id
+    router.push(`/app/profile/${friend.userId}`);
     onClose();
   };
   

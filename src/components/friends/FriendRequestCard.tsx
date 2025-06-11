@@ -76,7 +76,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
       className={`${styles.requestCard} rounded-2xl p-6 m-2 relative overflow-hidden`}
     >
       {/* Type indicator */}
-      <div className={`absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-medium ${
+      <div className={`absolute top-5 right-4 px-3 py-1 rounded-full text-xs font-medium ${
         isReceived 
           ? `${styles.requestBadge} ${styles.statusBadge}` 
           : `${styles.pendingBadge} ${styles.statusBadge}`
@@ -145,7 +145,7 @@ const FriendRequestCard: React.FC<FriendRequestCardProps> = ({
         </div>
 
         {/* Action buttons */}
-        <div className={`${styles.actionButtons} ml-4`}>
+        <div className={`${styles.actionButtons} ml-4`} style={{ gap: '1rem' }}>
           {isReceived ? (
             // Received request actions
             <>

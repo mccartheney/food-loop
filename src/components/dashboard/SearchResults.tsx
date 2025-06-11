@@ -5,6 +5,7 @@ import { FiBookOpen, FiPackage, FiClock, FiUsers, FiChevronRight } from 'react-i
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { SearchResult } from '@/lib/hooks/useSearch';
+import UserSearchResults from '@/components/users/UserSearchResults';
 import styles from '../../app/app/styles.module.css';
 
 interface SearchResultsProps {
@@ -200,6 +201,16 @@ const SearchResults: React.FC<SearchResultsProps> = ({
           ))}
         </div>
       )}
+
+      {/* User Results */}
+      <div className="border-b border-gray-100">
+        <UserSearchResults 
+          query={query}
+          onUserClick={(userId) => {
+            router.push(`/app/profile/${userId}`);
+          }}
+        />
+      </div>
 
       {/* Pantry Results */}
       {pantryResults.length > 0 && (

@@ -1,49 +1,86 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
-// GET /api/profile - Get profile by email
+// GET /api/profile - Get profile by email or userId
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
+    const userId = searchParams.get('userId');
 
-    if (!email) {
-      return NextResponse.json({ error: 'Email is required' }, { status: 400 });
+    if (!email && !userId) {
+      return NextResponse.json({ error: 'Email or userId is required' }, { status: 400 });
     }
 
-    const profile = await prisma.profile.findFirst({
-      where: {
-        user: {
-          email: email
-        }
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
+    let profile;
+    
+    if (email) {
+      profile = await prisma.profile.findFirst({
+        where: {
+          user: {
+            email: email
           }
         },
-        friends: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          friends: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                }
               }
+            }
+          },
+          _count: {
+            select: {
+              friends: true,
+              recipes: true,
             }
           }
         },
-        _count: {
-          select: {
-            friends: true,
-            recipes: true,
+      });
+    } else if (userId) {
+      profile = await prisma.profile.findFirst({
+        where: {
+          userId: userId
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            }
+          },
+          friends: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                }
+              }
+            }
+          },
+          _count: {
+            select: {
+              friends: true,
+              recipes: true,
+            }
           }
-        }
-      },
-    });
+        },
+      });
+    }
 
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
