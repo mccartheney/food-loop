@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMessageCircle, FiUsers, FiLoader } from 'react-icons/fi';
 import MessageList from '@/components/messages/MessageList';
 import ChatArea from '@/components/messages/ChatArea';
+import NewConversationModal from '@/components/messages/NewConversationModal';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import styles from './styles.module.css';
 
@@ -23,6 +25,16 @@ interface Conversation {
   unread: boolean;
 }
 
+interface Friend {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  bio?: string;
+  profileImg?: string;
+  address?: string;
+}
+
 // API response types
 interface ApiConversation {
   id: string;
@@ -36,17 +48,27 @@ interface ApiConversation {
     senderId: string;
     createdAt: string;
   };
-  messages: any[];
+  messages: unknown[];
 }
 
 export default function MessagesPage() {
+  const { data: session, status } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showConversations, setShowConversations] = useState(true);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string>('user1'); // TODO: Get from auth
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showNewConversationModal, setShowNewConversationModal] = useState(false);
+
+  // Get user ID from session
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user?.email) {
+      // Use email as userId for now, or fetch the actual user ID from your API
+      setCurrentUserId(session.user.email);
+    }
+  }, [session, status]);
 
   // Fetch conversations from API with fallback to mock data
   const fetchConversations = async () => {
@@ -135,7 +157,9 @@ export default function MessagesPage() {
   };
 
   useEffect(() => {
-    fetchConversations();
+    if (currentUserId) {
+      fetchConversations();
+    }
   }, [currentUserId]);
 
   useEffect(() => {
@@ -168,6 +192,91 @@ export default function MessagesPage() {
 
   const handleBackToConversations = () => {
     setShowConversations(true);
+  };
+
+  // Handle starting a new conversation
+  const handleNewMessage = () => {
+    setShowNewConversationModal(true);
+  };
+
+  // Handle friend selection from modal
+  const handleSelectFriend = async (friend: Friend) => {
+    try {
+      // Check if conversation already exists with this friend
+      const existingConversation = conversations.find(conv => 
+        conv.user.name === friend.name || conv.id === friend.userId
+      );
+
+      if (existingConversation) {
+        // If conversation exists, just select it
+        setActiveConversation(existingConversation);
+        if (isMobile) {
+          setShowConversations(false);
+        }
+        return;
+      }
+
+      // Create new conversation object for immediate UI feedback
+      const newConversation: Conversation = {
+        id: friend.userId,
+        user: {
+          name: friend.name,
+          avatar: friend.profileImg || '',
+          location: friend.address || 'Portugal'
+        },
+        lastMessage: 'Conversa iniciada',
+        timestamp: 'now',
+        unread: false
+      };
+
+      // Add to conversations list
+      setConversations(prev => [newConversation, ...prev]);
+      
+      // Set as active conversation
+      setActiveConversation(newConversation);
+      
+      if (isMobile) {
+        setShowConversations(false);
+      }
+
+      // Try to create conversation in database (optional - works even if this fails)
+      try {
+        const response = await fetch('/api/messages/conversations', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: currentUserId,
+            participantId: friend.userId,
+            type: 'DIRECT'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+          // Update conversation with real ID from database
+          setConversations(prev => 
+            prev.map(conv => 
+              conv.id === friend.userId 
+                ? { ...conv, id: data.conversation.id }
+                : conv
+            )
+          );
+          
+          // Update active conversation ID
+          setActiveConversation(prev => 
+            prev ? { ...prev, id: data.conversation.id } : prev
+          );
+        }
+      } catch (err) {
+        console.log('Conversation created locally, but not persisted to database:', err);
+      }
+
+    } catch (err) {
+      console.error('Error starting new conversation:', err);
+    }
   };
 
   const EmptyState = () => (
@@ -251,6 +360,7 @@ export default function MessagesPage() {
                   conversations={conversations} 
                   activeConversation={activeConversation}
                   onSelectConversation={handleSelectConversation}
+                  onNewMessage={handleNewMessage}
                 />
               </motion.div>
             )}
@@ -279,6 +389,16 @@ export default function MessagesPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* New Conversation Modal */}
+      {currentUserId && (
+        <NewConversationModal
+          isOpen={showNewConversationModal}
+          onClose={() => setShowNewConversationModal(false)}
+          onSelectFriend={handleSelectFriend}
+          currentUserId={currentUserId}
+        />
+      )}
     </DashboardLayout>
   );
 }
