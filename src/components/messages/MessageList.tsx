@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { FiSearch, FiMoreHorizontal } from 'react-icons/fi';
+import { FiSearch, FiMoreHorizontal, FiPlus } from 'react-icons/fi';
 import styles from '../../app/app/messages/styles.module.css';
 
 interface User {
@@ -21,9 +21,10 @@ interface MessageListProps {
   conversations: Conversation[];
   activeConversation: Conversation | null;
   onSelectConversation: (conversation: Conversation) => void;
+  onNewMessage?: () => void;
 }
 
-const MessageList: React.FC<MessageListProps> = ({ conversations, activeConversation, onSelectConversation }) => {
+const MessageList: React.FC<MessageListProps> = ({ conversations, activeConversation, onSelectConversation, onNewMessage }) => {
   return (
     <motion.div 
       className={`flex flex-col h-full rounded-3xl ${styles.messageCard} overflow-hidden `}
@@ -35,13 +36,26 @@ const MessageList: React.FC<MessageListProps> = ({ conversations, activeConversa
       <div className="p-6 border-b border-white/20">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold gradient-text">Mensagens</h2>
-          <motion.button
-            className="p-2 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <FiMoreHorizontal className="text-gray-600" size={18} />
-          </motion.button>
+          <div className="flex items-center gap-2">
+            {onNewMessage && (
+              <motion.button
+                onClick={onNewMessage}
+                className={`p-2 rounded-full ${styles.sendButton} text-white transition-all duration-200`}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                title="Nova mensagem"
+              >
+                <FiPlus size={18} />
+              </motion.button>
+            )}
+            <motion.button
+              className="p-2 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FiMoreHorizontal className="text-gray-600" size={18} />
+            </motion.button>
+          </div>
         </div>
       </div>
       

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
 import { FiSend, FiPaperclip, FiSmile } from 'react-icons/fi';
 import MessageHeader from './MessageHeader';
 import styles from '../../app/app/messages/styles.module.css';
@@ -45,18 +45,17 @@ interface ApiMessage {
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Real-time socket integration
   const roomId = String(conversation.id);
-  const userId = "user1"; // Replace with real user ID from auth/session
+  const userId = session?.user?.email || 'anonymous'; // Use authenticated user email
 
   // Mock messages for demo purposes
   const getMockMessages = (conversationId: string): Message[] => {
@@ -88,7 +87,6 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
   // Fetch messages for this conversation with fallback
   const fetchMessages = async () => {
     try {
-      setLoading(true);
       const response = await fetch(`/api/messages?userId=${userId}&conversationId=${conversation.id}`);
       const data = await response.json();
       
@@ -102,19 +100,14 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
         }));
         
         setMessages(transformedMessages);
-        setError(null);
       } else {
         // Fallback to demo messages if API fails
         setMessages(getMockMessages(conversation.id));
-        setError(null);
       }
     } catch (err) {
       // Fallback to demo messages if API fails
       setMessages(getMockMessages(conversation.id));
-      setError(null);
       console.log('Using demo messages due to API error:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
