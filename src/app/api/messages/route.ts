@@ -9,21 +9,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const skip = parseInt(searchParams.get('skip') || '0')
 
-    console.log('GET /api/messages - userId:', userId, 'conversationId:', conversationId)
-
     if (!userId) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
     }
 
     if (conversationId) {
       // Get messages for a specific conversation
-      console.log('Fetching messages for conversation:', conversationId)
       const messages = await messagingService.getConversationMessages(
         conversationId,
         limit,
         skip
       )
-      console.log('Found messages:', messages.length)
 
       return NextResponse.json({
         success: true,
@@ -32,9 +28,7 @@ export async function GET(request: NextRequest) {
       })
     } else {
       // Get user's conversations
-      console.log('Fetching conversations for user:', userId)
       const conversations = await messagingService.getUserConversations(userId)
-      console.log('Found conversations:', conversations.length, 'conversations:', conversations.map(c => ({ id: c.id, participants: c.participants })))
 
       return NextResponse.json({
         success: true,
@@ -64,11 +58,8 @@ export async function POST(request: NextRequest) {
       conversationType = 'DIRECT'
     } = body
 
-    console.log('POST /api/messages - body:', { conversationId, senderId, content, participants, conversationType })
-
     if (conversationId) {
       // Send message to existing conversation
-      console.log('Sending message to existing conversation:', conversationId)
       if (!senderId || !content) {
         return NextResponse.json(
           { error: 'Missing required fields: senderId, content' },
@@ -85,14 +76,12 @@ export async function POST(request: NextRequest) {
         replyToId
       })
 
-      console.log('Message sent successfully:', message.id)
       return NextResponse.json({
         success: true,
         message
       }, { status: 201 })
     } else {
       // Create new conversation
-      console.log('Creating new conversation with participants:', participants)
       if (!participants || !Array.isArray(participants) || participants.length < 2) {
         return NextResponse.json(
           { error: 'At least 2 participants are required to create a conversation' },
@@ -113,11 +102,8 @@ export async function POST(request: NextRequest) {
         createdBy: senderId
       })
 
-      console.log('Conversation created successfully:', { id: conversation.id, participants: conversation.participants })
-
       // Send initial message if content is provided
       if (content) {
-        console.log('Sending initial message to new conversation')
         const message = await messagingService.sendMessage({
           conversationId: conversation.id,
           senderId,
@@ -126,7 +112,6 @@ export async function POST(request: NextRequest) {
           metadata
         })
 
-        console.log('Initial message sent:', message.id)
         return NextResponse.json({
           success: true,
           conversation,

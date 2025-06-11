@@ -89,85 +89,61 @@ export default function MessagesPage() {
     fetchUserProfile();
   }, [session, status]);
 
-  // Fetch conversations from API with fallback to mock data
+  // Fetch conversations from API
   const fetchConversations = async () => {
     try {
       setLoading(true);
-      console.log('Fetching conversations for user:', currentUserId);
       const response = await fetch(`/api/messages?userId=${currentUserId}`);
       const data = await response.json();
       
-      console.log('Conversations API response:', data);
-      
       if (data.success) {
-        console.log('Raw conversations from API:', data.conversations);
         // Transform API response to match UI interface
-        const transformedConversations: Conversation[] = data.conversations.map((conv: ApiConversation) => {
-          // Get other participant (assuming DIRECT conversation)
-          const otherParticipant = conv.participants.find(p => p !== currentUserId) || conv.participants[0];
-          
-          return {
-            id: conv.id,
-            user: {
-              name: `User ${otherParticipant}`, // TODO: Get real user names from profile API
-              avatar: `/avatars/user${Math.floor(Math.random() * 7) + 1}.png`,
-              location: 'Portugal'
-            },
-            lastMessage: conv.lastMessage?.content || 'No messages yet',
-            timestamp: formatTimestamp(conv.lastMessage?.createdAt || conv.lastActivity),
-            unread: false // TODO: Implement unread logic
-          };
-        });
+        const transformedConversations: Conversation[] = await Promise.all(
+          data.conversations.map(async (conv: ApiConversation) => {
+            // Get other participant (assuming DIRECT conversation)
+            const otherParticipantId = conv.participants.find(p => p !== currentUserId) || conv.participants[0];
+            
+            // Try to get participant's name from user API
+            let participantName = `User ${otherParticipantId}`;
+            try {
+              const userResponse = await fetch(`/api/users?id=${otherParticipantId}`);
+              const userData = await userResponse.json();
+              if (userData.success && userData.user) {
+                participantName = userData.user.name || userData.user.email || participantName;
+              }
+            } catch (err) {
+              console.warn('Could not fetch participant name:', err);
+            }
+            
+            return {
+              id: conv.id,
+              user: {
+                name: participantName,
+                avatar: '', // No placeholder avatars
+                location: ''
+              },
+              lastMessage: conv.lastMessage?.content || 'No messages yet',
+              timestamp: formatTimestamp(conv.lastMessage?.createdAt || conv.lastActivity),
+              unread: false // TODO: Implement unread logic based on message status
+            };
+          })
+        );
         
-        console.log('Transformed conversations:', transformedConversations);
         setConversations(transformedConversations);
+        setError(null);
       } else {
-        console.log('API failed, using mock data:', data);
-        // Fallback to demo conversations if API fails
-        setConversations(mockConversations);
-        setError('Using demo data - MongoDB connection needed for persistence');
+        // No conversations found - show empty state
+        setConversations([]);
+        setError(null);
       }
     } catch (err) {
-      // Fallback to demo conversations if API fails
       console.error('Error fetching conversations:', err);
-      setConversations(mockConversations);
-      setError('Using demo data - MongoDB connection needed for persistence');
+      setConversations([]);
+      setError('Failed to load conversations');
     } finally {
       setLoading(false);
     }
   };
-
-  // Mock conversations for demo purposes
-  const mockConversations: Conversation[] = [
-    {
-      id: '1',
-      user: { name: 'Ana Silva', avatar: '/avatars/user1.png', location: 'Porto' },
-      lastMessage: 'Olá! Tenho tomates frescos para compartilhar',
-      timestamp: '2h',
-      unread: false
-    },
-    {
-      id: '2',
-      user: { name: 'Carlos Santos', avatar: '/avatars/user2.png', location: 'Lisboa' },
-      lastMessage: 'Obrigado pela receita!',
-      timestamp: '5h',
-      unread: true
-    },
-    {
-      id: '3',
-      user: { name: 'Maria Costa', avatar: '/avatars/user3.png', location: 'Faro' },
-      lastMessage: 'Você está disponível amanhã?',
-      timestamp: '1d',
-      unread: false
-    },
-    {
-      id: '4',
-      user: { name: 'João Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
-      lastMessage: 'Tenho alguns ingredientes para partilhar',
-      timestamp: '2d',
-      unread: false
-    }
-  ];
 
   // Format timestamp for display
   const formatTimestamp = (timestamp: string) => {
@@ -263,15 +239,13 @@ export default function MessagesPage() {
         const data = await response.json();
         
         if (data.success && data.conversation) {
-          console.log('Conversation created successfully, refreshing conversations list');
-          
           // Create new conversation object with proper MongoDB ID
           const newConversation: Conversation = {
-            id: data.conversation.id, // This is now a proper MongoDB ObjectID
+            id: data.conversation.id,
             user: {
               name: friend.name,
               avatar: friend.profileImg || '',
-              location: friend.address || 'Portugal'
+              location: friend.address || ''
             },
             lastMessage: 'Conversa criada',
             timestamp: 'now',
@@ -297,47 +271,9 @@ export default function MessagesPage() {
           }
         } else {
           console.error('Failed to create conversation:', data);
-          // Fallback: create temporary conversation with friend's ID
-          const tempConversation: Conversation = {
-            id: `temp_${friend.userId}`,
-            user: {
-              name: friend.name,
-              avatar: friend.profileImg || '',
-              location: friend.address || 'Portugal'
-            },
-            lastMessage: 'Conversa temporária',
-            timestamp: 'now',
-            unread: false
-          };
-
-          setConversations(prev => [tempConversation, ...prev]);
-          setActiveConversation(tempConversation);
-          
-          if (isMobile) {
-            setShowConversations(false);
-          }
         }
       } catch (err) {
         console.error('Error creating conversation:', err);
-        // Fallback: create temporary conversation
-        const tempConversation: Conversation = {
-          id: `temp_${friend.userId}`,
-          user: {
-            name: friend.name,
-            avatar: friend.profileImg || '',
-            location: friend.address || 'Portugal'
-          },
-          lastMessage: 'Modo offline',
-          timestamp: 'now',
-          unread: false
-        };
-
-        setConversations(prev => [tempConversation, ...prev]);
-        setActiveConversation(tempConversation);
-        
-        if (isMobile) {
-          setShowConversations(false);
-        }
       }
 
     } catch (err) {

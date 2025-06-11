@@ -83,34 +83,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     fetchUserProfile();
   }, [session, status]);
 
-  // Mock messages for demo purposes
-  const getMockMessages = (conversationId: string): Message[] => {
-    const mockMessageSets: { [key: string]: Message[] } = {
-      '1': [
-        { id: 1, text: "Olá! Como está?", sender: "recipient", timestamp: "10:30" },
-        { id: 2, text: "Estou bem, obrigado! E você?", sender: "user", timestamp: "10:32" },
-        { id: 3, text: "Tenho tomates frescos para compartilhar", sender: "recipient", timestamp: "10:33" },
-        { id: 4, text: "Que ótimo! Quando posso buscar?", sender: "user", timestamp: "10:35" }
-      ],
-      '2': [
-        { id: 1, text: "Obrigado pela receita!", sender: "recipient", timestamp: "15:20" },
-        { id: 2, text: "De nada! Ficou boa?", sender: "user", timestamp: "15:22" },
-        { id: 3, text: "Ficou deliciosa! Toda a família adorou", sender: "recipient", timestamp: "15:25" }
-      ],
-      '3': [
-        { id: 1, text: "Você está disponível amanhã?", sender: "recipient", timestamp: "09:15" },
-        { id: 2, text: "Sim, que horas?", sender: "user", timestamp: "09:18" },
-        { id: 3, text: "Por volta das 14h?", sender: "recipient", timestamp: "09:20" }
-      ],
-      '4': [
-        { id: 1, text: "Tenho alguns ingredientes para partilhar", sender: "recipient", timestamp: "16:45" },
-        { id: 2, text: "Que tipo de ingredientes?", sender: "user", timestamp: "16:47" }
-      ]
-    };
-    return mockMessageSets[conversationId] || [];
-  };
-
-  // Fetch messages for this conversation with fallback
+  // Fetch messages for this conversation
   const fetchMessages = async () => {
     try {
       const response = await fetch(`/api/messages?userId=${userId}&conversationId=${conversation.id}`);
@@ -127,13 +100,12 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
         
         setMessages(transformedMessages);
       } else {
-        // Fallback to demo messages if API fails
-        setMessages(getMockMessages(conversation.id));
+        // No messages found - show empty conversation
+        setMessages([]);
       }
     } catch (err) {
-      // Fallback to demo messages if API fails
-      setMessages(getMockMessages(conversation.id));
-      console.log('Using demo messages due to API error:', err);
+      console.error('Error fetching messages:', err);
+      setMessages([]);
     }
   };
 

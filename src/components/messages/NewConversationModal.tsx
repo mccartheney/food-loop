@@ -63,52 +63,16 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       const data = await response.json();
       
       if (data.success) {
-        setFriends(data.friends);
+        setFriends(data.friends || []);
       } else {
         console.error('Friends API error:', data);
-        setError('Failed to fetch friends - using demo data');
-        // Mock friends for demo if API fails
-        setFriends([
-          {
-            id: '1',
-            userId: 'friend1',
-            name: 'Ana Silva',
-            email: 'ana@example.com',
-            bio: 'Love sharing fresh produce!',
-            address: 'Porto, Portugal'
-          },
-          {
-            id: '2',
-            userId: 'friend2',
-            name: 'Carlos Santos',
-            email: 'carlos@example.com',
-            bio: 'Passionate about cooking',
-            address: 'Lisboa, Portugal'
-          },
-        ]);
+        setError('Failed to fetch friends');
+        setFriends([]);
       }
     } catch (err) {
       console.error('Error fetching friends:', err);
-      setError('Unable to load friends - using demo data');
-      // Mock friends for demo if API fails
-      setFriends([
-        {
-          id: '1',
-          userId: 'friend1',
-          name: 'Ana Silva',
-          email: 'ana@example.com',
-          bio: 'Love sharing fresh produce!',
-          address: 'Porto, Portugal'
-        },
-        {
-          id: '2',
-          userId: 'friend2',
-          name: 'Carlos Santos',
-          email: 'carlos@example.com',
-          bio: 'Passionate about cooking',
-          address: 'Lisboa, Portugal'
-        },
-      ]);
+      setError('Unable to load friends');
+      setFriends([]);
     } finally {
       setLoading(false);
     }
