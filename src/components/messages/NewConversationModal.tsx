@@ -65,7 +65,8 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       if (data.success) {
         setFriends(data.friends);
       } else {
-        setError('Failed to fetch friends');
+        console.error('Friends API error:', data);
+        setError('Failed to fetch friends - using demo data');
         // Mock friends for demo if API fails
         setFriends([
           {
@@ -88,7 +89,7 @@ const NewConversationModal: React.FC<NewConversationModalProps> = ({
       }
     } catch (err) {
       console.error('Error fetching friends:', err);
-      setError('Unable to load friends');
+      setError('Unable to load friends - using demo data');
       // Mock friends for demo if API fails
       setFriends([
         {

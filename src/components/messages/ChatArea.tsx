@@ -45,17 +45,43 @@ interface ApiMessage {
 }
 
 const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Real-time socket integration
   const roomId = String(conversation.id);
-  const userId = session?.user?.email || 'anonymous'; // Use authenticated user email
+
+  // Get user ID from profile API
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
+          const profileData = await response.json();
+          
+          if (response.ok && profileData.user?.id) {
+            setUserId(profileData.user.id);
+          } else {
+            console.error('Failed to fetch user profile:', profileData);
+            // Fallback to email if profile fetch fails
+            setUserId(session.user.email);
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          // Fallback to email if API fails
+          setUserId(session.user.email);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session, status]);
 
   // Mock messages for demo purposes
   const getMockMessages = (conversationId: string): Message[] => {
@@ -113,8 +139,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
 
   // Load messages when conversation changes
   useEffect(() => {
-    fetchMessages();
-  }, [conversation.id]);
+    if (userId) {
+      fetchMessages();
+    }
+  }, [conversation.id, userId]);
 
   // Handle incoming messages
   const handleSocketMessage = (data: { roomId: string; message: any }) => {
@@ -140,12 +168,12 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     }
   };
 
-  const { sendMessage, sendTyping, isConnected, isAuthenticated } = useSocket(
+  const { sendMessage, sendTyping } = useSocket(
     roomId, 
     handleSocketMessage, 
     handleSocketTyping,
     undefined, // onPresence
-    userId // Pass userId for authentication
+    userId || undefined // Pass userId for authentication
   );
 
   const scrollToBottom = () => {
@@ -157,7 +185,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (newMessage.trim() === '') return;
+    if (newMessage.trim() === '' || !userId) return;
 
     const messageText = newMessage;
     setNewMessage('');
@@ -174,6 +202,12 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     
     // Send via socket for real-time updates (works even without API)
     sendMessage({ roomId, message: { text: messageText, sender: userId } });
+
+    // Check if this is a temporary conversation (starts with "temp_")
+    if (conversation.id.startsWith('temp_')) {
+      console.log('Temporary conversation detected, message will be sent when conversation is created');
+      return;
+    }
 
     // Try to persist to API, but don't block UI if it fails
     try {
@@ -211,7 +245,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     setNewMessage(e.target.value);
 
     // Show typing indicator
-    if (!isUserTyping && e.target.value.length > 0) {
+    if (!isUserTyping && e.target.value.length > 0 && userId) {
       setIsUserTyping(true);
       sendTyping({ roomId, userId });
     }

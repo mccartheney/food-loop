@@ -15,6 +15,7 @@ interface User {
   name: string;
   avatar: string;
   location?: string;
+  email?: string;
 }
 
 interface Conversation {
@@ -62,22 +63,44 @@ export default function MessagesPage() {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [showNewConversationModal, setShowNewConversationModal] = useState(false);
 
-  // Get user ID from session
+  // Get user ID from profile API
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.email) {
-      // Use email as userId for now, or fetch the actual user ID from your API
-      setCurrentUserId(session.user.email);
-    }
+    const fetchUserProfile = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
+          const profileData = await response.json();
+          
+          if (response.ok && profileData.user?.id) {
+            setCurrentUserId(profileData.user.id);
+          } else {
+            console.error('Failed to fetch user profile:', profileData);
+            // Fallback to email if profile fetch fails
+            setCurrentUserId(session.user.email);
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          // Fallback to email if API fails
+          setCurrentUserId(session.user.email);
+        }
+      }
+    };
+
+    fetchUserProfile();
   }, [session, status]);
 
   // Fetch conversations from API with fallback to mock data
   const fetchConversations = async () => {
     try {
       setLoading(true);
+      console.log('Fetching conversations for user:', currentUserId);
       const response = await fetch(`/api/messages?userId=${currentUserId}`);
       const data = await response.json();
       
+      console.log('Conversations API response:', data);
+      
       if (data.success) {
+        console.log('Raw conversations from API:', data.conversations);
         // Transform API response to match UI interface
         const transformedConversations: Conversation[] = data.conversations.map((conv: ApiConversation) => {
           // Get other participant (assuming DIRECT conversation)
@@ -96,17 +119,19 @@ export default function MessagesPage() {
           };
         });
         
+        console.log('Transformed conversations:', transformedConversations);
         setConversations(transformedConversations);
       } else {
+        console.log('API failed, using mock data:', data);
         // Fallback to demo conversations if API fails
         setConversations(mockConversations);
         setError('Using demo data - MongoDB connection needed for persistence');
       }
     } catch (err) {
       // Fallback to demo conversations if API fails
+      console.error('Error fetching conversations:', err);
       setConversations(mockConversations);
       setError('Using demo data - MongoDB connection needed for persistence');
-      console.error('Error fetching conversations:', err);
     } finally {
       setLoading(false);
     }
@@ -204,7 +229,7 @@ export default function MessagesPage() {
     try {
       // Check if conversation already exists with this friend
       const existingConversation = conversations.find(conv => 
-        conv.user.name === friend.name || conv.id === friend.userId
+        conv.user.name === friend.name || conv.user.email === friend.email
       );
 
       if (existingConversation) {
@@ -216,62 +241,103 @@ export default function MessagesPage() {
         return;
       }
 
-      // Create new conversation object for immediate UI feedback
-      const newConversation: Conversation = {
-        id: friend.userId,
-        user: {
-          name: friend.name,
-          avatar: friend.profileImg || '',
-          location: friend.address || 'Portugal'
-        },
-        lastMessage: 'Conversa iniciada',
-        timestamp: 'now',
-        unread: false
-      };
-
-      // Add to conversations list
-      setConversations(prev => [newConversation, ...prev]);
-      
-      // Set as active conversation
-      setActiveConversation(newConversation);
-      
-      if (isMobile) {
-        setShowConversations(false);
+      if (!currentUserId) {
+        console.error('No current user ID available');
+        return;
       }
 
-      // Try to create conversation in database (optional - works even if this fails)
+      // Create conversation in database first to get proper MongoDB ObjectID
       try {
-        const response = await fetch('/api/messages/conversations', {
+        const response = await fetch('/api/messages', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            userId: currentUserId,
-            participantId: friend.userId,
-            type: 'DIRECT'
+            participants: [currentUserId, friend.userId],
+            senderId: currentUserId,
+            conversationType: 'DIRECT'
           })
         });
 
         const data = await response.json();
         
-        if (data.success) {
-          // Update conversation with real ID from database
-          setConversations(prev => 
-            prev.map(conv => 
-              conv.id === friend.userId 
-                ? { ...conv, id: data.conversation.id }
-                : conv
-            )
-          );
+        if (data.success && data.conversation) {
+          console.log('Conversation created successfully, refreshing conversations list');
           
-          // Update active conversation ID
-          setActiveConversation(prev => 
-            prev ? { ...prev, id: data.conversation.id } : prev
-          );
+          // Create new conversation object with proper MongoDB ID
+          const newConversation: Conversation = {
+            id: data.conversation.id, // This is now a proper MongoDB ObjectID
+            user: {
+              name: friend.name,
+              avatar: friend.profileImg || '',
+              location: friend.address || 'Portugal'
+            },
+            lastMessage: 'Conversa criada',
+            timestamp: 'now',
+            unread: false
+          };
+
+          // Add to conversations list
+          setConversations(prev => [newConversation, ...prev]);
+          
+          // Set as active conversation
+          setActiveConversation(newConversation);
+          
+          // Close the modal
+          setShowNewConversationModal(false);
+          
+          // Refresh conversations list to ensure persistence
+          setTimeout(() => {
+            fetchConversations();
+          }, 1000);
+          
+          if (isMobile) {
+            setShowConversations(false);
+          }
+        } else {
+          console.error('Failed to create conversation:', data);
+          // Fallback: create temporary conversation with friend's ID
+          const tempConversation: Conversation = {
+            id: `temp_${friend.userId}`,
+            user: {
+              name: friend.name,
+              avatar: friend.profileImg || '',
+              location: friend.address || 'Portugal'
+            },
+            lastMessage: 'Conversa temporária',
+            timestamp: 'now',
+            unread: false
+          };
+
+          setConversations(prev => [tempConversation, ...prev]);
+          setActiveConversation(tempConversation);
+          
+          if (isMobile) {
+            setShowConversations(false);
+          }
         }
       } catch (err) {
-        console.log('Conversation created locally, but not persisted to database:', err);
+        console.error('Error creating conversation:', err);
+        // Fallback: create temporary conversation
+        const tempConversation: Conversation = {
+          id: `temp_${friend.userId}`,
+          user: {
+            name: friend.name,
+            avatar: friend.profileImg || '',
+            location: friend.address || 'Portugal'
+          },
+          lastMessage: 'Modo offline',
+          timestamp: 'now',
+          unread: false
+        };
+
+        setConversations(prev => [tempConversation, ...prev]);
+        setActiveConversation(tempConversation);
+        
+        if (isMobile) {
+          setShowConversations(false);
+        }
       }
 
     } catch (err) {
