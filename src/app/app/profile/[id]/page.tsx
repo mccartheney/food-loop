@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -8,6 +8,8 @@ import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import ProfileHeader from "@/components/profile/ProfileHeader";
 import ProfileActions from "@/components/profile/ProfileActions";
 import FriendModal from "@/components/profile/FriendModal"; // Import the separate component
+import ProfileTradeGrid from "@/components/trades/ProfileTradeGrid";
+import { useSession } from 'next-auth/react';
 
 interface Highlight {
   id: string;
@@ -203,6 +205,7 @@ const generateMockPosts = (userId: string): Post[] => {
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -210,6 +213,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [isFriendsModalOpen, setIsFriendsModalOpen] = useState(false);
   const [friendsList, setFriendsList] = useState<Friend[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<any>(null);
 
   const handleFriendClick = (friendId: string) => {
     router.push(`/app/profile/${friendId}`);
@@ -225,6 +229,25 @@ export default function ProfilePage() {
       setFriendsList(convertProfilesToFriends());
     }
   }, [isFriendsModalOpen]);
+
+  // Fetch current user profile data
+  useEffect(() => {
+    const fetchCurrentUserProfile = async () => {
+      if (session?.user?.email) {
+        try {
+          const response = await fetch('/api/me');
+          if (response.ok) {
+            const userData = await response.json();
+            setCurrentUserProfile(userData);
+          }
+        } catch (error) {
+          console.error('Error fetching current user profile:', error);
+        }
+      }
+    };
+
+    fetchCurrentUserProfile();
+  }, [session]);
 
   useEffect(() => {
     setLoading(true);
@@ -328,30 +351,12 @@ export default function ProfilePage() {
         <ProfileActions userId={profile.id} />
       </div>
 
-      {/* Posts section */}
-      <div className="border-t py-3 flex justify-center">
-        <h3 className="text-primary font-medium">Posts</h3>
-      </div>
-
-      {/* Posts grid */}
-      <div className="grid grid-cols-3 gap-1">
-        {posts.map((post, index) => (
-          <div
-            key={post.id}
-            className={`aspect-square flex items-center justify-center ${
-              index % 4 === 0
-                ? "bg-blue-100"
-                : index % 4 === 1
-                ? "bg-amber-100"
-                : index % 4 === 2
-                ? "bg-rose-100"
-                : "bg-emerald-100"
-            }`}
-          >
-            <div className="text-lg text-gray-500">Post {index + 1}</div>
-          </div>
-        ))}
-      </div>
+      {/* Trade Grid - replaces posts */}
+      <ProfileTradeGrid
+        userId={id || ''}
+        userEmail={session?.user?.email || undefined}
+        isOwnProfile={currentUserProfile?.id === id}
+      />
 
       {/* Using the imported FriendModal component */}
       <FriendModal

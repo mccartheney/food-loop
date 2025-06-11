@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import EditProfileModal from '@/components/profile/EditProfileModal';
 import { ToastContainer, useToast } from '@/components/ui/Toast';
+import ProfileTradeGrid from '@/components/trades/ProfileTradeGrid';
 import styles from './styles.module.css';
 
 // User Recipes Tab Component
@@ -795,27 +796,12 @@ export default function MyProfilePage() {
                 transition={{ duration: 0.3 }}
               >
                 {activeTab === 'posts' && (
-                  <div className="text-center py-16">
-                    <motion.div
-                      className={`w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center ${styles.floatingIcon}`}
-                      animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    >
-                      <FiCamera className="text-white" size={32} />
-                    </motion.div>
-                    <h3 className="text-2xl font-bold text-gray-800 mb-4">Nenhum post ainda</h3>
-                    <p className="text-gray-500 text-lg mb-8 max-w-md mx-auto">
-                      Compartilhe sua primeira receita ou item da dispensa com seus amigos!
-                    </p>
-                    <motion.button 
-                      className={`${styles.gradientButton} text-white py-3 px-8 rounded-xl font-semibold`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <FiPlus className="inline mr-2" size={18} />
-                      Criar primeiro post
-                    </motion.button>
-                  </div>
+                  <ProfileTradeGrid
+                    userId={profile.user.id}
+                    userEmail={session?.user?.email || undefined}
+                    isOwnProfile={true}
+                    className="mt-0"
+                  />
                 )}
                 {activeTab === 'recipes' && (
                   <UserRecipesTab userId={profile.user.id} />

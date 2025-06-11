@@ -93,7 +93,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     },
     { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight },
     { name: 'Friends', href: '/app/friends', icon: FiUsers },
-    { name: 'Add', href: '/app/add', icon: FiPlus, isPrimary: true },
+    { name: 'Create Trade', href: '/app/marketplace/create', icon: FiPlus, isPrimary: true },
     { name: 'Settings', href: '/app/settings', icon: FiSettings },
     { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
   ];
