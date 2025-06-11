@@ -311,16 +311,46 @@
 /* Action buttons container */
 .actionButtons {
   display: flex;
-  gap: 0.5rem;
+  gap: 1rem;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .actionButtons button {
   transition: all 0.2s ease;
+  padding: 0.75rem 1rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .actionButtons button:hover {
   transform: scale(1.02);
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 640px) {
+  .actionButtons {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .actionButtons button {
+    padding: 0.625rem 0.875rem;
+    min-width: 40px;
+    min-height: 40px;
+  }
+  
+  .actionButtons button span {
+    display: none;
+  }
+}
+
+/* Better spacing for button text */
+.actionButtons button span {
+  margin-left: 0.375rem;
 }
 
 /* Profile link hover effect */

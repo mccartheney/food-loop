@@ -15,7 +15,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Food Loop",
-  description: "Connecting communities to eliminate food waste",
+  description: "Conectando sabores, evitando desperdícios - Plataforma para reduzir o desperdício alimentar",
+  icons: {
+    icon: "/logo.svg",
+    shortcut: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

@@ -2,6 +2,7 @@
 
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { FiAlertCircle, FiHome, FiRefreshCw } from 'react-icons/fi';
 
 export default function AuthError() {
@@ -40,6 +41,20 @@ export default function AuthError() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
       <div className="max-w-md w-full mx-4">
         <div className="bg-white rounded-2xl shadow-2xl p-8 text-center">
+          {/* Logo Section */}
+          <div className="mb-6">
+            <div className="mx-auto w-12 h-12 mb-4 flex items-center justify-center">
+              <Image
+                src="/logo.svg"
+                alt="Food Loop Logo"
+                width={48}
+                height={48}
+                priority
+              />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">Food Loop</h2>
+          </div>
+
           <div className="mb-6">
             <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
               <FiAlertCircle className="w-8 h-8 text-red-500" />

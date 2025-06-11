@@ -112,7 +112,7 @@ const FriendCard: React.FC<FriendCardProps> = ({
         </div>
 
         {/* Action buttons */}
-        <div className={`${styles.actionButtons} ml-4`}>
+        <div className={`${styles.actionButtons} ml-4`} style={{ gap: '1rem' }}>
           {onMessage && (
             <motion.button
               onClick={() => onMessage(friend.userId)}

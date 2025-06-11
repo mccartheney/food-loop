@@ -40,7 +40,14 @@ const ModernLoginForm: React.FC = () => {
           whileHover={{ scale: 1.05, rotate: 5 }}
           transition={{ duration: 0.2 }}
         >
-          <FiHeart size={40} className="text-white" />
+          <Image
+            src="/logo.svg"
+            alt="Food Loop Logo"
+            width={40}
+            height={40}
+            priority
+            className="text-white"
+          />
         </motion.div>
         <h1 className={styles.logoText}>Food Loop</h1>
         <p className={styles.logoSubtext}>Conectando sabores, evitando desperdícios</p>

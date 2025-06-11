@@ -418,12 +418,27 @@ export default function ProfilePage() {
 
   // Check if user is already following this profile
   useEffect(() => {
-    if (profile && session?.user?.email) {
-      const isCurrentlyFollowing = profile.friends.some(
-        friend => friend.email === session.user?.email
-      );
-      setIsFollowing(isCurrentlyFollowing);
-    }
+    const checkFollowingStatus = async () => {
+      if (profile && session?.user?.email) {
+        try {
+          // Get current user's profile to check if this user is in their friends list
+          const response = await fetch(`/api/profile?email=${encodeURIComponent(session.user.email)}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              const isCurrentlyFollowing = data.profile.friends.some(
+                (friend: any) => friend.email === profile.user.email
+              );
+              setIsFollowing(isCurrentlyFollowing);
+            }
+          }
+        } catch (error) {
+          console.error('Error checking following status:', error);
+        }
+      }
+    };
+    
+    checkFollowingStatus();
   }, [profile, session]);
   
   // Loading state

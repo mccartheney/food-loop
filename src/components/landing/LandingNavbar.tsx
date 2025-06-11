@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { FiHeart, FiMenu, FiX, FiArrowRight } from 'react-icons/fi';
+import Image from 'next/image';
 import styles from './styles.module.css';
 
 const LandingNavbar: React.FC = () => {
@@ -41,7 +42,13 @@ const LandingNavbar: React.FC = () => {
           whileTap={{ scale: 0.95 }}
         >
           <Link href="/" className={styles.logo}>
-            <FiHeart size={28} />
+            <Image
+              src="/logo.svg"
+              alt="Food Loop Logo"
+              width={28}
+              height={28}
+              priority
+            />
             <span>Food Loop</span>
           </Link>
         </motion.div>

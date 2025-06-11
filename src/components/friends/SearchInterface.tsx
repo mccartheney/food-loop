@@ -59,7 +59,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
         );
       case 'pending_sent':
         return (
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${styles.pendingBadge} ${styles.statusBadge}`}>
+          <span className={` px-3 py-1 rounded-full text-xs font-medium ${styles.pendingBadge} ${styles.statusBadge}`}>
             ⏳ Enviado
           </span>
         );
@@ -308,7 +308,7 @@ const SearchInterface: React.FC<SearchInterfaceProps> = ({
                 </div>
 
                 {/* Action buttons */}
-                <div className={styles.actionButtons}>
+                <div className={styles.actionButtons} style={{ gap: '1rem' }}>
                   {renderActionButtons(user)}
                 </div>
               </div>

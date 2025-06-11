@@ -206,3 +206,97 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// DELETE /api/friends - Remove friendship
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { userEmail, friendEmail } = body;
+
+    if (!userEmail || !friendEmail) {
+      return NextResponse.json(
+        { error: 'Both userEmail and friendEmail are required' },
+        { status: 400 }
+      );
+    }
+
+    if (userEmail === friendEmail) {
+      return NextResponse.json(
+        { error: 'Cannot remove friendship with yourself' },
+        { status: 400 }
+      );
+    }
+
+    // Find both users by email
+    const [user, friend] = await Promise.all([
+      prisma.user.findUnique({
+        where: { email: userEmail },
+        include: { profile: true }
+      }),
+      prisma.user.findUnique({
+        where: { email: friendEmail },
+        include: { profile: true }
+      })
+    ]);
+
+    if (!user?.profile || !friend?.profile) {
+      return NextResponse.json(
+        { error: 'User profile(s) not found' },
+        { status: 404 }
+      );
+    }
+
+    // Check if they are currently friends
+    const friendship = await prisma.profile.findFirst({
+      where: {
+        id: user.profile.id,
+        friends: {
+          some: {
+            id: friend.profile.id,
+          },
+        },
+      },
+    });
+
+    if (!friendship) {
+      return NextResponse.json(
+        { error: 'Users are not friends' },
+        { status: 400 }
+      );
+    }
+
+    // Remove the friendship (disconnect from both sides)
+    await prisma.$transaction([
+      // Remove friend from user's friends list
+      prisma.profile.update({
+        where: { id: user.profile.id },
+        data: {
+          friends: {
+            disconnect: { id: friend.profile.id }
+          }
+        }
+      }),
+      // Remove user from friend's friends list  
+      prisma.profile.update({
+        where: { id: friend.profile.id },
+        data: {
+          friends: {
+            disconnect: { id: user.profile.id }
+          }
+        }
+      })
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Friendship removed successfully',
+    });
+
+  } catch (error) {
+    console.error('Error removing friendship:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
