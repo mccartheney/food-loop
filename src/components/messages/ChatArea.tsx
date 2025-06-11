@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Image from 'next/image';
 import { FiSend, FiPaperclip, FiSmile } from 'react-icons/fi';
 import MessageHeader from './MessageHeader';
 import styles from '../../app/app/messages/styles.module.css';
+import { useSocket } from '@/lib/hooks/useSocket';
 
 interface Message {
   id: number;
@@ -19,7 +20,7 @@ interface User {
 }
 
 interface Conversation {
-  id: number;
+  id: string;
   user: User;
   lastMessage: string;
   timestamp: string;
@@ -31,21 +32,121 @@ interface ChatAreaProps {
   onBackClick?: () => void;
 }
 
-// Fixed mock messages with proper typing
-const mockMessages: Message[] = [
-  { id: 1, text: "Hello there!", sender: "recipient" as const, timestamp: "10:30 AM" },
-  { id: 2, text: "I'm doing well", sender: "user" as const, timestamp: "10:32 AM" },
-  { id: 3, text: "Are you available tomorrow?", sender: "recipient" as const, timestamp: "10:33 AM" },
-  { id: 4, text: "Yes, I'm free", sender: "user" as const, timestamp: "10:35 AM" },
-];
+// API response types
+interface ApiMessage {
+  id: string;
+  content: string;
+  senderId: string;
+  type: string;
+  createdAt: string;
+  replyTo?: any;
+  reactions?: any[];
+  status?: any[];
+}
 
 const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
-  const [messages, setMessages] = useState<Message[]>(mockMessages);
+  const { data: session, status } = useSession();
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isUserTyping, setIsUserTyping] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Real-time socket integration
+  const roomId = String(conversation.id);
+
+  // Get user ID from profile API
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
+          const profileData = await response.json();
+          
+          if (response.ok && profileData.user?.id) {
+            setUserId(profileData.user.id);
+          } else {
+            console.error('Failed to fetch user profile:', profileData);
+            // Fallback to email if profile fetch fails
+            setUserId(session.user.email);
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          // Fallback to email if API fails
+          setUserId(session.user.email);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session, status]);
+
+  // Fetch messages for this conversation
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(`/api/messages?userId=${userId}&conversationId=${conversation.id}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform API messages to match UI interface
+        const transformedMessages: Message[] = data.messages.reverse().map((msg: ApiMessage) => ({
+          id: parseInt(msg.id) || Date.now(),
+          text: msg.content,
+          sender: msg.senderId === userId ? 'user' : 'recipient',
+          timestamp: new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+        
+        setMessages(transformedMessages);
+      } else {
+        // No messages found - show empty conversation
+        setMessages([]);
+      }
+    } catch (err) {
+      console.error('Error fetching messages:', err);
+      setMessages([]);
+    }
+  };
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    if (userId) {
+      fetchMessages();
+    }
+  }, [conversation.id, userId]);
+
+  // Handle incoming messages
+  const handleSocketMessage = (data: { roomId: string; message: any }) => {
+    if (data.roomId === roomId) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now(),
+          text: data.message.text,
+          sender: data.message.sender === userId ? 'user' : 'recipient',
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+    }
+  };
+
+  // Handle typing indicator from other users
+  const handleSocketTyping = (data: { roomId: string; userId: string }) => {
+    if (data.roomId === roomId && data.userId !== userId) {
+      setIsTyping(true);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 2000);
+    }
+  };
+
+  const { sendMessage, sendTyping } = useSocket(
+    roomId, 
+    handleSocketMessage, 
+    handleSocketTyping,
+    undefined, // onPresence
+    userId || undefined // Pass userId for authentication
+  );
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -55,28 +156,54 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() === '') return;
-    
-    const message: Message = {
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === '' || !userId) return;
+
+    const messageText = newMessage;
+    setNewMessage('');
+    setIsUserTyping(false);
+
+    // Always add message to local state for immediate UI feedback
+    const newMsg: Message = {
       id: Date.now(),
-      text: newMessage,
+      text: messageText,
       sender: 'user',
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     };
+    setMessages(prev => [...prev, newMsg]);
     
-    setMessages([...messages, message]);
-    setNewMessage('');
-    setIsUserTyping(false);
-    
-    // Simulate typing response
-    setTimeout(() => {
-      setIsTyping(true);
-    }, 1000);
-    
-    setTimeout(() => {
-      setIsTyping(false);
-    }, 3000);
+    // Send via socket for real-time updates (works even without API)
+    sendMessage({ roomId, message: { text: messageText, sender: userId } });
+
+    // Check if this is a temporary conversation (starts with "temp_")
+    if (conversation.id.startsWith('temp_')) {
+      console.log('Temporary conversation detected, message will be sent when conversation is created');
+      return;
+    }
+
+    // Try to persist to API, but don't block UI if it fails
+    try {
+      const response = await fetch('/api/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          conversationId: conversation.id,
+          senderId: userId,
+          content: messageText,
+          type: 'TEXT'
+        })
+      });
+
+      const data = await response.json();
+      
+      if (!data.success) {
+        console.log('Message sent locally and via socket, but not persisted to database');
+      }
+    } catch (err) {
+      console.log('Message sent locally and via socket, but API unavailable:', err);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -88,17 +215,18 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNewMessage(e.target.value);
-    
+
     // Show typing indicator
-    if (!isUserTyping && e.target.value.length > 0) {
+    if (!isUserTyping && e.target.value.length > 0 && userId) {
       setIsUserTyping(true);
+      sendTyping({ roomId, userId });
     }
-    
+
     // Clear existing timeout
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
-    
+
     // Set new timeout to hide typing indicator
     typingTimeoutRef.current = setTimeout(() => {
       setIsUserTyping(false);

@@ -13,7 +13,7 @@ interface User {
 }
 
 interface Conversation {
-  id: number;
+  id: string;
   user: User;
   lastMessage: string;
   timestamp: string;

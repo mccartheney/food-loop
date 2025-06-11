@@ -1,10 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageCircle, FiUsers } from 'react-icons/fi';
+import { FiMessageCircle, FiUsers, FiLoader } from 'react-icons/fi';
 import MessageList from '@/components/messages/MessageList';
 import ChatArea from '@/components/messages/ChatArea';
+import NewConversationModal from '@/components/messages/NewConversationModal';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import styles from './styles.module.css';
 
@@ -13,72 +15,153 @@ interface User {
   name: string;
   avatar: string;
   location?: string;
+  email?: string;
 }
 
 interface Conversation {
-  id: number;
+  id: string;
   user: User;
   lastMessage: string;
   timestamp: string;
   unread: boolean;
 }
 
-const conversations: Conversation[] = [
-  {
-    id: 1,
-    user: { name: 'Ana Silva', avatar: '/avatars/user1.png', location: 'Porto' },
-    lastMessage: 'Olá! Tenho tomates frescos para compartilhar',
-    timestamp: '2h',
-    unread: false
-  },
-  {
-    id: 2,
-    user: { name: 'Carlos Santos', avatar: '/avatars/user2.png', location: 'Lisboa' },
-    lastMessage: 'Obrigado pela receita!',
-    timestamp: '5h',
-    unread: true
-  },
-  {
-    id: 3,
-    user: { name: 'Maria Costa', avatar: '/avatars/user3.png', location: 'Faro' },
-    lastMessage: 'Você está disponível amanhã?',
-    timestamp: '1d',
-    unread: false
-  },
-  {
-    id: 4,
-    user: { name: 'João Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
-    lastMessage: 'Tenho alguns ingredientes para partilhar',
-    timestamp: '2d',
-    unread: false
-  },
-  {
-    id: 5,
-    user: { name: 'Sofia Oliveira', avatar: '/avatars/user5.png', location: 'Coimbra' },
-    lastMessage: 'Perfeito! Muito obrigada',
-    timestamp: '3d',
-    unread: false
-  },
-  {
-    id: 6,
-    user: { name: 'Pedro Martins', avatar: '/avatars/user6.png', location: 'Setúbal' },
-    lastMessage: 'Vemo-nos em breve',
-    timestamp: '1s',
-    unread: false
-  },
-  {
-    id: 7,
-    user: { name: 'Rita Fernandes', avatar: '/avatars/user7.png', location: 'Aveiro' },
-    lastMessage: 'Adorei a receita!',
-    timestamp: '1s',
-    unread: false
-  }
-];
+interface Friend {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  bio?: string;
+  profileImg?: string;
+  address?: string;
+}
+
+// API response types
+interface ApiConversation {
+  id: string;
+  participants: string[];
+  type: 'DIRECT' | 'GROUP';
+  name?: string;
+  lastActivity: string;
+  lastMessage?: {
+    id: string;
+    content: string;
+    senderId: string;
+    createdAt: string;
+  };
+  messages: unknown[];
+}
 
 export default function MessagesPage() {
+  const { data: session, status } = useSession();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showConversations, setShowConversations] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [showNewConversationModal, setShowNewConversationModal] = useState(false);
+
+  // Get user ID from profile API
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (status === 'authenticated' && session?.user?.email) {
+        try {
+          const response = await fetch(`/api/me?email=${encodeURIComponent(session.user.email)}`);
+          const profileData = await response.json();
+          
+          if (response.ok && profileData.user?.id) {
+            setCurrentUserId(profileData.user.id);
+          } else {
+            console.error('Failed to fetch user profile:', profileData);
+            // Fallback to email if profile fetch fails
+            setCurrentUserId(session.user.email);
+          }
+        } catch (err) {
+          console.error('Error fetching user profile:', err);
+          // Fallback to email if API fails
+          setCurrentUserId(session.user.email);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [session, status]);
+
+  // Fetch conversations from API
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/messages?userId=${currentUserId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform API response to match UI interface
+        const transformedConversations: Conversation[] = await Promise.all(
+          data.conversations.map(async (conv: ApiConversation) => {
+            // Get other participant (assuming DIRECT conversation)
+            const otherParticipantId = conv.participants.find(p => p !== currentUserId) || conv.participants[0];
+            
+            // Try to get participant's name from user API
+            let participantName = `User ${otherParticipantId}`;
+            try {
+              const userResponse = await fetch(`/api/users?id=${otherParticipantId}`);
+              const userData = await userResponse.json();
+              if (userData.success && userData.user) {
+                participantName = userData.user.name || userData.user.email || participantName;
+              }
+            } catch (err) {
+              console.warn('Could not fetch participant name:', err);
+            }
+            
+            return {
+              id: conv.id,
+              user: {
+                name: participantName,
+                avatar: '', // No placeholder avatars
+                location: ''
+              },
+              lastMessage: conv.lastMessage?.content || 'No messages yet',
+              timestamp: formatTimestamp(conv.lastMessage?.createdAt || conv.lastActivity),
+              unread: false // TODO: Implement unread logic based on message status
+            };
+          })
+        );
+        
+        setConversations(transformedConversations);
+        setError(null);
+      } else {
+        // No conversations found - show empty state
+        setConversations([]);
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Error fetching conversations:', err);
+      setConversations([]);
+      setError('Failed to load conversations');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'now';
+    if (diffInHours < 24) return `${diffInHours}h`;
+    if (diffInHours < 48) return '1d';
+    return `${Math.floor(diffInHours / 24)}d`;
+  };
+
+  useEffect(() => {
+    if (currentUserId) {
+      fetchConversations();
+    }
+  }, [currentUserId]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -97,6 +180,12 @@ export default function MessagesPage() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setActiveConversation(conversation);
+    // Mark conversation as read
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversation.id ? { ...conv, unread: false } : conv
+      )
+    );
     if (isMobile) {
       setShowConversations(false);
     }
@@ -104,6 +193,92 @@ export default function MessagesPage() {
 
   const handleBackToConversations = () => {
     setShowConversations(true);
+  };
+
+  // Handle starting a new conversation
+  const handleNewMessage = () => {
+    setShowNewConversationModal(true);
+  };
+
+  // Handle friend selection from modal
+  const handleSelectFriend = async (friend: Friend) => {
+    try {
+      // Check if conversation already exists with this friend
+      const existingConversation = conversations.find(conv => 
+        conv.user.name === friend.name || conv.user.email === friend.email
+      );
+
+      if (existingConversation) {
+        // If conversation exists, just select it
+        setActiveConversation(existingConversation);
+        if (isMobile) {
+          setShowConversations(false);
+        }
+        return;
+      }
+
+      if (!currentUserId) {
+        console.error('No current user ID available');
+        return;
+      }
+
+      // Create conversation in database first to get proper MongoDB ObjectID
+      try {
+        const response = await fetch('/api/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            participants: [currentUserId, friend.userId],
+            senderId: currentUserId,
+            conversationType: 'DIRECT'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.conversation) {
+          // Create new conversation object with proper MongoDB ID
+          const newConversation: Conversation = {
+            id: data.conversation.id,
+            user: {
+              name: friend.name,
+              avatar: friend.profileImg || '',
+              location: friend.address || ''
+            },
+            lastMessage: 'Conversa criada',
+            timestamp: 'now',
+            unread: false
+          };
+
+          // Add to conversations list
+          setConversations(prev => [newConversation, ...prev]);
+          
+          // Set as active conversation
+          setActiveConversation(newConversation);
+          
+          // Close the modal
+          setShowNewConversationModal(false);
+          
+          // Refresh conversations list to ensure persistence
+          setTimeout(() => {
+            fetchConversations();
+          }, 1000);
+          
+          if (isMobile) {
+            setShowConversations(false);
+          }
+        } else {
+          console.error('Failed to create conversation:', data);
+        }
+      } catch (err) {
+        console.error('Error creating conversation:', err);
+      }
+
+    } catch (err) {
+      console.error('Error starting new conversation:', err);
+    }
   };
 
   const EmptyState = () => (
@@ -152,10 +327,21 @@ export default function MessagesPage() {
         <div className="flex items-center">
           <h1 className="text-xl font-bold gradient-text">Mensagens</h1>
           <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>{conversations.filter(c => c.unread).length} não lidas</span>
-            </div>
+            {loading ? (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <FiLoader className="animate-spin" size={16} />
+                <span>Carregando...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <span>{error}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>{conversations.filter(c => c.unread).length} não lidas</span>
+              </div>
+            )}
           </div>
         </div>
       </motion.header>
@@ -176,6 +362,7 @@ export default function MessagesPage() {
                   conversations={conversations} 
                   activeConversation={activeConversation}
                   onSelectConversation={handleSelectConversation}
+                  onNewMessage={handleNewMessage}
                 />
               </motion.div>
             )}
@@ -204,6 +391,16 @@ export default function MessagesPage() {
           </AnimatePresence>
         </div>
       </div>
+
+      {/* New Conversation Modal */}
+      {currentUserId && (
+        <NewConversationModal
+          isOpen={showNewConversationModal}
+          onClose={() => setShowNewConversationModal(false)}
+          onSelectFriend={handleSelectFriend}
+          currentUserId={currentUserId}
+        />
+      )}
     </DashboardLayout>
   );
 }
