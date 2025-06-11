@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageCircle, FiUsers } from 'react-icons/fi';
+import { FiMessageCircle, FiUsers, FiLoader } from 'react-icons/fi';
 import MessageList from '@/components/messages/MessageList';
 import ChatArea from '@/components/messages/ChatArea';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
@@ -16,69 +16,127 @@ interface User {
 }
 
 interface Conversation {
-  id: number;
+  id: string;
   user: User;
   lastMessage: string;
   timestamp: string;
   unread: boolean;
 }
 
-const conversations: Conversation[] = [
-  {
-    id: 1,
-    user: { name: 'Ana Silva', avatar: '/avatars/user1.png', location: 'Porto' },
-    lastMessage: 'Olá! Tenho tomates frescos para compartilhar',
-    timestamp: '2h',
-    unread: false
-  },
-  {
-    id: 2,
-    user: { name: 'Carlos Santos', avatar: '/avatars/user2.png', location: 'Lisboa' },
-    lastMessage: 'Obrigado pela receita!',
-    timestamp: '5h',
-    unread: true
-  },
-  {
-    id: 3,
-    user: { name: 'Maria Costa', avatar: '/avatars/user3.png', location: 'Faro' },
-    lastMessage: 'Você está disponível amanhã?',
-    timestamp: '1d',
-    unread: false
-  },
-  {
-    id: 4,
-    user: { name: 'João Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
-    lastMessage: 'Tenho alguns ingredientes para partilhar',
-    timestamp: '2d',
-    unread: false
-  },
-  {
-    id: 5,
-    user: { name: 'Sofia Oliveira', avatar: '/avatars/user5.png', location: 'Coimbra' },
-    lastMessage: 'Perfeito! Muito obrigada',
-    timestamp: '3d',
-    unread: false
-  },
-  {
-    id: 6,
-    user: { name: 'Pedro Martins', avatar: '/avatars/user6.png', location: 'Setúbal' },
-    lastMessage: 'Vemo-nos em breve',
-    timestamp: '1s',
-    unread: false
-  },
-  {
-    id: 7,
-    user: { name: 'Rita Fernandes', avatar: '/avatars/user7.png', location: 'Aveiro' },
-    lastMessage: 'Adorei a receita!',
-    timestamp: '1s',
-    unread: false
-  }
-];
+// API response types
+interface ApiConversation {
+  id: string;
+  participants: string[];
+  type: 'DIRECT' | 'GROUP';
+  name?: string;
+  lastActivity: string;
+  lastMessage?: {
+    id: string;
+    content: string;
+    senderId: string;
+    createdAt: string;
+  };
+  messages: any[];
+}
 
 export default function MessagesPage() {
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [showConversations, setShowConversations] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('user1'); // TODO: Get from auth
+
+  // Fetch conversations from API with fallback to mock data
+  const fetchConversations = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/messages?userId=${currentUserId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        // Transform API response to match UI interface
+        const transformedConversations: Conversation[] = data.conversations.map((conv: ApiConversation) => {
+          // Get other participant (assuming DIRECT conversation)
+          const otherParticipant = conv.participants.find(p => p !== currentUserId) || conv.participants[0];
+          
+          return {
+            id: conv.id,
+            user: {
+              name: `User ${otherParticipant}`, // TODO: Get real user names from profile API
+              avatar: `/avatars/user${Math.floor(Math.random() * 7) + 1}.png`,
+              location: 'Portugal'
+            },
+            lastMessage: conv.lastMessage?.content || 'No messages yet',
+            timestamp: formatTimestamp(conv.lastMessage?.createdAt || conv.lastActivity),
+            unread: false // TODO: Implement unread logic
+          };
+        });
+        
+        setConversations(transformedConversations);
+      } else {
+        // Fallback to demo conversations if API fails
+        setConversations(mockConversations);
+        setError('Using demo data - MongoDB connection needed for persistence');
+      }
+    } catch (err) {
+      // Fallback to demo conversations if API fails
+      setConversations(mockConversations);
+      setError('Using demo data - MongoDB connection needed for persistence');
+      console.error('Error fetching conversations:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mock conversations for demo purposes
+  const mockConversations: Conversation[] = [
+    {
+      id: '1',
+      user: { name: 'Ana Silva', avatar: '/avatars/user1.png', location: 'Porto' },
+      lastMessage: 'Olá! Tenho tomates frescos para compartilhar',
+      timestamp: '2h',
+      unread: false
+    },
+    {
+      id: '2',
+      user: { name: 'Carlos Santos', avatar: '/avatars/user2.png', location: 'Lisboa' },
+      lastMessage: 'Obrigado pela receita!',
+      timestamp: '5h',
+      unread: true
+    },
+    {
+      id: '3',
+      user: { name: 'Maria Costa', avatar: '/avatars/user3.png', location: 'Faro' },
+      lastMessage: 'Você está disponível amanhã?',
+      timestamp: '1d',
+      unread: false
+    },
+    {
+      id: '4',
+      user: { name: 'João Pereira', avatar: '/avatars/user4.png', location: 'Braga' },
+      lastMessage: 'Tenho alguns ingredientes para partilhar',
+      timestamp: '2d',
+      unread: false
+    }
+  ];
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: string) => {
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) return 'now';
+    if (diffInHours < 24) return `${diffInHours}h`;
+    if (diffInHours < 48) return '1d';
+    return `${Math.floor(diffInHours / 24)}d`;
+  };
+
+  useEffect(() => {
+    fetchConversations();
+  }, [currentUserId]);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -97,6 +155,12 @@ export default function MessagesPage() {
 
   const handleSelectConversation = (conversation: Conversation) => {
     setActiveConversation(conversation);
+    // Mark conversation as read
+    setConversations(prev => 
+      prev.map(conv => 
+        conv.id === conversation.id ? { ...conv, unread: false } : conv
+      )
+    );
     if (isMobile) {
       setShowConversations(false);
     }
@@ -152,10 +216,21 @@ export default function MessagesPage() {
         <div className="flex items-center">
           <h1 className="text-xl font-bold gradient-text">Mensagens</h1>
           <div className="ml-auto flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span>{conversations.filter(c => c.unread).length} não lidas</span>
-            </div>
+            {loading ? (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <FiLoader className="animate-spin" size={16} />
+                <span>Carregando...</span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-2 text-sm text-red-600">
+                <span>{error}</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>{conversations.filter(c => c.unread).length} não lidas</span>
+              </div>
+            )}
           </div>
         </div>
       </motion.header>
