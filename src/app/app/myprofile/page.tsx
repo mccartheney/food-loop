@@ -63,7 +63,7 @@ const UserRecipesTab = ({ userId }: { userId: string }) => {
           Crie e compartilhe receitas deliciosas com a comunidade.
         </p>
         <Link href="/app/recipes/create">
-          <motion.button 
+          <motion.button
             className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -162,7 +162,7 @@ const UserFavoritesTab = ({ userEmail }: { userEmail: string }) => {
           Suas receitas favoritas aparecerão aqui quando você curtir alguma.
         </p>
         <Link href="/app/recipes">
-          <motion.button 
+          <motion.button
             className="bg-gradient-to-r from-green-500 to-teal-600 text-white py-3 px-8 rounded-xl font-semibold hover:shadow-lg transition-all duration-200"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -243,14 +243,14 @@ interface RealProfile {
 }
 
 // Friend Modal Component
-const FriendModal = ({ 
-  isOpen, 
-  onClose, 
+const FriendModal = ({
+  isOpen,
+  onClose,
   friends,
   onFriendClick,
   loading = false
-}: { 
-  isOpen: boolean; 
+}: {
+  isOpen: boolean;
   onClose: () => void;
   friends: RealFriend[];
   onFriendClick: (friendId: string) => void;
@@ -260,7 +260,7 @@ const FriendModal = ({
   const [displayedFriends, setDisplayedFriends] = useState(friends);
   const modalRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
-  
+
   useEffect(() => {
     if (isOpen && searchRef.current) {
       setTimeout(() => {
@@ -268,26 +268,26 @@ const FriendModal = ({
       }, 300);
     }
   }, [isOpen]);
-  
+
   useEffect(() => {
     setDisplayedFriends(friends);
   }, [friends]);
-  
+
   useEffect(() => {
     if (!searchQuery) {
       setDisplayedFriends(friends);
       return;
     }
-    
+
     const filtered = friends.filter(
-      friend => 
-        friend.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      friend =>
+        friend.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         friend.email.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    
+
     setDisplayedFriends(filtered);
   }, [searchQuery, friends]);
-  
+
   // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -295,16 +295,16 @@ const FriendModal = ({
         onClose();
       }
     };
-    
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen, onClose]);
-  
+
   // Prevent body scroll when modal is open
   useEffect(() => {
     if (isOpen) {
@@ -312,19 +312,19 @@ const FriendModal = ({
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [isOpen]);
-  
+
   if (!isOpen) return null;
-  
+
   return (
     <>
       {/* Background overlay */}
       <div className="fixed inset-0 z-40 bg-black bg-opacity-30 backdrop-blur-sm" onClick={onClose} />
-      
+
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
         <AnimatePresence>
@@ -339,14 +339,14 @@ const FriendModal = ({
             {/* Header */}
             <div className="border-b border-white/20 p-6 flex items-center justify-center relative">
               <h3 className="font-semibold text-lg gradient-text">Amigos ({friends.length})</h3>
-              <button 
-                className="absolute right-6 text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100" 
+              <button
+                className="absolute right-6 text-gray-600 hover:text-gray-800 transition-colors p-1 rounded-full hover:bg-gray-100"
                 onClick={onClose}
               >
                 <FiX size={20} />
               </button>
             </div>
-            
+
             {/* Search */}
             {friends.length > 0 && (
               <div className="p-4 border-b border-white/10">
@@ -363,7 +363,7 @@ const FriendModal = ({
                 </div>
               </div>
             )}
-            
+
             {/* Friends List */}
             <div className="overflow-y-auto flex-1">
               {loading ? (
@@ -378,7 +378,7 @@ const FriendModal = ({
                 </div>
               ) : displayedFriends.length > 0 ? (
                 displayedFriends.map(friend => (
-                  <motion.div 
+                  <motion.div
                     key={friend.id}
                     className="p-4 flex items-center justify-between cursor-pointer hover:bg-white/10 transition-all duration-200 group"
                     initial={{ opacity: 0, y: 10 }}
@@ -436,7 +436,7 @@ export default function MyProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const toast = useToast();
-  
+
   const [profile, setProfile] = useState<RealProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -452,13 +452,13 @@ export default function MyProfilePage() {
       setError(null);
 
       const response = await fetch(`/api/profile?email=${encodeURIComponent(email)}`);
-      
+
       if (!response.ok) {
         throw new Error('Failed to fetch profile data');
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setProfile(data.profile);
       } else {
@@ -494,7 +494,7 @@ export default function MyProfilePage() {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setProfile(data.profile);
         toast.success('Perfil atualizado!', 'Suas alterações foram salvas com sucesso.');
@@ -522,7 +522,7 @@ export default function MyProfilePage() {
   // Load profile data when session is available
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (session?.user?.email) {
       fetchProfile(session.user.email);
     } else {
@@ -530,7 +530,7 @@ export default function MyProfilePage() {
       setError('No session found');
     }
   }, [session, status]);
-  
+
   // Loading state
   if (status === "loading" || loading) {
     return (
@@ -546,7 +546,7 @@ export default function MyProfilePage() {
       </DashboardLayout>
     );
   }
-  
+
   // Error state
   if (error || !session?.user) {
     return (
@@ -557,8 +557,8 @@ export default function MyProfilePage() {
               {!session?.user ? 'Faça login' : 'Erro ao carregar perfil'}
             </h1>
             <p className="text-gray-600 mb-6">
-              {!session?.user 
-                ? 'Você precisa fazer login para ver seu perfil.' 
+              {!session?.user
+                ? 'Você precisa fazer login para ver seu perfil.'
                 : error || 'Houve um erro ao carregar os dados do seu perfil.'
               }
             </p>
@@ -567,8 +567,8 @@ export default function MyProfilePage() {
                 Ir para login
               </Link>
             ) : (
-              <button 
-                onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+              <button
+                onClick={() => session?.user?.email && fetchProfile(session.user.email)}
                 className="btn btn-primary"
               >
                 Tentar novamente
@@ -587,8 +587,8 @@ export default function MyProfilePage() {
           <div className="modern-card p-8 text-center max-w-md">
             <h1 className="text-2xl font-bold mb-4 gradient-text">Perfil não encontrado</h1>
             <p className="text-gray-600 mb-6">Os dados do seu perfil não puderam ser carregados.</p>
-            <button 
-              onClick={() => session?.user?.email && fetchProfile(session.user.email)} 
+            <button
+              onClick={() => session?.user?.email && fetchProfile(session.user.email)}
               className="btn btn-primary"
             >
               Tentar novamente
@@ -601,9 +601,9 @@ export default function MyProfilePage() {
 
   const profileContent = (
     <main className="max-w-6xl mx-auto pb-16 min-h-screen">
-      {/* Header with Glassmorphism */}
-      <motion.header 
-        className="sticky top-0 z-10 glass-effect border-b border-white/20 p-6 mb-6"
+      {/* Header with Glassmorphism - AGORA COM BORDAS COMPLETAS */}
+      <motion.header
+        className="sticky top-0 z-10 glass-effect border border-white/20 rounded-xl p-6 mb-6"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
@@ -611,7 +611,7 @@ export default function MyProfilePage() {
         <div className="flex items-center">
           <h1 className="text-xl font-bold gradient-text">Meu Perfil</h1>
           <div className="ml-auto flex gap-2">
-            <motion.button 
+            <motion.button
               className="btn btn-ghost btn-sm btn-circle hover:bg-white/20"
               onClick={() => setIsEditModalOpen(true)}
               whileHover={{ scale: 1.05 }}
@@ -625,7 +625,7 @@ export default function MyProfilePage() {
 
       <div className="px-6 space-y-8">
         {/* Profile Header Section */}
-        <motion.div 
+        <motion.div
           className={`${styles.profileCard} p-8 rounded-3xl`}
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -634,7 +634,7 @@ export default function MyProfilePage() {
           <div className="flex flex-col md:flex-row items-start gap-8">
             {/* Avatar Section */}
             <div className="flex flex-col items-center space-y-4">
-              <motion.div 
+              <motion.div
                 className="relative group"
                 whileHover={{ scale: 1.05 }}
                 transition={{ type: "spring", stiffness: 300 }}
@@ -656,7 +656,7 @@ export default function MyProfilePage() {
                     </div>
                   </div>
                 </div>
-                <motion.button 
+                <motion.button
                   className="absolute -bottom-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-200"
                   onClick={() => setIsEditModalOpen(true)}
                   whileHover={{ scale: 1.1 }}
@@ -668,7 +668,7 @@ export default function MyProfilePage() {
 
               {/* Action Buttons */}
               <div className="flex gap-3 w-full">
-                <motion.button 
+                <motion.button
                   className={`flex-1 ${styles.gradientButton} text-white py-3 px-6 rounded-xl font-semibold`}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -677,7 +677,7 @@ export default function MyProfilePage() {
                   Compartilhar
                 </motion.button>
                 <Link href="/app/messages">
-                  <motion.button 
+                  <motion.button
                     className="glass-effect border border-white/30 py-3 px-6 rounded-xl font-semibold hover:bg-white/20 transition-all duration-200"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -697,13 +697,13 @@ export default function MyProfilePage() {
                   {profile.user.name}
                 </h2>
                 <div className="text-lg text-gray-500 mb-4">@{profile.user.email.split('@')[0]}</div>
-                
+
                 {profile.bio ? (
                   <p className="text-gray-600 text-lg leading-relaxed">{profile.bio}</p>
                 ) : (
                   <p className="text-gray-400 italic text-lg">Adicione uma bio para se apresentar</p>
                 )}
-                
+
                 {profile.address && (
                   <div className="flex items-center gap-2 mt-4 text-gray-600">
                     <FiMapPin size={18} />
@@ -711,7 +711,7 @@ export default function MyProfilePage() {
                   </div>
                 )}
 
-                <motion.button 
+                <motion.button
                   className="text-blue-600 font-semibold mt-4 flex items-center gap-2 hover:text-blue-700 transition-colors"
                   onClick={() => setIsEditModalOpen(true)}
                   whileHover={{ x: 5 }}
@@ -723,7 +723,7 @@ export default function MyProfilePage() {
 
               {/* Stats */}
               <div className={`grid grid-cols-3 gap-6 ${styles.statsGrid}`}>
-                <motion.div 
+                <motion.div
                   className={`text-center p-4 glass-effect rounded-2xl border border-white/20 ${styles.statsCard}`}
                   whileHover={{ scale: 1.05, y: -5 }}
                   transition={{ type: "spring", stiffness: 300 }}
@@ -731,7 +731,7 @@ export default function MyProfilePage() {
                   <div className="text-3xl font-bold text-gray-800">{profile.counts.recipes}</div>
                   <div className="text-sm text-gray-500 font-medium">Receitas</div>
                 </motion.div>
-                <motion.div 
+                <motion.div
                   className={`text-center p-4 glass-effect rounded-2xl border border-white/20 cursor-pointer ${styles.statsCard}`}
                   onClick={handleFriendsClick}
                   whileHover={{ scale: 1.05, y: -5 }}
@@ -741,7 +741,7 @@ export default function MyProfilePage() {
                   <div className="text-3xl font-bold text-gray-800">{profile.counts.friends}</div>
                   <div className="text-sm text-gray-500 font-medium">Amigos</div>
                 </motion.div>
-                <motion.div 
+                <motion.div
                   className={`text-center p-4 glass-effect rounded-2xl border border-white/20 ${styles.statsCard}`}
                   whileHover={{ scale: 1.05, y: -5 }}
                   transition={{ type: "spring", stiffness: 300 }}
@@ -755,7 +755,7 @@ export default function MyProfilePage() {
         </motion.div>
 
         {/* Content Tabs */}
-        <motion.div 
+        <motion.div
           className={`${styles.profileCard} rounded-3xl overflow-hidden`}
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -770,11 +770,10 @@ export default function MyProfilePage() {
             ].map((tab) => (
               <motion.button
                 key={tab.id}
-                className={`flex-1 py-4 px-6 flex items-center justify-center gap-2 font-semibold transition-all duration-200 ${
-                  activeTab === tab.id
-                    ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50'
-                }`}
+                className={`flex-1 py-4 px-6 flex items-center justify-center gap-2 font-semibold transition-all duration-200 ${activeTab === tab.id
+                  ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/50'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50/50'
+                  }`}
                 onClick={() => setActiveTab(tab.id)}
                 whileHover={{ y: -2 }}
                 whileTap={{ y: 0 }}
@@ -816,8 +815,8 @@ export default function MyProfilePage() {
       </div>
 
       {/* Friends Modal */}
-      <FriendModal 
-        isOpen={isFriendsModalOpen} 
+      <FriendModal
+        isOpen={isFriendsModalOpen}
         onClose={() => setIsFriendsModalOpen(false)}
         friends={profile.friends}
         onFriendClick={handleFriendClick}

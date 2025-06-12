@@ -106,41 +106,6 @@ const MessageHeader: React.FC<MessageHeaderProps> = ({
             </div>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <motion.button
-            className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="Ligar"
-          >
-            <FiPhone className="text-gray-600" size={18} />
-          </motion.button>
-          <motion.button
-            className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="Videochamada"
-          >
-            <FiVideo className="text-gray-600" size={18} />
-          </motion.button>
-          <motion.button
-            className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="Informações"
-          >
-            <FiInfo className="text-gray-600" size={18} />
-          </motion.button>
-          <motion.button
-            className="p-3 rounded-full glass-effect hover:bg-white/20 transition-all duration-200"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            title="Mais opções"
-          >
-            <FiMoreVertical className="text-gray-600" size={18} />
-          </motion.button>
-        </div>
       </div>
     </div>
   );
