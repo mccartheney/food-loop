@@ -3,8 +3,10 @@
 import { useState, useEffect, FormEvent, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { ItemType } from '@prisma/client';
-import { FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader, FiLayers, 
-         FiClock, FiFeather, FiDroplet, FiCoffee, FiGrid, FiThermometer, FiBox, FiSearch, FiX } from 'react-icons/fi';
+import {
+    FiPlus, FiTrash2, FiPackage, FiAlertCircle, FiCheckCircle, FiLoader, FiLayers,
+    FiClock, FiFeather, FiDroplet, FiCoffee, FiGrid, FiThermometer, FiBox, FiSearch, FiX
+} from 'react-icons/fi';
 import Image from 'next/image';
 import { foodList } from '@/lib/foodList';
 import { GiOrange } from 'react-icons/gi';
@@ -48,7 +50,7 @@ const foodListTypeToApiType = (type: string): string => {
         case 'FROZEN': return ItemType.FROZEN_FOODS;
         default:
             return ItemType.BAKERY
-        
+
     }
 };
 
@@ -75,13 +77,13 @@ const PantryPage = () => {
 
     // Add state to track active tab in the modal
     const [activeModalTab, setActiveModalTab] = useState<'add-item' | 'demo-items' | 'camera'>('add-item');
-    
+
     // Add camera state
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const [capturedImage, setCapturedImage] = useState<string | null>(null);
-    
+
     // Add QR processing state
     const [isProcessingQR, setIsProcessingQR] = useState(false);
     const [qrResult, setQrResult] = useState<string | null>(null);
@@ -91,19 +93,19 @@ const PantryPage = () => {
     const toggleCamera = async () => {
         if (!isCameraActive) {
             try {
-                const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
+                const mediaStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'environment' }
                 });
-                
+
                 // Clear any previous errors and captured image
                 setCameraError(null);
                 setCapturedImage(null);
                 setStream(mediaStream);
                 setIsCameraActive(true);
-                
+
             } catch (err: any) {
                 console.error("Camera access error:", err);
-                
+
                 if (err.name === 'NotAllowedError') {
                     setCameraError("Camera access denied. Please allow camera permissions and try again.");
                 } else if (err.name === 'NotFoundError') {
@@ -129,7 +131,7 @@ const PantryPage = () => {
         setIsProcessingQR(true);
         setQrResult(null);
         setDetectedItems(null);
-        
+
         try {
             // Convert base64 to File object
             const response = await fetch(imageDataUrl);
@@ -138,10 +140,10 @@ const PantryPage = () => {
 
             // Scan for QR code
             const result = await QrScanner.scanImage(file, { returnDetailedScanResult: true });
-            
+
             if (result && result.data) {
                 setQrResult(result.data);
-                
+
                 // Check if QR content is "nao me fodas"
                 if (result.data.trim() === "nao me fodas") {
                     // Convert all foodList items to the correct format for the API
@@ -152,17 +154,17 @@ const PantryPage = () => {
                         type: foodListTypeToApiType(item.type),
                         img: undefined
                     }));
-                    
+
                     setDetectedItems(allFoodItems);
                     setSuccessMessage(`Found all ${allFoodItems.length} items from food list!`);
                 } else {
                     // Try to parse as JSON for other cases (keeping existing functionality)
                     try {
                         const parsedData = JSON.parse(result.data);
-                        
+
                         // Check if it's an array of items or a single item
                         let itemsToAdd = [];
-                        
+
                         if (Array.isArray(parsedData)) {
                             itemsToAdd = parsedData;
                         } else if (parsedData.items && Array.isArray(parsedData.items)) {
@@ -171,7 +173,7 @@ const PantryPage = () => {
                             // Single item
                             itemsToAdd = [parsedData];
                         }
-                        
+
                         // Validate and format items
                         const validItems = itemsToAdd.map(item => ({
                             name: item.name || 'Unknown Item',
@@ -180,14 +182,14 @@ const PantryPage = () => {
                             type: item.type || ItemType.BAKERY,
                             img: item.img || item.image || undefined
                         })).filter(item => item.name !== 'Unknown Item');
-                        
+
                         if (validItems.length > 0) {
                             setDetectedItems(validItems);
                             setSuccessMessage(`Found ${validItems.length} item(s) in QR code!`);
                         } else {
                             setError('Invalid value');
                         }
-                        
+
                     } catch (parseError) {
                         // QR code doesn't contain valid JSON and is not "nao me fodas"
                         setError('Invalid value');
@@ -216,22 +218,22 @@ const PantryPage = () => {
             const response = await fetch('/api/pantry', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: userEmail, 
-                    itemsToAdd: detectedItems 
+                body: JSON.stringify({
+                    email: userEmail,
+                    itemsToAdd: detectedItems
                 }),
             });
-            
+
             const responseData = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(responseData.error || 'Failed to add items.');
             }
-            
+
             setSuccessMessage(`Successfully added ${detectedItems.length} item(s) from QR code!`);
             fetchPantryItems();
             closeAddItemModal();
-            
+
         } catch (e: any) {
             setError(e.message);
         } finally {
@@ -249,7 +251,7 @@ const PantryPage = () => {
         // Create canvas to capture the frame
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        
+
         if (!context) return;
 
         // Set canvas dimensions to match video
@@ -300,7 +302,7 @@ const PantryPage = () => {
         }
 
         const searchLower = searchTerm.toLowerCase();
-        
+
         return pantryItems.filter(item => {
             switch (searchCategory) {
                 case 'name':
@@ -396,7 +398,7 @@ const PantryPage = () => {
             }
             setSuccessMessage(responseData.message || 'Item added successfully!');
             fetchPantryItems();
-            
+
             // Close the modal on success
             closeAddItemModal();
         } catch (e: any) {
@@ -405,7 +407,7 @@ const PantryPage = () => {
             setIsSubmitting(false);
         }
     };
-    
+
     const handleAddAllItems = async () => {
         if (!userEmail) {
             setError("You must be logged in to add items.");
@@ -433,7 +435,7 @@ const PantryPage = () => {
             }
             setSuccessMessage(responseData.message || 'All demo items added successfully!');
             fetchPantryItems();
-            
+
             // Close the modal on success
             closeAddItemModal();
         } catch (e: any) {
@@ -481,18 +483,18 @@ const PantryPage = () => {
             }
             return;
         }
-        
+
         clearMessages();
-        
+
         try {
             const response = await fetch('/api/pantry', {
                 method: 'PATCH', // Using PATCH for partial updates
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    email: userEmail, 
-                    itemUpdate: { 
-                        id: itemId, 
-                        quantity: newQuantity 
+                body: JSON.stringify({
+                    email: userEmail,
+                    itemUpdate: {
+                        id: itemId,
+                        quantity: newQuantity
                     }
                 }),
             });
@@ -500,14 +502,14 @@ const PantryPage = () => {
             if (!response.ok) {
                 throw new Error(responseData.error || 'Failed to update item quantity.');
             }
-            
+
             // Update the local state without a full refetch to improve UX
-            setPantryItems(items => items.map(item => 
+            setPantryItems(items => items.map(item =>
                 item.id === itemId ? { ...item, quantity: newQuantity } : item
             ));
-            
+
             setSuccessMessage(responseData.message || 'Item quantity updated!');
-            
+
             // Alternatively, if you prefer a full refresh: fetchPantryItems();
         } catch (e: any) {
             setError(e.message);
@@ -517,24 +519,24 @@ const PantryPage = () => {
     // Animation variants for different components
     const containerVariants = {
         hidden: { opacity: 0 },
-        visible: { 
+        visible: {
             opacity: 1,
-            transition: { 
+            transition: {
                 staggerChildren: 0.07,
                 delayChildren: 0.2
             }
         }
     };
-    
+
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
-        visible: { 
-            y: 0, 
+        visible: {
+            y: 0,
             opacity: 1,
             transition: { type: "spring", stiffness: 300, damping: 24 }
         }
     };
-    
+
     const renderRecentItemsList = () => {
         if (pantryItems.length === 0) return null;
 
@@ -544,14 +546,14 @@ const PantryPage = () => {
             .slice(0, 7); // Show only the 7 most recent items
 
         return (
-            <motion.div 
+            <motion.div
                 className="card bg-base-100 shadow-lg mb-8"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
             >
                 <div className="card-body p-5">
-                    <motion.h2 
+                    <motion.h2
                         className="text-lg font-semibold flex items-center mb-4"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -562,24 +564,24 @@ const PantryPage = () => {
                         </span>
                         Last Items added to the pantry
                     </motion.h2>
-                    <motion.div 
+                    <motion.div
                         className="divide-y"
                         variants={containerVariants}
                         initial="hidden"
                         animate="visible"
                     >
                         {recentItems.map(item => (
-                            <motion.div 
-                                key={item.id} 
+                            <motion.div
+                                key={item.id}
                                 className="py-3 flex items-center"
                                 variants={itemVariants}
-                                whileHover={{ 
-                                    scale: 1.02, 
+                                whileHover={{
+                                    scale: 1.02,
                                     backgroundColor: 'rgba(0,0,0,0.02)',
                                     transition: { duration: 0.2 }
                                 }}
                             >
-                                <motion.div 
+                                <motion.div
                                     className="w-10 h-10 flex-shrink-0 rounded-full bg-base-200 flex items-center justify-center mr-3"
                                     whileHover={{ scale: 1.15, rotate: 5 }}
                                     transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -627,7 +629,7 @@ const PantryPage = () => {
     const renderAllItemsList = () => {
         if (isLoading && !pantryItems.length) {
             return (
-                <motion.div 
+                <motion.div
                     className="flex justify-center items-center py-10"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -643,12 +645,12 @@ const PantryPage = () => {
                 </motion.div>
             );
         }
-        
+
         if (!filteredItems.length) {
             if (!pantryItems.length && !error) {
                 // If there are no items at all
                 return (
-                    <motion.div 
+                    <motion.div
                         className="text-center py-10 card bg-base-200 p-6"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -661,7 +663,7 @@ const PantryPage = () => {
                         >
                             <FiPackage size={48} className="mx-auto mb-4 text-neutral-content opacity-50" />
                         </motion.div>
-                        <motion.p 
+                        <motion.p
                             className="text-lg text-neutral-content opacity-70"
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 0.7 }}
@@ -669,7 +671,7 @@ const PantryPage = () => {
                         >
                             Your pantry is currently empty.
                         </motion.p>
-                        <motion.p 
+                        <motion.p
                             className="text-sm text-neutral-content opacity-60"
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 0.6 }}
@@ -682,7 +684,7 @@ const PantryPage = () => {
             } else if (searchTerm) {
                 // If there are items but none match the search
                 return (
-                    <motion.div 
+                    <motion.div
                         className="text-center py-10 card bg-base-200 p-6"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -695,7 +697,7 @@ const PantryPage = () => {
                         >
                             <FiSearch size={48} className="mx-auto mb-4 text-neutral-content opacity-50" />
                         </motion.div>
-                        <motion.p 
+                        <motion.p
                             className="text-lg text-neutral-content opacity-70"
                             initial={{ y: 10, opacity: 0 }}
                             animate={{ y: 0, opacity: 0.7 }}
@@ -703,7 +705,7 @@ const PantryPage = () => {
                         >
                             No items match your search.
                         </motion.p>
-                        <motion.button 
+                        <motion.button
                             className="btn btn-sm btn-outline mt-4"
                             onClick={clearSearch}
                             whileHover={{ scale: 1.05 }}
@@ -715,12 +717,12 @@ const PantryPage = () => {
                 );
             }
         }
-        
+
         // Sort items by name for list view
         const sortedItems = [...filteredItems].sort((a, b) => a.name.localeCompare(b.name));
-        
+
         return (
-            <motion.div 
+            <motion.div
                 className="card bg-base-100 shadow-lg"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -745,16 +747,16 @@ const PantryPage = () => {
                                 animate="visible"
                             >
                                 {sortedItems.map(item => (
-                                    <motion.tr 
+                                    <motion.tr
                                         key={item.id}
                                         variants={itemVariants}
-                                        whileHover={{ 
-                                            backgroundColor: 'rgba(0,0,0,0.03)', 
-                                            transition: { duration: 0.2 } 
+                                        whileHover={{
+                                            backgroundColor: 'rgba(0,0,0,0.03)',
+                                            transition: { duration: 0.2 }
                                         }}
                                     >
                                         <td className="flex items-center space-x-2">
-                                            <motion.div 
+                                            <motion.div
                                                 className="w-8 h-8 flex-shrink-0 rounded-full bg-base-200 flex items-center justify-center"
                                                 whileHover={{ scale: 1.15, rotate: 5 }}
                                                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
@@ -765,13 +767,13 @@ const PantryPage = () => {
                                         </td>
                                         <td>
                                             <div className="flex items-center space-x-2">
-                                                <motion.button 
+                                                <motion.button
                                                     onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                                     className="btn btn-xs btn-circle btn-outline"
                                                     aria-label={`Decrease quantity of ${item.name}`}
-                                                    whileHover={{ 
-                                                        scale: 1.2, 
-                                                        backgroundColor: "#FEE2E2", 
+                                                    whileHover={{
+                                                        scale: 1.2,
+                                                        backgroundColor: "#FEE2E2",
                                                         borderColor: "#EF4444",
                                                         color: "#EF4444"
                                                     }}
@@ -779,7 +781,7 @@ const PantryPage = () => {
                                                 >
                                                     -
                                                 </motion.button>
-                                                <motion.span 
+                                                <motion.span
                                                     className="font-medium"
                                                     key={item.quantity} // Re-animate when quantity changes
                                                     initial={{ scale: 1.2, opacity: 0.7 }}
@@ -788,13 +790,13 @@ const PantryPage = () => {
                                                 >
                                                     {item.quantity}
                                                 </motion.span>
-                                                <motion.button 
+                                                <motion.button
                                                     onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                                     className="btn btn-xs btn-circle btn-outline"
                                                     aria-label={`Increase quantity of ${item.name}`}
-                                                    whileHover={{ 
-                                                        scale: 1.2, 
-                                                        backgroundColor: "#DCFCE7", 
+                                                    whileHover={{
+                                                        scale: 1.2,
+                                                        backgroundColor: "#DCFCE7",
                                                         borderColor: "#22C55E",
                                                         color: "#22C55E"
                                                     }}
@@ -810,8 +812,8 @@ const PantryPage = () => {
                                         </td>
                                         <td>{new Date(item.dateBought).toLocaleDateString()}</td>
                                         <td>
-                                            <motion.button 
-                                                onClick={() => handleDeleteItem(item.id)} 
+                                            <motion.button
+                                                onClick={() => handleDeleteItem(item.id)}
                                                 className="btn btn-error btn-xs btn-outline"
                                                 aria-label={`Delete ${item.name}`}
                                                 whileHover={{ scale: 1.05, backgroundColor: "#FCA5A5" }}
@@ -829,13 +831,13 @@ const PantryPage = () => {
             </motion.div>
         );
     };
-    
+
     // Update the grid view with animations
     const renderGridView = () => {
         if (!filteredItems.length && searchTerm) {
             // Show "no results" when searching
             return (
-                <motion.div 
+                <motion.div
                     className="text-center py-10 card bg-base-200 p-6"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -848,7 +850,7 @@ const PantryPage = () => {
                     >
                         <FiSearch size={48} className="mx-auto mb-4 text-neutral-content opacity-50" />
                     </motion.div>
-                    <motion.p 
+                    <motion.p
                         className="text-lg text-neutral-content opacity-70"
                         initial={{ y: 10, opacity: 0 }}
                         animate={{ y: 0, opacity: 0.7 }}
@@ -856,7 +858,7 @@ const PantryPage = () => {
                     >
                         No items match your search.
                     </motion.p>
-                    <motion.button 
+                    <motion.button
                         className="btn btn-sm btn-outline mt-4"
                         onClick={clearSearch}
                         whileHover={{ scale: 1.05 }}
@@ -867,23 +869,23 @@ const PantryPage = () => {
                 </motion.div>
             );
         }
-        
+
         return (
-            <motion.div 
+            <motion.div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
                 {filteredItems.map(item => (
-                    <motion.div 
-                        key={item.id} 
+                    <motion.div
+                        key={item.id}
                         className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow duration-300"
                         variants={itemVariants}
                         whileHover={{ y: -5, transition: { duration: 0.2 } }}
                     >
                         {item.img && (
-                            <motion.figure 
+                            <motion.figure
                                 className="h-48 overflow-hidden relative"
                                 whileHover={{ scale: 1.05 }}
                                 transition={{ duration: 0.3 }}
@@ -893,17 +895,17 @@ const PantryPage = () => {
                         )}
                         <div className="card-body p-5">
                             <h3 className="card-title text-lg truncate" title={item.name}>{item.name}</h3>
-                            
+
                             <div className="flex items-center">
                                 <span className="text-sm font-semibold mr-2">Quantity:</span>
                                 <div className="flex items-center space-x-2">
-                                    <motion.button 
+                                    <motion.button
                                         onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                         className="btn btn-xs btn-circle btn-outline"
                                         aria-label={`Decrease quantity of ${item.name}`}
-                                        whileHover={{ 
-                                            scale: 1.2, 
-                                            backgroundColor: "#FEE2E2", 
+                                        whileHover={{
+                                            scale: 1.2,
+                                            backgroundColor: "#FEE2E2",
                                             borderColor: "#EF4444",
                                             color: "#EF4444"
                                         }}
@@ -911,7 +913,7 @@ const PantryPage = () => {
                                     >
                                         -
                                     </motion.button>
-                                    <motion.span 
+                                    <motion.span
                                         className="font-medium"
                                         key={item.quantity} // Re-animate when quantity changes
                                         initial={{ scale: 1.2, opacity: 0.7 }}
@@ -920,13 +922,13 @@ const PantryPage = () => {
                                     >
                                         {item.quantity}
                                     </motion.span>
-                                    <motion.button 
+                                    <motion.button
                                         onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                         className="btn btn-xs btn-circle btn-outline"
                                         aria-label={`Increase quantity of ${item.name}`}
-                                        whileHover={{ 
-                                            scale: 1.2, 
-                                            backgroundColor: "#DCFCE7", 
+                                        whileHover={{
+                                            scale: 1.2,
+                                            backgroundColor: "#DCFCE7",
                                             borderColor: "#22C55E",
                                             color: "#22C55E"
                                         }}
@@ -936,15 +938,15 @@ const PantryPage = () => {
                                     </motion.button>
                                 </div>
                             </div>
-                            
+
                             <p className="text-sm"><span className="font-semibold">Type:</span> {formatItemTypeLabel(item.type)}</p>
                             <p className={`text-sm ${item.expire_date === 'N/A' || new Date(item.expire_date) > new Date() ? '' : 'text-error font-semibold'}`}>
                                 <span className="font-semibold">Expires:</span> {item.expire_date}
                             </p>
                             <p className="text-xs text-gray-500"><span className="font-semibold">Added:</span> {item.dateBought}</p>
                             <div className="card-actions justify-end mt-4">
-                                <motion.button 
-                                    onClick={() => handleDeleteItem(item.id)} 
+                                <motion.button
+                                    onClick={() => handleDeleteItem(item.id)}
                                     className="btn btn-error btn-sm btn-outline"
                                     aria-label={`Delete ${item.name}`}
                                     whileHover={{ scale: 1.05, backgroundColor: "#FCA5A5" }}
@@ -960,19 +962,19 @@ const PantryPage = () => {
         );
     };
 
-    
-// Animate error and success messages
+
+    // Animate error and success messages
 
     if (sessionStatus === 'loading') {
         return (
-            <motion.div 
+            <motion.div
                 className="flex justify-center items-center min-h-screen"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}
             >
-                <motion.span 
+                <motion.span
                     className="loading loading-spinner loading-lg"
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -993,7 +995,7 @@ const PantryPage = () => {
             setCapturedImage(null);
         }
     };
-    
+
     // Helper function to open the modal
     const openAddItemModal = () => {
         if (typeof document !== 'undefined') {
@@ -1002,7 +1004,7 @@ const PantryPage = () => {
             if (modal) modal.showModal();
         }
     };
-    
+
     // Helper function to close the modal
     const closeAddItemModal = () => {
         if (typeof document !== 'undefined') {
@@ -1014,11 +1016,11 @@ const PantryPage = () => {
             setIsCameraActive(false);
             setCameraError(null);
             setCapturedImage(null);
-            
+
             // Close the modal
             const modal = document.getElementById('add_item_modal') as HTMLDialogElement;
             if (modal) modal.close();
-            
+
             // Reset form fields after a short delay to allow the closing animation
             setTimeout(() => {
                 setItemName('');
@@ -1037,7 +1039,14 @@ const PantryPage = () => {
             {/* Modal Trigger Button */}
             <motion.button
                 onClick={openAddItemModal}
-                className="btn btn-primary btn-lg fixed bottom-6 right-6 z-10 rounded-full shadow-lg"
+                className="btn btn-primary btn-lg fixed rounded-full shadow-lg"
+                style={{
+                    position: 'fixed',
+                    bottom: 'clamp(3rem, 10vh, 6rem)', // Lowered position compared to previous
+                    right: '1.5rem',
+                    zIndex: 999, // Maintaining high z-index for visibility
+                    boxShadow: '0 0 20px rgba(0,0,0,0.3)' // Maintaining enhanced shadow
+                }}
                 whileHover={{ scale: 1.05, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)" }}
                 whileTap={{ scale: 0.95 }}
                 initial={{ y: 100, opacity: 0 }}
@@ -1046,10 +1055,10 @@ const PantryPage = () => {
             >
                 <FiPlus size={24} />
             </motion.button>
-            
+
             {/* Modal Component */}
             <dialog id="add_item_modal" className="modal modal-bottom sm:modal-middle">
-                <motion.div 
+                <motion.div
                     className="modal-box max-w-4xl"
                     initial={{ y: 50, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
@@ -1057,19 +1066,19 @@ const PantryPage = () => {
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
                     <div className="tabs tabs-boxed mb-6 bg-base-200">
-                        <a 
+                        <a
                             className={`tab ${activeModalTab === 'add-item' ? 'tab-active' : ''}`}
                             onClick={() => switchModalTab('add-item')}
                         >
                             <FiPlus className="mr-2" /> Add Item
                         </a>
-                        <a 
+                        <a
                             className={`tab ${activeModalTab === 'demo-items' ? 'tab-active' : ''}`}
                             onClick={() => switchModalTab('demo-items')}
                         >
                             <FiLayers className="mr-2" /> Add Demo Items
                         </a>
-                        <a 
+                        <a
                             className={`tab ${activeModalTab === 'camera' ? 'tab-active' : ''}`}
                             onClick={() => switchModalTab('camera')}
                         >
@@ -1079,7 +1088,7 @@ const PantryPage = () => {
                             </svg> Camera
                         </a>
                     </div>
-                    
+
                     {/* Add Single Item Tab Content */}
                     {activeModalTab === 'add-item' && (
                         <motion.div
@@ -1089,50 +1098,50 @@ const PantryPage = () => {
                             transition={{ duration: 0.2 }}
                         >
                             <h3 className="font-bold text-lg mb-4">Add New Pantry Item</h3>
-                            
+
                             <form onSubmit={handleAddItem} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="form-control">
                                         <label className="label"><span className="label-text">Item Name</span></label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="e.g., Apples" 
-                                            value={itemName} 
-                                            onChange={(e) => setItemName(e.target.value)} 
-                                            className="input input-bordered w-full" 
-                                            required 
+                                        <input
+                                            type="text"
+                                            placeholder="e.g., Apples"
+                                            value={itemName}
+                                            onChange={(e) => setItemName(e.target.value)}
+                                            className="input input-bordered w-full"
+                                            required
                                         />
                                     </div>
                                     <div className="form-control">
                                         <label className="label"><span className="label-text">Quantity</span></label>
-                                        <input 
-                                            type="number" 
-                                            value={itemQuantity} 
-                                            onChange={(e) => setItemQuantity(e.target.value === '' ? '' : Number(e.target.value))} 
-                                            min="1" 
-                                            className="input input-bordered w-full" 
-                                            required 
+                                        <input
+                                            type="number"
+                                            value={itemQuantity}
+                                            onChange={(e) => setItemQuantity(e.target.value === '' ? '' : Number(e.target.value))}
+                                            min="1"
+                                            className="input input-bordered w-full"
+                                            required
                                         />
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="form-control">
                                         <label className="label"><span className="label-text">Expiration Date</span></label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="YYYY-MM-DD or N/A" 
-                                            value={itemExpireDate} 
-                                            onChange={(e) => setItemExpireDate(e.target.value)} 
-                                            className="input input-bordered w-full" 
+                                        <input
+                                            type="text"
+                                            placeholder="YYYY-MM-DD or N/A"
+                                            value={itemExpireDate}
+                                            onChange={(e) => setItemExpireDate(e.target.value)}
+                                            className="input input-bordered w-full"
                                         />
                                     </div>
                                     <div className="form-control">
                                         <label className="label"><span className="label-text">Item Type</span></label>
-                                        <select 
-                                            value={itemType} 
-                                            onChange={(e) => setItemType(e.target.value)} 
-                                            className="select select-bordered w-full" 
+                                        <select
+                                            value={itemType}
+                                            onChange={(e) => setItemType(e.target.value)}
+                                            className="select select-bordered w-full"
                                             required
                                         >
                                             {Object.keys(ItemType).map(key => (
@@ -1141,37 +1150,37 @@ const PantryPage = () => {
                                         </select>
                                     </div>
                                 </div>
-                                
+
                                 <div className="form-control">
                                     <label className="label"><span className="label-text">Image URL (Optional)</span></label>
-                                    <input 
-                                        type="url" 
-                                        placeholder="https://example.com/image.png" 
-                                        value={itemImg} 
-                                        onChange={(e) => setItemImg(e.target.value)} 
-                                        className="input input-bordered w-full" 
+                                    <input
+                                        type="url"
+                                        placeholder="https://example.com/image.png"
+                                        value={itemImg}
+                                        onChange={(e) => setItemImg(e.target.value)}
+                                        className="input input-bordered w-full"
                                     />
                                 </div>
-                                
+
                                 <div className="modal-action">
-                                    <button 
-                                        type="button" 
-                                        className="btn" 
+                                    <button
+                                        type="button"
+                                        className="btn"
                                         onClick={closeAddItemModal}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="submit" 
-                                        className="btn btn-primary" 
+                                    <button
+                                        type="submit"
+                                        className="btn btn-primary"
                                         disabled={isSubmitting || sessionStatus !== 'authenticated'}
                                     >
-                                        {isSubmitting ? 
-                                            <motion.span 
+                                        {isSubmitting ?
+                                            <motion.span
                                                 className="loading loading-spinner loading-xs"
                                                 animate={{ rotate: 360 }}
                                                 transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                            ></motion.span> : 
+                                            ></motion.span> :
                                             <FiPlus className="mr-2" />
                                         }
                                         Add Item
@@ -1180,7 +1189,7 @@ const PantryPage = () => {
                             </form>
                         </motion.div>
                     )}
-                    
+
                     {/* Add Demo Items Tab Content */}
                     {activeModalTab === 'demo-items' && (
                         <motion.div
@@ -1190,10 +1199,10 @@ const PantryPage = () => {
                             transition={{ duration: 0.2 }}
                         >
                             <h3 className="font-bold text-lg mb-4">Add Demo Items</h3>
-                            
+
                             <div className="space-y-4">
                                 <p>This will add a set of common food items to your pantry for demonstration purposes.</p>
-                                
+
                                 <div className="bg-base-200 rounded-box p-4 text-sm">
                                     <h4 className="font-bold mb-2">Sample items include:</h4>
                                     <ul className="list-disc list-inside space-y-1">
@@ -1203,27 +1212,27 @@ const PantryPage = () => {
                                         <li>...and {foodList.length - 5} more items</li>
                                     </ul>
                                 </div>
-                                
+
                                 <div className="modal-action">
-                                    <button 
-                                        type="button" 
-                                        className="btn" 
+                                    <button
+                                        type="button"
+                                        className="btn"
                                         onClick={closeAddItemModal}
                                     >
                                         Cancel
                                     </button>
-                                    <button 
-                                        type="button" 
-                                        className="btn btn-secondary" 
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
                                         onClick={handleAddAllItems}
                                         disabled={isSubmittingAll || sessionStatus !== 'authenticated'}
                                     >
-                                        {isSubmittingAll ? 
-                                            <motion.span 
+                                        {isSubmittingAll ?
+                                            <motion.span
                                                 className="loading loading-spinner loading-xs"
                                                 animate={{ rotate: 360 }}
                                                 transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-                                            ></motion.span> : 
+                                            ></motion.span> :
                                             <FiLayers className="mr-2" />
                                         }
                                         Add Demo Items
@@ -1232,7 +1241,7 @@ const PantryPage = () => {
                             </div>
                         </motion.div>
                     )}
-                    
+
                     {/* Camera Tab Content */}
                     {activeModalTab === 'camera' && (
                         <motion.div
@@ -1242,15 +1251,15 @@ const PantryPage = () => {
                             transition={{ duration: 0.2 }}
                         >
                             <h3 className="font-bold text-lg mb-4">Camera QR Scanner</h3>
-                            
+
                             <div className="space-y-4">
                                 <p>
-                                    {capturedImage 
-                                        ? 'Photo captured! Checking for QR codes...' 
+                                    {capturedImage
+                                        ? 'Photo captured! Checking for QR codes...'
                                         : 'Capture a photo to scan for QR codes containing item data.'
                                     }
                                 </p>
-                                
+
                                 {cameraError && (
                                     <div className="alert alert-error">
                                         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1263,7 +1272,7 @@ const PantryPage = () => {
                                 {/* QR Processing Status */}
                                 {isProcessingQR && (
                                     <div className="alert alert-info">
-                                        <motion.span 
+                                        <motion.span
                                             className="loading loading-spinner loading-sm"
                                             animate={{ rotate: 360 }}
                                             transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -1302,7 +1311,7 @@ const PantryPage = () => {
                                         </div>
                                     </div>
                                 )}
-                                
+
                                 <div className="card bg-base-200 p-4">
                                     {capturedImage ? (
                                         // Show captured image
@@ -1347,26 +1356,26 @@ const PantryPage = () => {
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div className="modal-action">
-                                    <button 
-                                        type="button" 
-                                        className="btn" 
+                                    <button
+                                        type="button"
+                                        className="btn"
                                         onClick={closeAddItemModal}
                                     >
                                         Cancel
                                     </button>
-                                    
+
                                     {detectedItems && detectedItems.length > 0 && (
                                         // Show add items button when items are detected
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-success" 
+                                        <button
+                                            type="button"
+                                            className="btn btn-success"
                                             onClick={addDetectedItems}
                                             disabled={isSubmitting}
                                         >
                                             {isSubmitting ? (
-                                                <motion.span 
+                                                <motion.span
                                                     className="loading loading-spinner loading-xs"
                                                     animate={{ rotate: 360 }}
                                                     transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
@@ -1379,12 +1388,12 @@ const PantryPage = () => {
                                             )}
                                         </button>
                                     )}
-                                    
+
                                     {capturedImage ? (
                                         // Show retake button when image is captured
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-secondary" 
+                                        <button
+                                            type="button"
+                                            className="btn btn-secondary"
                                             onClick={resetCapture}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1395,9 +1404,9 @@ const PantryPage = () => {
                                     ) : isCameraActive && stream ? (
                                         // Show capture button when camera is active
                                         <>
-                                            <button 
-                                                type="button" 
-                                                className="btn btn-success" 
+                                            <button
+                                                type="button"
+                                                className="btn btn-success"
                                                 onClick={capturePhoto}
                                             >
                                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1406,9 +1415,9 @@ const PantryPage = () => {
                                                 </svg>
                                                 Capture & Scan
                                             </button>
-                                            <button 
-                                                type="button" 
-                                                className="btn btn-error" 
+                                            <button
+                                                type="button"
+                                                className="btn btn-error"
                                                 onClick={toggleCamera}
                                             >
                                                 Stop Camera
@@ -1416,9 +1425,9 @@ const PantryPage = () => {
                                         </>
                                     ) : (
                                         // Show start camera button when camera is inactive
-                                        <button 
-                                            type="button" 
-                                            className="btn btn-primary" 
+                                        <button
+                                            type="button"
+                                            className="btn btn-primary"
                                             onClick={toggleCamera}
                                         >
                                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1440,13 +1449,13 @@ const PantryPage = () => {
     );
 
     return (
-        <motion.div 
+        <motion.div
             className="container mx-auto p-4 md:p-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
-            <motion.h1 
+            <motion.h1
                 className="text-3xl font-bold mb-8 text-center flex items-center justify-center"
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -1503,44 +1512,44 @@ const PantryPage = () => {
                 transition={{ delay: 0.5, duration: 0.7 }}
             >
                 <div className="flex justify-between items-center mb-6">
-                    <motion.h2 
+                    <motion.h2
                         className="text-2xl font-semibold"
                         whileHover={{ x: 5, transition: { duration: 0.2 } }}
                     >
                         Your Items {searchTerm && <span className="text-sm font-normal">(filtered)</span>}
                     </motion.h2>
-                    
+
                     {/* Keep only the view toggle buttons here */}
-                    <motion.div 
+                    <motion.div
                         className="btn-group"
                         whileHover={{ scale: 1.05 }}
                         transition={{ duration: 0.2 }}
                     >
-                        <motion.button 
-                            className={`btn btn-sm ${viewMode === 'list' ? 'btn-active' : ''}`} 
+                        <motion.button
+                            className={`btn btn-sm ${viewMode === 'list' ? 'btn-active' : ''}`}
                             onClick={() => setViewMode('list')}
                             title="List View"
                             whileHover={{ backgroundColor: viewMode !== 'list' ? "rgba(0,0,0,0.05)" : undefined }}
                             whileTap={{ scale: 0.95 }}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-list-ul" viewBox="0 0 16 16">
-                                <path fillRule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+                                <path fillRule="evenodd" d="M5 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm0 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
                             </svg>
                         </motion.button>
-                        <motion.button 
-                            className={`btn btn-sm ${viewMode === 'grid' ? 'btn-active' : ''}`} 
+                        <motion.button
+                            className={`btn btn-sm ${viewMode === 'grid' ? 'btn-active' : ''}`}
                             onClick={() => setViewMode('grid')}
                             title="Grid View"
                             whileHover={{ backgroundColor: viewMode !== 'grid' ? "rgba(0,0,0,0.05)" : undefined }}
                             whileTap={{ scale: 0.95 }}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-grid-3x3-gap" viewBox="0 0 16 16">
-                                <path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z"/>
+                                <path d="M1 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V2zM1 7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V7zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V7zM1 12a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-2zm5 0a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2z" />
                             </svg>
                         </motion.button>
                     </motion.div>
                 </div>
-                
+
                 {/* List/Grid View */}
                 <AnimatePresence mode="wait">
                     {viewMode === 'list' ? (
