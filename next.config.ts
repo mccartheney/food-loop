@@ -25,17 +25,17 @@ const nextConfig: NextConfig = {
       config.externals.push('socket.io-client');
     }
     return config;
+  },
 
   typescript: {
     // Ignora erros de TypeScript durante o build
     ignoreBuildErrors: true,
   },
+  
   eslint: {
     // Ignora erros de ESLint durante o build
     ignoreDuringBuilds: true,
-
   },
-  // ...rest of your configurations...
 };
 
 export default nextConfig;
