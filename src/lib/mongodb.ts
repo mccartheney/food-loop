@@ -126,7 +126,7 @@ export const messagingService = {
   async getConversationMessages(conversationId: string, limit = 50, skip = 0) {
     return await mongoClient.message.findMany({
       where: { conversationId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'asc' },
       take: limit,
       skip,
       include: {

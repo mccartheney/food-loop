@@ -54,7 +54,11 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isUserOnline, setIsUserOnline] = useState(true);
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+  const [hasAutoScrolledOnce, setHasAutoScrolledOnce] = useState(false);
+  const [showScrollToBottom, setShowScrollToBottom] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Get user ID and email from profile API
@@ -210,6 +214,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
   useEffect(() => {
     if (userId && conversation.id) {
       console.log('Loading messages for conversation change');
+      // Reset scroll state when conversation changes
+      setHasAutoScrolledOnce(false);
+      setIsUserScrolledUp(false);
+      setShowScrollToBottom(false);
       fetchMessages();
     }
   }, [fetchMessages, userId, conversation.id]);
@@ -222,14 +230,49 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
     }
   }, [isAuthenticated, fetchMessages]);
 
-  // Auto-scroll to bottom
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  // Smart scroll logic - only auto-scroll on first load
+  useEffect(() => {
+    if (messages.length > 0) {
+      if (!hasAutoScrolledOnce) {
+        // First time loading messages - auto scroll to bottom
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setHasAutoScrolledOnce(true);
+      } else if (!isUserScrolledUp) {
+        // User is at bottom and new messages arrive - continue auto-scrolling
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        // User is scrolled up - show scroll to bottom button
+        setShowScrollToBottom(true);
+      }
+    }
+  }, [messages, hasAutoScrolledOnce, isUserScrolledUp]);
+
+  // Scroll detection to track user scroll position
+  useEffect(() => {
+    const messagesContainer = messagesContainerRef.current;
+    if (!messagesContainer) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainer;
+      const scrolledToBottom = scrollHeight - scrollTop - clientHeight < 100; // 100px threshold
+      
+      setIsUserScrolledUp(!scrolledToBottom);
+      
+      if (scrolledToBottom) {
+        setShowScrollToBottom(false);
+      }
+    };
+
+    messagesContainer.addEventListener('scroll', handleScroll);
+    return () => messagesContainer.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+  // Scroll to bottom function
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setShowScrollToBottom(false);
+    setIsUserScrolledUp(false);
+  }, []);
 
   // Mark messages as read when conversation is viewed
   useEffect(() => {
@@ -386,7 +429,10 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
       </div>
       
       {/* Messages Area */}
-      <div className={`flex-1 overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4 ${styles.messagesScroll}`}>
+      <div 
+        ref={messagesContainerRef}
+        className={`flex-1 overflow-y-auto p-4 md:p-6 space-y-3 md:space-y-4 relative ${styles.messagesScroll}`}
+      >
         <AnimatePresence>
           {messages.map((message, index) => (
             <motion.div
@@ -467,6 +513,38 @@ const ChatArea: React.FC<ChatAreaProps> = ({ conversation, onBackClick }) => {
           
           <div ref={messagesEndRef} />
         </AnimatePresence>
+
+        {/* Scroll to Bottom Button */}
+        <AnimatePresence>
+          {showScrollToBottom && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.8, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              onClick={scrollToBottom}
+              className="absolute bottom-4 right-4 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all duration-200 z-10 flex items-center justify-center"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              title="Scroll to bottom"
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  strokeWidth={2} 
+                  d="M19 14l-7 7m0 0l-7-7m7 7V3" 
+                />
+              </svg>
+            </motion.button>
+          )}
+        </AnimatePresence>
+        
       </div>
       
       {/* Enhanced Message Input */}
