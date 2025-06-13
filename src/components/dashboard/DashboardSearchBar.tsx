@@ -5,7 +5,7 @@ import { useState, FormEvent, useRef, useEffect } from 'react';
 import { FiSearch, FiX, FiPackage, FiBookOpen, FiBox, FiClock, FiPlus } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useSearch, SearchResult } from '@/lib/hooks/useSearch';
-import SearchResults from './SearchResults';
+import InlineSearchResults from './InlineSearchResults';
 import styles from '../../app/app/styles.module.css';
 
 const DashboardSearchBar: React.FC = () => {
@@ -148,6 +148,7 @@ const DashboardSearchBar: React.FC = () => {
   return (
     <motion.div 
       className={`${styles.searchContainer} rounded-2xl p-6 mb-6`}
+      data-search-container
       initial={{ y: 30, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ delay: 0.3, duration: 0.5 }}
@@ -242,19 +243,7 @@ const DashboardSearchBar: React.FC = () => {
               </motion.button>
             )}
 
-            {/* Search Results */}
-            <AnimatePresence>
-              {showResults && (
-                <SearchResults
-                  results={results}
-                  loading={loading}
-                  error={error}
-                  query={searchTerm}
-                  onResultClick={handleResultClick}
-                  onSeeMore={handleSeeMore}
-                />
-              )}
-            </AnimatePresence>
+            {/* No longer showing results here - they will be inline below */}
           </div>
 
           {/* Category Filter */}
@@ -348,6 +337,20 @@ const DashboardSearchBar: React.FC = () => {
           </motion.div>
         )}
       </motion.form>
+
+      {/* Inline Search Results */}
+      <AnimatePresence>
+        {showResults && (
+          <InlineSearchResults
+            results={results}
+            loading={loading}
+            error={error}
+            query={searchTerm}
+            onResultClick={handleResultClick}
+            onSeeMore={handleSeeMore}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Quick Actions Mobile/All */}
       <motion.div 

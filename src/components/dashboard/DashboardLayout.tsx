@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence, stagger } from 'framer-motion';
-import { FiHome, FiPlus, FiSettings, FiUser, FiSearch, FiUsers } from 'react-icons/fi';
+import { FiHome, FiPlus, FiUser, FiSearch, FiUsers } from 'react-icons/fi';
 import { LiaStoreAltSolid } from "react-icons/lia";
 import { PiChefHatLight } from "react-icons/pi";
 import MobileHeader from './cards/MobileHeader';
@@ -94,7 +94,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight },
     { name: 'Friends', href: '/app/friends', icon: FiUsers },
     { name: 'Create Trade', href: '/app/marketplace/create', icon: FiPlus, isPrimary: true },
-    { name: 'Settings', href: '/app/settings', icon: FiSettings },
     { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
   ];
 
@@ -217,7 +216,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </motion.div>
 
           <nav className="flex flex-col items-center space-y-4 flex-1">
-            {navItems.slice(0, 7).map((item, index) => (
+            {navItems.slice(0, 8).map((item, index) => (
               <motion.div
                 key={item.name}
                 variants={itemVariants}
@@ -296,33 +295,28 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </div>
             </motion.div>
 
-            {/* Settings e MyProfile - fixed navigation */}
-            {navItems.slice(7).map((item, index) => (
-              <motion.div
-                key={item.name}
-                variants={itemVariants}
-                custom={9 + index}
+            {/* MyProfile - fixed navigation */}
+            <motion.div
+              variants={itemVariants}
+              custom={9}
+            >
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
+                  pathname === '/app/myprofile'
+                    ? 'text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'
+                    : 'text-gray-600 bg-white/70 hover:text-gray-800 hover:bg-white/90'
+                }`}
+                onMouseEnter={(e) => {
+                  handleItemHover({ name: 'MyProfile', href: '/app/myprofile', icon: FiUser }, e.currentTarget as HTMLElement);
+                }}
+                onMouseLeave={() => {
+                  setTooltipItem(null);
+                }}
+                onClick={() => router.push('/app/myprofile')}
               >
-                <div
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-200 cursor-pointer ${
-                    pathname === item.href
-                      ? 'text-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg'
-                      : 'text-gray-600 bg-white/70 hover:text-gray-800 hover:bg-white/90'
-                  }`}
-                  onMouseEnter={(e) => {
-                    setHoveredItem(item.href);
-                    handleItemHover(item, e.currentTarget as HTMLElement);
-                  }}
-                  onMouseLeave={() => {
-                    setHoveredItem(null);
-                    setTooltipItem(null);
-                  }}
-                  onClick={() => router.push(item.href)}
-                >
-                  {renderIcon(item, pathname === item.href)}
-                </div>
-              </motion.div>
-            ))}
+                <FiUser size={20} />
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       )}

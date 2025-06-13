@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiBookOpen, FiPackage, FiClock, FiUsers, FiChevronRight } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { createPortal } from 'react-dom';
+import { useEffect, useState } from 'react';
 import { SearchResult } from '@/lib/hooks/useSearch';
 import UserSearchResults from '@/components/users/UserSearchResults';
 import styles from '../../app/app/styles.module.css';
@@ -26,6 +28,33 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   onSeeMore
 }) => {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    setMounted(true);
+    // Calculate position relative to search input
+    const updatePosition = () => {
+      const searchInput = document.querySelector('[data-search-container] input');
+      if (searchInput) {
+        const rect = searchInput.getBoundingClientRect();
+        setPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+          width: rect.width
+        });
+      }
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition);
+    
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition);
+    };
+  }, []);
 
   const recipeResults = results.filter(r => r.type === 'recipe');
   const pantryResults = results.filter(r => r.type === 'pantry_item');
@@ -73,10 +102,21 @@ const SearchResults: React.FC<SearchResultsProps> = ({
     }
   };
 
+  if (!mounted) return null;
+
+  const resultStyle = {
+    top: position.top,
+    left: position.left,
+    width: position.width,
+    minWidth: '400px',
+    maxWidth: '600px'
+  };
+
   if (loading) {
     return (
       <motion.div 
-        className={`${styles.searchResults} absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4`}
+        className={`${styles.searchResults} bg-white border border-gray-200 rounded-xl shadow-lg p-4`}
+        style={resultStyle}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
@@ -92,7 +132,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   if (error) {
     return (
       <motion.div 
-        className={`${styles.searchResults} absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4`}
+        className={`${styles.searchResults} bg-white border border-gray-200 rounded-xl shadow-lg p-4`}
+        style={resultStyle}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
@@ -107,7 +148,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
   if (results.length === 0 && query.length >= 2) {
     return (
       <motion.div 
-        className={`${styles.searchResults} absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4`}
+        className={`${styles.searchResults} bg-white border border-gray-200 rounded-xl shadow-lg p-4`}
+        style={resultStyle}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
@@ -126,7 +168,8 @@ const SearchResults: React.FC<SearchResultsProps> = ({
 
   return (
     <motion.div 
-      className={`${styles.searchResults} absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto`}
+      className={`${styles.searchResults} bg-white border border-gray-200 rounded-xl shadow-lg max-h-96 overflow-y-auto`}
+      style={resultStyle}
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
