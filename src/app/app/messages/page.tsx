@@ -319,25 +319,25 @@ export default function MessagesPage() {
     <DashboardLayout>
       {/* Header with Glassmorphism */}
       <motion.header 
-        className="sticky top-2 z-10 glass-effect rounded-xl  border-b border-white/20 p-6 mb-6"
+        className="sticky top-2 z-10 glass-effect rounded-xl border-b border-white/20 p-4 md:p-6 mb-4 md:mb-6"
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="flex items-center">
-          <h1 className="text-xl font-bold gradient-text">Mensagens</h1>
-          <div className="ml-auto flex items-center gap-4">
+          <h1 className="text-lg md:text-xl font-bold gradient-text">Mensagens</h1>
+          <div className="ml-auto flex items-center gap-2 md:gap-4">
             {loading ? (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <FiLoader className="animate-spin" size={16} />
-                <span>Carregando...</span>
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
+                <FiLoader className="animate-spin" size={14} />
+                <span className="hidden sm:inline">Carregando...</span>
               </div>
             ) : error ? (
-              <div className="flex items-center gap-2 text-sm text-red-600">
-                <span>{error}</span>
+              <div className="flex items-center gap-2 text-xs md:text-sm text-red-600">
+                <span className="truncate max-w-[120px] md:max-w-none">{error}</span>
               </div>
             ) : (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-gray-600">
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 <span>{conversations.filter(c => c.unread).length} não lidas</span>
               </div>
@@ -346,8 +346,8 @@ export default function MessagesPage() {
         </div>
       </motion.header>
 
-      <div className="px-6">
-        <div className="h-[calc(100vh-10rem)] md:p-10 flex gap-6 overflow-hidden">
+      <div className="px-3 md:px-6">
+        <div className="h-[calc(100vh-8rem)] md:h-[calc(100vh-10rem)] md:p-10 flex gap-3 md:gap-6 overflow-hidden">
           {/* Message List - Left Panel */}
           <AnimatePresence mode="wait">
             {(!isMobile || showConversations) && (
@@ -356,7 +356,7 @@ export default function MessagesPage() {
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -50, opacity: 0 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
-                className={isMobile ? 'w-full' : 'w-96'}
+                className={isMobile ? 'w-full' : 'w-80 md:w-96'}
               >
                 <MessageList 
                   conversations={conversations} 
