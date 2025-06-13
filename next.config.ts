@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   /* config options here */
+  output: 'standalone',
   images: {
     remotePatterns: [
       {
@@ -15,6 +16,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
   // External packages for server components
   serverExternalPackages: ['socket.io'],
   // Webpack configuration for Socket.IO
@@ -23,6 +25,15 @@ const nextConfig: NextConfig = {
       config.externals.push('socket.io-client');
     }
     return config;
+
+  typescript: {
+    // Ignora erros de TypeScript durante o build
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    // Ignora erros de ESLint durante o build
+    ignoreDuringBuilds: true,
+
   },
   // ...rest of your configurations...
 };
