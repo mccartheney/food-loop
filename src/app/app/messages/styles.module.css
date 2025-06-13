@@ -44,13 +44,18 @@
 }
 
 .messageCard {
-  background: rgba(255, 255, 255, 0.15);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.25) 0%, 
+    rgba(255, 255, 255, 0.18) 50%, 
+    rgba(255, 255, 255, 0.15) 100%
+  );
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 8px 32px 0 rgba(31, 38, 135, 0.37),
-    0 2px 16px 0 rgba(31, 38, 135, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    0 8px 32px 0 rgba(31, 38, 135, 0.2),
+    0 2px 16px 0 rgba(31, 38, 135, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .chatArea {
@@ -143,32 +148,149 @@
 /* Mobile optimizations */
 @media (max-width: 768px) {
   .messageCard {
+    background: linear-gradient(135deg, 
+      rgba(255, 255, 255, 0.35) 0%, 
+      rgba(255, 255, 255, 0.25) 50%, 
+      rgba(255, 255, 255, 0.20) 100%
+    );
     backdrop-filter: blur(15px);
-    margin: 0 0.5rem;
+    margin: 0;
+    border-radius: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 
+      0 4px 20px 0 rgba(31, 38, 135, 0.15),
+      0 1px 8px 0 rgba(31, 38, 135, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
   }
   
   .chatArea {
     backdrop-filter: blur(15px);
+    border-radius: 1rem;
+  }
+  
+  .conversationItem:hover {
+    transform: translateX(2px);
+    background: rgba(102, 126, 234, 0.12);
+  }
+  
+  .conversationItem {
+    transition: all 0.2s ease-out;
+  }
+  
+  .messageBubbleUser,
+  .messageBubbleRecipient {
+    border-radius: 1rem;
+  }
+  
+  .messageInput {
+    border-radius: 1rem;
+  }
+  
+  .sendButton {
+    border-radius: 1rem;
+  }
+  
+  .gradientAvatar {
+    animation: none; /* Reduce animations on mobile for better performance */
+  }
+  
+  .unreadBadge {
+    animation: none;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+    box-shadow: 0 0 8px rgba(255, 107, 107, 0.4);
+  }
+  
+  .onlineIndicator {
+    animation: none;
+    box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
   }
 }
 
-/* Custom scrollbar */
-.messagesScroll::-webkit-scrollbar {
-  width: 4px;
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  .conversationItem {
+    min-height: 72px; /* Ensure minimum touch target */
+  }
+  
+  .sendButton {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Improve text readability on small screens */
+  .messageBubbleUser p,
+  .messageBubbleRecipient p {
+    line-height: 1.4;
+  }
 }
 
-.messagesScroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+/* Performance optimizations for mobile */
+@media (max-width: 768px) {
+  .messageCard,
+  .chatArea {
+    will-change: transform;
+  }
+  
+  /* Reduce blur effects on very small screens for better performance */
+  @media (max-width: 480px) {
+    .messageCard {
+      background: linear-gradient(135deg, 
+        rgba(255, 255, 255, 0.45) 0%, 
+        rgba(255, 255, 255, 0.35) 50%, 
+        rgba(255, 255, 255, 0.30) 100%
+      );
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    
+    .chatArea {
+      backdrop-filter: blur(8px);
+    }
+    
+    .messageInput {
+      backdrop-filter: blur(6px);
+    }
+  }
 }
 
-.messagesScroll::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 10px;
+/* Custom scrollbar - Desktop only */
+@media (min-width: 769px) {
+  .messagesScroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .messagesScroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+
+  .messagesScroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .messagesScroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, rgba(118, 75, 162, 0.8) 0%, rgba(102, 126, 234, 0.8) 100%);
+  }
 }
 
-.messagesScroll::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+/* Mobile scrollbar - Hide custom scrollbar, use native */
+@media (max-width: 768px) {
+  .messagesScroll {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+  }
+  
+  .messagesScroll::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+  
+  /* Enable smooth native scrolling */
+  .messagesScroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
 }
 
 /* Typing animation */
