@@ -69,6 +69,33 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     setIsSearchOpen(false);
   };
 
+  // Mobile optimized navigation - only 5 essential items
+  const mobileNavItems: NavItem[] = [
+    { name: 'Home', href: '/app', icon: FiHome },
+    { name: 'Marketplace', href: '/app/marketplace', icon: LiaStoreAltSolid },
+    { name: 'Create Trade', href: '/app/marketplace/create', icon: FiPlus, isPrimary: true },
+    { name: 'Friends', href: '/app/friends', icon: FiUsers },
+    {
+      name: 'Pantry',
+      href: '/app/pantry',
+      icon: (isActive: boolean, isHovered?: boolean) => (
+        <div className="relative w-5 h-5">
+          <Image
+            src="/pantry.svg"
+            alt="Pantry"
+            width={20}
+            height={20}
+            className={`w-full h-full transition-opacity duration-200 ${
+              isActive ? 'filter brightness-0 invert' : ''
+            }`}
+          />
+        </div>
+      ),
+      isCustomIcon: true
+    }
+  ];
+
+  // Desktop navigation - full items
   const navItems: NavItem[] = [
     { name: 'Home', href: '/app', icon: FiHome },
     { name: 'Marketplace', href: '/app/marketplace', icon: LiaStoreAltSolid },
@@ -94,7 +121,6 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { name: 'Recipes', href: '/app/recipes', icon: PiChefHatLight },
     { name: 'Friends', href: '/app/friends', icon: FiUsers },
     { name: 'Create Trade', href: '/app/marketplace/create', icon: FiPlus, isPrimary: true },
-    { name: 'MyProfile', href: '/app/myprofile', icon: FiUser }
   ];
 
   const renderIcon = (item: NavItem, isActive: boolean) => {
@@ -392,7 +418,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               boxShadow: '0 -8px 32px 0 rgba(31, 38, 135, 0.15)'
             }}
           >
-            {navItems.map((item) => (
+            {mobileNavItems.map((item) => (
               <Link
                 key={item.name}
                 href={item.href}
