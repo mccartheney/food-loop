@@ -15,10 +15,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // External packages for server components
+  serverExternalPackages: ['socket.io'],
+  // Webpack configuration for Socket.IO
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.externals.push('socket.io-client');
+    }
+    return config;
+  },
   // ...rest of your configurations...
 };
 
 export default nextConfig;
-
-// If you are using ES Modules (next.config.mjs):
-// export default nextConfig;
